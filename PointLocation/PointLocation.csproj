@@ -47,15 +47,5 @@
     <Compile Include="Trapezoid.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HexGrid\HexGrid.csproj">
-      <Project>{d362cd8c-eb73-4ede-8fc4-1bea2a4d85ba}</Project>
-      <Name>HexGrid</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\RandomExtended\RandomExtended.csproj">
-      <Project>{b91e4b0c-4eb4-4b18-bdbf-d7f9f873c56a}</Project>
-      <Name>RandomExtended</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

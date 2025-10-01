@@ -82,10 +82,6 @@
     <Compile Include="WorldGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HexGrid\HexGrid.csproj">
-      <Project>{d362cd8c-eb73-4ede-8fc4-1bea2a4d85ba}</Project>
-      <Name>HexGrid</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Parameters\Parameters.csproj">
       <Project>{94acd80b-bc0c-4fb5-bf22-f12018f70fd8}</Project>
       <Name>Parameters</Name>
@@ -101,6 +97,10 @@
     <ProjectReference Include="..\RandomExtended\RandomExtended.csproj">
       <Project>{b91e4b0c-4eb4-4b18-bdbf-d7f9f873c56a}</Project>
       <Name>RandomExtended</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Topology\Topology.csproj">
+      <Project>{e2553b10-c82c-43c6-8482-08c6b6ef0c6b}</Project>
+      <Name>Topology</Name>
     </ProjectReference>
     <ProjectReference Include="..\Utilities\Utilities.csproj">
       <Project>{5f5e0a1f-2ad3-465c-9bd4-6d9d060a54a2}</Project>

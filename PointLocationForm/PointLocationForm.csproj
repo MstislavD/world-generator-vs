@@ -84,21 +84,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HexGrid\HexGrid.csproj">
-      <Project>{d362cd8c-eb73-4ede-8fc4-1bea2a4d85ba}</Project>
-      <Name>HexGrid</Name>
-    </ProjectReference>
     <ProjectReference Include="..\PointLocation\PointLocation.csproj">
       <Project>{5803e721-6446-4b54-a4c9-03d629fbb07e}</Project>
       <Name>PointLocation</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\RandomExtended\RandomExtended.csproj">
-      <Project>{b91e4b0c-4eb4-4b18-bdbf-d7f9f873c56a}</Project>
-      <Name>RandomExtended</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WorldSim\WorldSim.csproj">
-      <Project>{39bbbfda-892f-4e15-a58e-e81663000476}</Project>
-      <Name>WorldSim</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

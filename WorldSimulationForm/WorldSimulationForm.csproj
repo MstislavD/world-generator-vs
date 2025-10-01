@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\desert_seamless.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Parameters\Parameters.csproj" />
+    <ProjectReference Include="..\RandomExtension\RandomExtension.csproj" />
+    <ProjectReference Include="..\Topology\Topology.csproj" />
+    <ProjectReference Include="..\Utilities\Utilities.csproj" />
+    <ProjectReference Include="..\WorldSimulation\WorldSimulation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="LogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="PaediaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="ParameterForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="WorldSimulatorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>
