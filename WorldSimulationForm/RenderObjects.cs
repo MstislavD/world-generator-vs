@@ -1,13 +1,13 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using HexGrid;
+using Topology;
 
 namespace WorldSimulator
 {
     class RenderObjects
     {
         public double Multiplier;
-        public Vertex Origin;
+        public Vector2 Origin;
         public double Scale;
         public List<ImageData> Images { get; } = new List<ImageData>();
         public List<SegmentData> Segments { get; } = new List<SegmentData>();

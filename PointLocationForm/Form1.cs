@@ -1,4 +1,4 @@
-﻿using HexGrid;
+﻿using Topology;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -144,13 +144,13 @@ namespace PointLocationForm
             _regions = new List<Region>();
             if (_graph == null)
             {                
-                _regions.Add(new Region(new Vertex[] { new Vertex(4.3, 0.4), new Vertex(5.1, 1.3), new Vertex(5.6, 2.3), new Vertex(3.9, 2.8), new Vertex(2.7, 0.8) }));
-                _regions.Add(new Region(new Vertex[] { new Vertex(2.7, 0.8), new Vertex(3.9, 2.8), new Vertex(3.2, 3.2), new Vertex(1.1, 2.5), new Vertex(1.6, 1.4) }));
-                _regions.Add(new Region(new Vertex[] { new Vertex(5.1, 1.3), new Vertex(5.8, 1.8), new Vertex(5.6, 2.3) }));
-                _regions.Add(new Region(new Vertex[] { new Vertex(1.1, 2.5), new Vertex(3.2, 3.2), new Vertex(1.4, 4.1), new Vertex(0.4, 3.2) }));
-                _regions.Add(new Region(new Vertex[] { new Vertex(3.9, 2.8), new Vertex(6.0, 4.1), new Vertex(2.5, 4.4), new Vertex(1.4, 4.1), new Vertex(3.2, 3.2) }));
-                _regions.Add(new Region(new Vertex[] { new Vertex(6.0, 4.1), new Vertex(5.3, 5.5), new Vertex(4.4, 4.8), new Vertex(0.9, 5.5), new Vertex(2.5, 4.4) }));
-                _regions.Add(new Region(new Vertex[] { new Vertex(4.4, 4.8), new Vertex(5.3, 5.5), new Vertex(4.2, 6.0), new Vertex(3.4, 5.5), new Vertex(2.3, 6.0), new Vertex(0.9, 5.5) }));
+                _regions.Add(new Region(new Vector2[] { new Vector2(4.3, 0.4), new Vector2(5.1, 1.3), new Vector2(5.6, 2.3), new Vector2(3.9, 2.8), new Vector2(2.7, 0.8) }));
+                _regions.Add(new Region(new Vector2[] { new Vector2(2.7, 0.8), new Vector2(3.9, 2.8), new Vector2(3.2, 3.2), new Vector2(1.1, 2.5), new Vector2(1.6, 1.4) }));
+                _regions.Add(new Region(new Vector2[] { new Vector2(5.1, 1.3), new Vector2(5.8, 1.8), new Vector2(5.6, 2.3) }));
+                _regions.Add(new Region(new Vector2[] { new Vector2(1.1, 2.5), new Vector2(3.2, 3.2), new Vector2(1.4, 4.1), new Vector2(0.4, 3.2) }));
+                _regions.Add(new Region(new Vector2[] { new Vector2(3.9, 2.8), new Vector2(6.0, 4.1), new Vector2(2.5, 4.4), new Vector2(1.4, 4.1), new Vector2(3.2, 3.2) }));
+                _regions.Add(new Region(new Vector2[] { new Vector2(6.0, 4.1), new Vector2(5.3, 5.5), new Vector2(4.4, 4.8), new Vector2(0.9, 5.5), new Vector2(2.5, 4.4) }));
+                _regions.Add(new Region(new Vector2[] { new Vector2(4.4, 4.8), new Vector2(5.3, 5.5), new Vector2(4.2, 6.0), new Vector2(3.4, 5.5), new Vector2(2.3, 6.0), new Vector2(0.9, 5.5) }));
             }
             else
             {
@@ -374,10 +374,10 @@ namespace PointLocationForm
             }
         }
 
-        PointF _fromVertex(Vertex v, double scale) => new PointF((float)(v.X * scale), (float)(v.Y * scale));
+        PointF _fromVertex(Vector2 v, double scale) => new PointF((float)(v.X * scale), (float)(v.Y * scale));
 
         //PointF _fromVertex(Vertex v, double scale, float height) => new PointF((float)(v.X * scale), (float)((height - v.Y) * scale));
 
-        PointF _fromVertex(Vertex v, double scale, float shift) => new PointF((float)(v.X * scale + shift), (float)(v.Y * scale + shift));
+        PointF _fromVertex(Vector2 v, double scale, float shift) => new PointF((float)(v.X * scale + shift), (float)(v.Y * scale + shift));
     }
 }

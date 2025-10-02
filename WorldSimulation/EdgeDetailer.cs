@@ -1,4 +1,4 @@
-﻿using HexGrid;
+﻿using Topology;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,19 +13,19 @@ namespace WorldSimulation
         {
             foreach (SubregionEdge edge in graph.Subregions.SelectMany(subregion => subregion.Edges))
             {
-                List<Vertex> edgeVertices = edge.Vertices.ToList();
+                List<Vector2> edgeVertices = edge.Vertices.ToList();
                 edge.ClearVertices();
-                Vertex previousVertex = null;
-                foreach (Vertex vertex in edgeVertices)
+                Vector2 previousVertex = null;
+                foreach (Vector2 vertex in edgeVertices)
                 {
                     if (previousVertex != null)
                     {
-                        double distance = Vertex.Distance(vertex, previousVertex);
+                        double distance = Vector2.Distance(vertex, previousVertex);
                         int newVerticesCount = (int)(distance / threshold);
                         for (int i = 0; i < newVerticesCount - 1; i++)
                         {
                             double delta = (i + 1) / (double)newVerticesCount;
-                            Vertex v = Vertex.Between(previousVertex, vertex, delta);
+                            Vector2 v = Vector2.Between(previousVertex, vertex, delta);
                             edge.AddVertex(v);
                         }
                     }

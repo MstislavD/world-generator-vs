@@ -1,4 +1,4 @@
-﻿namespace PerlinNoise
+﻿namespace Perlin
 {
     public struct Point
     {

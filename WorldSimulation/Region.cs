@@ -1,4 +1,4 @@
-﻿using HexGrid;
+﻿using Topology;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,19 +35,19 @@ namespace WorldSimulation
         public int PopCount() => _pops.Count;
         public int PopCount(Race race) => _pops.Count(p => p.Race == race);
         public int Size => _subregions.Count;
-        public Vertex Center
+        public Vector2 Center
         {
             get
             {
                 double width = _map.Generator.SubregionGraph.Width;
                 double halfWidth = width / 2;
-                Vertex center = new Vertex(0, 0);
-                Vertex worldShift = width * new Vertex(1, 0);
+                Vector2 center = new Vector2(0, 0);
+                Vector2 worldShift = width * new Vector2(1, 0);
                 int totalSize = 0;
 
                 foreach (Subregion subregion in _subregions)
                 {
-                    Vertex subregionCenter = new Vertex(subregion.Center);
+                    Vector2 subregionCenter = new Vector2(subregion.Center);
 
                     if (totalSize > 0)
                     {
@@ -68,7 +68,7 @@ namespace WorldSimulation
                         center += worldShift;
                 }
 
-                return new Vertex(Math.Round(center.X, 1), Math.Round(center.Y, 1));
+                return new Vector2(Math.Round(center.X, 1), Math.Round(center.Y, 1));
 
                 //return new Vertex(Math.Round(_subregions.Average(s => s.Center.X), 1), Math.Round(_subregions.Average(s => s.Center.Y), 1));
             }

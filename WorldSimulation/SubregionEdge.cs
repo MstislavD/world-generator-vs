@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
-using HexGrid;
+using Topology;
 
 namespace WorldSimulation
 {
     public class SubregionEdge
     {
-        List<Vertex> _vertices = new List<Vertex>();
-        public void AddVertex(Vertex vertex) => _vertices.Add(vertex);
-        public IEnumerable<Vertex> Vertices => _vertices;
-        public void ClearVertices() => _vertices = new List<Vertex>();
+        List<Vector2> _vertices = new List<Vector2>();
+        public void AddVertex(Vector2 vertex) => _vertices.Add(vertex);
+        public IEnumerable<Vector2> Vertices => _vertices;
+        public void ClearVertices() => _vertices = new List<Vector2>();
         public SubregionEdge PrevEdge { get; set; }
         public SubregionEdge NextEdge { get; set; }
-        public Vertex Center { get; set; }
+        public Vector2 Center { get; set; }
         public IEnumerable<Edge> Edges
         {
             get

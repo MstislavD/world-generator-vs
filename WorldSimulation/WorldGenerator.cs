@@ -1,4 +1,4 @@
-﻿using HexGrid;
+﻿using Topology;
 using RandomExtension;
 using System;
 using System.Collections.Generic;
@@ -211,17 +211,17 @@ namespace WorldSimulation
             }
         }
 
-        public Vertex Center(Region region)
+        public Vector2 Center(Region region)
         {
             double width = SubregionGraph.Width;
             double halfWidth = width / 2;
-            Vertex center = new Vertex(0, 0);
-            Vertex worldShift = width * new Vertex(1, 0);
+            Vector2 center = new Vector2(0, 0);
+            Vector2 worldShift = width * new Vector2(1, 0);
             int totalSize = 0;
 
             foreach (Subregion subregion in region.Subregions)
             {
-                Vertex subregionCenter = new Vertex(subregion.Center);
+                Vector2 subregionCenter = new Vector2(subregion.Center);
 
                 if (totalSize > 0)
                 {

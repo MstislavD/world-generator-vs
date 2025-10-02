@@ -1,4 +1,4 @@
-﻿using HexGrid;
+﻿using Topology;
 using PointLocation;
 using System;
 using System.Collections.Generic;
@@ -40,7 +40,7 @@ namespace PointLocationForm
             double y1 = Math.Round(edge.Vertex1.Y, precision);
             double x2 = Math.Round(edge.Vertex2.X, precision);
             double y2 = Math.Round(edge.Vertex2.Y, precision);
-            return new Edge() { Vertex1 = new Vertex(x1, y1), Vertex2 = new Vertex(x2, y2) };
+            return new Edge() { Vertex1 = new Vector2(x1, y1), Vertex2 = new Vector2(x2, y2) };
         }
     }
 }

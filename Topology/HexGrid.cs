@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HexGrid
+namespace Topology
 {
     public class Grid
     {
@@ -106,7 +106,7 @@ namespace HexGrid
             double centerX = (x + 0.5 + 0.5 * evenRow) * _hexWidth;
             double centerY = (y * 3 + 2) * _hexHalfSide;
 
-            cell.Center = new Vertex(centerX, centerY);
+            cell.Center = new Vector2(centerX, centerY);
             cell.GridPositionX = x;
             cell.GridPositionY = y;
         }
@@ -159,8 +159,8 @@ namespace HexGrid
             HexCell cell = _cells[x, y];
             int evenRow = y % 2;
 
-            Vertex up = _addVertexToCell(cell, 0, cell.Center.X, cell.Center.Y - _hexSide);
-            Vertex down = _addVertexToCell(cell, 3, cell.Center.X, cell.Center.Y + _hexSide);
+            Vector2 up = _addVertexToCell(cell, 0, cell.Center.X, cell.Center.Y - _hexSide);
+            Vector2 down = _addVertexToCell(cell, 3, cell.Center.X, cell.Center.Y + _hexSide);
 
             if (y == 0 || (x == Width - 1 && evenRow == 1))
             {
@@ -199,9 +199,9 @@ namespace HexGrid
             }
         }
 
-        Vertex _addVertexToCell(HexCell cell, int direction, double x, double y)
+        Vector2 _addVertexToCell(HexCell cell, int direction, double x, double y)
         {
-            Vertex vertex = new Vertex(x, y);
+            Vector2 vertex = new Vector2(x, y);
             cell.AddVertex(vertex, direction);
             return vertex;
         }

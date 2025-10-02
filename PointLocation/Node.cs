@@ -1,10 +1,10 @@
-﻿using HexGrid;
+﻿using Topology;
 
 namespace PointLocation
 {
     public class Node
     {
-        public Vertex Vertex { get; set; }
+        public Vector2 Vertex { get; set; }
         public Edge Edge { get; set; }
         public Trapezoid Trapezoid { get; set; }
         public Node Left { get; set; }

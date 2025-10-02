@@ -1,17 +1,17 @@
-﻿using HexGrid;
+﻿using Topology;
 using System.Drawing;
 
 namespace WorldSimulator
 {
     struct ImageData
     {
-        public Vertex Vertex;
+        public Vector2 Vertex;
         public Image Image;
         public bool Stretch;
         public float Scale;
 
-        public ImageData(Vertex vertex, Image image) : this(vertex, image, 1.0f) { }
-        public ImageData(Vertex vertex, Image image, float scale)
+        public ImageData(Vector2 vertex, Image image) : this(vertex, image, 1.0f) { }
+        public ImageData(Vector2 vertex, Image image, float scale)
         {
             Vertex = vertex;
             Image = image;

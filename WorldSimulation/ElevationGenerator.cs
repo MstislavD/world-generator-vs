@@ -1,4 +1,4 @@
-﻿using HexGrid;
+﻿using Topology;
 using RandomExtension;
 using System;
 using System.Collections.Generic;
@@ -63,7 +63,7 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        private static void _createShallowSeas(WorldGenerator generator, HexGrid.Grid grid, RandomExt random)
+        private static void _createShallowSeas(WorldGenerator generator, Topology.Grid grid, RandomExt random)
         {
             List<HexCell> seaCells = grid.Cells.Where(generator.IsSea).ToList();
             int shallowCount = seaCells.Count - (int)(generator.Parameters.DeepPct.Current.DoubleValue * seaCells.Count);
@@ -74,7 +74,7 @@ namespace WorldSimulation
             };
         }
 
-        public static void GenerateScriptPangea(WorldGenerator generator, HexGrid.Grid grid, RandomExt random)
+        public static void GenerateScriptPangea(WorldGenerator generator, Topology.Grid grid, RandomExt random)
         {
             int center = grid.Width / 2;
             int landCount = grid.CellCount - (int)(generator.SeaPct * grid.CellCount);
@@ -105,7 +105,7 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        public static void GenerateScriptTwoContinents(WorldGenerator generator, HexGrid.Grid grid, RandomExt random)
+        public static void GenerateScriptTwoContinents(WorldGenerator generator, Topology.Grid grid, RandomExt random)
         {
             HashSet<HexCell> continentCells = new HashSet<HexCell>();
 
@@ -148,7 +148,7 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        public static void GenerateScriptThreeContinents(WorldGenerator generator, HexGrid.Grid grid, RandomExt random)
+        public static void GenerateScriptThreeContinents(WorldGenerator generator, Topology.Grid grid, RandomExt random)
         {
             HashSet<HexCell> continentCells = new HashSet<HexCell>();
             HashSet<HexCell> continentCellsTmp = new HashSet<HexCell>();

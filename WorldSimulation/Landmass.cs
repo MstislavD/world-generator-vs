@@ -1,4 +1,4 @@
-﻿using HexGrid;
+﻿using Topology;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,18 +26,18 @@ namespace WorldSimulation
         public IEnumerable<Region> Regions => _regions;
         public IEnumerable<Landmass> Neighbors => _neighbors;
         public int Seed { get; private set; }
-        public Vertex Center
+        public Vector2 Center
         {
             get
             {
-                Vertex center = new Vertex(0, 0);
-                Vertex worldShift = _generator.SubregionGraph.Width * new Vertex(1, 0);
+                Vector2 center = new Vector2(0, 0);
+                Vector2 worldShift = _generator.SubregionGraph.Width * new Vector2(1, 0);
                 double halfWidth = _generator.SubregionGraph.Width / 2;
                 int totalSize = 0;
 
                 foreach(Region region in _regions)
                 {
-                    Vertex regionCenter = new Vertex(region.Center);                   
+                    Vector2 regionCenter = new Vector2(region.Center);                   
 
                     if (totalSize > 0)
                     {

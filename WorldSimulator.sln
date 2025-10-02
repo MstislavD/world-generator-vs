@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34408.163
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Perlin", "Perlin\Perlin.csproj", "{2C7C5DC7-2856-415F-811C-476820E4B215}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldSimulation", "WorldSimulation\WorldSimulation.csproj", "{D1F8C726-F2FB-459B-820C-AEAE2E5FE80A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldSimulationForm", "WorldSimulationForm\WorldSimulationForm.csproj", "{DFE64FEB-BC8E-441B-BF65-2912EA90BC4F}"
@@ -21,16 +19,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointLocation", "PointLocat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointLocationForm", "PointLocationForm\PointLocationForm.csproj", "{3E4169A0-50A2-4E71-8149-62FCB782375C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerlinNoise", "PerlinNoise\PerlinNoise.csproj", "{4DA84842-E80E-031D-A9B4-4A2BFFB78B3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2C7C5DC7-2856-415F-811C-476820E4B215}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2C7C5DC7-2856-415F-811C-476820E4B215}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2C7C5DC7-2856-415F-811C-476820E4B215}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2C7C5DC7-2856-415F-811C-476820E4B215}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D1F8C726-F2FB-459B-820C-AEAE2E5FE80A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D1F8C726-F2FB-459B-820C-AEAE2E5FE80A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1F8C726-F2FB-459B-820C-AEAE2E5FE80A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -63,6 +59,10 @@ Global
 		{3E4169A0-50A2-4E71-8149-62FCB782375C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E4169A0-50A2-4E71-8149-62FCB782375C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E4169A0-50A2-4E71-8149-62FCB782375C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DA84842-E80E-031D-A9B4-4A2BFFB78B3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DA84842-E80E-031D-A9B4-4A2BFFB78B3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DA84842-E80E-031D-A9B4-4A2BFFB78B3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DA84842-E80E-031D-A9B4-4A2BFFB78B3D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

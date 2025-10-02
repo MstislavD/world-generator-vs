@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HexGrid;
+using Topology;
 
 namespace PointLocation
 {
@@ -11,8 +11,8 @@ namespace PointLocation
     {
         public Edge Top { get; set; }
         public Edge Bottom { get; set; }
-        public Vertex Left { get; set; }
-        public Vertex Right { get; set; }
+        public Vector2 Left { get; set; }
+        public Vector2 Right { get; set; }
         public Trapezoid UpperLeft { get; set; }
         public Trapezoid LowerLeft { get; set; }
         public Trapezoid UpperRight { get; set; }

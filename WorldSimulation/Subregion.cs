@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using HexGrid;
+using Topology;
 
 namespace WorldSimulation
 {
@@ -32,9 +32,9 @@ namespace WorldSimulation
         public Region Region { get; internal set; }
         public Edge ParentEdge { get; set; }
         public HexCell ParentCell { get; set; }
-        public Vertex Center { get; set; }
+        public Vector2 Center { get; set; }
         public void AddNeighbor(Subregion neighbor, SubregionEdge sEdge) => _neighborByEdge[sEdge] = neighbor;
-        public IEnumerable<Vertex> Vertices => _edges.SelectMany(e => e.Vertices).Distinct();
+        public IEnumerable<Vector2> Vertices => _edges.SelectMany(e => e.Vertices).Distinct();
         public IEnumerable<SubregionEdge> Edges => _edges;
         public IEnumerable<Edge> BaseEdges => _edges.SelectMany(e => e.Edges);
         public Subregion GetNeighbor(SubregionEdge edge) => _neighborByEdge[edge];

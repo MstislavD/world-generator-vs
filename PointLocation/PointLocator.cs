@@ -1,4 +1,4 @@
-﻿using HexGrid;
+﻿using Topology;
 using RandomExtension;
 using System;
 using System.Collections.Generic;
@@ -58,10 +58,10 @@ namespace PointLocation
             _root = new Node();
 
             _root.Trapezoid = new Trapezoid();
-            _root.Trapezoid.Left = new Vertex(partition.Left, partition.Top);
-            _root.Trapezoid.Right = new Vertex(partition.Right, partition.Bottom);
-            _root.Trapezoid.Bottom = new Edge() { Vertex1 = new Vertex(partition.Left, partition.Bottom), Vertex2 = _root.Trapezoid.Right };
-            _root.Trapezoid.Top = new Edge() { Vertex1 = _root.Trapezoid.Left, Vertex2 = new Vertex(partition.Right, partition.Top) };
+            _root.Trapezoid.Left = new Vector2(partition.Left, partition.Top);
+            _root.Trapezoid.Right = new Vector2(partition.Right, partition.Bottom);
+            _root.Trapezoid.Bottom = new Edge() { Vertex1 = new Vector2(partition.Left, partition.Bottom), Vertex2 = _root.Trapezoid.Right };
+            _root.Trapezoid.Top = new Edge() { Vertex1 = _root.Trapezoid.Left, Vertex2 = new Vector2(partition.Right, partition.Top) };
             _root.Trapezoid.Node = _root;
 
 
@@ -86,7 +86,7 @@ namespace PointLocation
         Trapezoid _getTrapezoid(double x, double y)
         {
             Node node = _root;
-            Vertex vertex = new Vertex(x, y);
+            Vector2 vertex = new Vector2(x, y);
 
             while (node.Trapezoid == null)
             {
@@ -120,7 +120,7 @@ namespace PointLocation
         public TRegion GetRegion(double x, double y)
         {
             Node node = _root;
-            Vertex vertex = new Vertex(x, y);
+            Vector2 vertex = new Vector2(x, y);
 
             while (node.Trapezoid == null)
             {
@@ -167,8 +167,8 @@ namespace PointLocation
 
             Node node = _root;
 
-            Vertex leftVertex = edge.Left;
-            Vertex rightVertex = edge.Right;
+            Vector2 leftVertex = edge.Left;
+            Vector2 rightVertex = edge.Right;
 
             while (node.Trapezoid == null)
             {
@@ -196,7 +196,7 @@ namespace PointLocation
                     }
                     else
                     {
-                        Vertex vertex = _compareX(leftVertex, node.Edge.Left) == 0 ? rightVertex : leftVertex;
+                        Vector2 vertex = _compareX(leftVertex, node.Edge.Left) == 0 ? rightVertex : leftVertex;
 
                         if (_vertexIsAbove(vertex, node.Edge, epsilon))
                         {
@@ -236,7 +236,7 @@ namespace PointLocation
                     trapezoid = trapezoid.LowerRight;
                 else if (rightVertex.X > trapezoid.Right.X)
                 {
-                    Vertex intersection = edge.GetIntersectionByX(trapezoid.Right.X);
+                    Vector2 intersection = edge.GetIntersectionByX(trapezoid.Right.X);
                     trapezoid = _getTrapezoid(trapezoid.Right.X + 0.000001, intersection.Y);
                 }
                 else
@@ -251,8 +251,8 @@ namespace PointLocation
 
         private List<Trapezoid> _partitionTrapezoid(Trapezoid tr0, Edge edge, List<Trapezoid> previousTrapezoids = null)
         {
-            Vertex leftVertex = edge.Vertex1.X < edge.Vertex2.X ? edge.Vertex1 : edge.Vertex2;
-            Vertex rightVertex = edge.Vertex1.X < edge.Vertex2.X ? edge.Vertex2 : edge.Vertex1;
+            Vector2 leftVertex = edge.Vertex1.X < edge.Vertex2.X ? edge.Vertex1 : edge.Vertex2;
+            Vector2 rightVertex = edge.Vertex1.X < edge.Vertex2.X ? edge.Vertex2 : edge.Vertex1;
 
             Trapezoid trA = new Trapezoid();
             Trapezoid trB = new Trapezoid();
@@ -473,7 +473,7 @@ namespace PointLocation
 
 
 
-        bool _vertexIsAbove(Vertex v, Edge e, double epsilon)
+        bool _vertexIsAbove(Vector2 v, Edge e, double epsilon)
         {
             double x1 = v.X - e.Left.X;
             double y1 = v.Y - e.Left.Y;
@@ -483,7 +483,7 @@ namespace PointLocation
             return x1 * y2 - y1 * x2 < 0;
         }
 
-        int _compareX(Vertex v1, Vertex v2)
+        int _compareX(Vector2 v1, Vector2 v2)
         {
             if (v1.X < v2.X)
             {

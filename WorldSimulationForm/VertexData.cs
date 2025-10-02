@@ -1,14 +1,14 @@
-﻿using HexGrid;
+﻿using Topology;
 using System.Drawing;
 
 namespace WorldSimulator
 {
     struct VertexData
     {
-        public Vertex Vertex;
+        public Vector2 Vertex;
         public Brush Brush;
 
-        public VertexData(Vertex vertex, Brush brush)
+        public VertexData(Vector2 vertex, Brush brush)
         {
             Vertex = vertex;
             Brush = brush;

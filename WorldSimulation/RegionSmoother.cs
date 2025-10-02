@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HexGrid;
+using Topology;
 
 namespace WorldSimulation
 {
@@ -15,7 +15,7 @@ namespace WorldSimulation
             {
                 for (int i = 0; i < 2; i++)
                 {
-                    Vertex v = cell.GetVertex(i * 3);
+                    Vector2 v = cell.GetVertex(i * 3);
                     HexCell n1 = cell.GetNeighbor(i == 0 ? 5 : (i * 3 - 1));
                     HexCell n2 = cell.GetNeighbor(i * 3);
 
@@ -72,7 +72,7 @@ namespace WorldSimulation
             }
         }
 
-        static void _moveVertex(Grid grid, Vertex v, Vertex target)
+        static void _moveVertex(Grid grid, Vector2 v, Vector2 target)
         {
             double dx = target.X - v.X;
             if (dx < -grid.XDimension / 2)

@@ -1,4 +1,4 @@
-﻿using HexGrid;
+﻿using Topology;
 using RandomExtension;
 using System;
 using System.Collections.Generic;
@@ -58,9 +58,9 @@ namespace WorldSimulation
             return new ExpandedHexGrid() {Grid = expandedGrid, ParentGrid = grid, ParentByCell = parentByCell, ChildrenByCell = childrenByCell };
         }
 
-        static public ExpandedHexGrid Expand(HexGrid.Grid grid, RandomExt random)
+        static public ExpandedHexGrid Expand(Topology.Grid grid, RandomExt random)
         {
-            HexGrid.Grid expandedGrid = new HexGrid.Grid(grid.Width * 2, grid.Height * 2 - 1);
+            Topology.Grid expandedGrid = new Topology.Grid(grid.Width * 2, grid.Height * 2 - 1);
             Dictionary<HexCell, HexCell> parentByCellTmp = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, HexCell> parentByCell = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, List<HexCell>> childrenByCell = new Dictionary<HexCell, List<HexCell>>();
@@ -96,9 +96,9 @@ namespace WorldSimulation
             return new ExpandedHexGrid() { Grid = expandedGrid, ParentGrid = grid, ParentByCell = parentByCell, ChildrenByCell = childrenByCell };
         }
 
-        static public ExpandedHexGrid Expand(HexGrid.Grid grid, RandomExt random, int sizeVariance)
+        static public ExpandedHexGrid Expand(Topology.Grid grid, RandomExt random, int sizeVariance)
         {
-            HexGrid.Grid expandedGrid = new HexGrid.Grid(grid.Width * 2, grid.Height * 2 - 1);
+            Topology.Grid expandedGrid = new Topology.Grid(grid.Width * 2, grid.Height * 2 - 1);
             Dictionary<HexCell, HexCell> parentByCellTmp = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, HexCell> parentByCell = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, int> sizeByParentCell = new Dictionary<HexCell, int>();

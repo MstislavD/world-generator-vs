@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using HexGrid;
+using Topology;
 using RandomExtension;
 using WorldSimulation;
 using Utilities;
@@ -39,7 +39,7 @@ namespace WorldSimulator
         Bitmap _image;
 
         double _multiplier = 0;
-        Vertex _origin = new Vertex(0, 0);
+        Vector2 _origin = new Vector2(0, 0);
         LogForm _logForm;
         bool _printLog = false;
         PaediaForm _paediaForm;
@@ -413,7 +413,7 @@ namespace WorldSimulator
             else if (e.KeyCode == Keys.Home)
             {
                 _multiplier = 0;
-                _origin = new Vertex(0, 0);
+                _origin = new Vector2(0, 0);
                 _redrawMap(sender, e);
             }      
             else if (e.KeyCode == Keys.D)
@@ -588,10 +588,10 @@ namespace WorldSimulator
                 objects.Segments.AddRange(edges.Select(e => new SegmentData(e, Pens.Black)));
                 objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
 
-                IEnumerable<Vertex[]> cellRivers = grid.Cells.Where(_generator.IsLand).Where(_generator.HasRiver).Select(c => new Vertex[] { c.Center, _generator.GetDrainage(c).Center });
+                IEnumerable<Vector2[]> cellRivers = grid.Cells.Where(_generator.IsLand).Where(_generator.HasRiver).Select(c => new Vector2[] { c.Center, _generator.GetDrainage(c).Center });
                 objects.Segments.AddRange(cellRivers.Select(s => new SegmentData(s, Color.Blue)));
 
-                IEnumerable<Vertex[]> edgeRivers = grid.Edges.Where(_generator.HasRidge).Where(_generator.HasRiver).Select(e => new Vertex[] { e.Center, _generator.GetDrainage(e).Center });
+                IEnumerable<Vector2[]> edgeRivers = grid.Edges.Where(_generator.HasRidge).Where(_generator.HasRiver).Select(e => new Vector2[] { e.Center, _generator.GetDrainage(e).Center });
                 objects.Segments.AddRange(edgeRivers.Select(s => new SegmentData(s, Color.Blue)));
             }
 
@@ -844,7 +844,7 @@ namespace WorldSimulator
                     Pen arrow = new Pen(Color.Black, 5);
                     arrow.StartCap = System.Drawing.Drawing2D.LineCap.Round;
                     arrow.EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
-                    Vertex[] vertices = new Vertex[] { _currentEvent.Origin.Center, _currentEvent.Destination.Center };
+                    Vector2[] vertices = new Vector2[] { _currentEvent.Origin.Center, _currentEvent.Destination.Center };
                     objects.Segments.Add(new SegmentData(vertices, arrow));
 
                     arrow = new Pen(Color.Red, 3);
@@ -901,13 +901,13 @@ namespace WorldSimulator
             {
                 foreach(Landmass neighbor in landmass.Neighbors)
                 {
-                    Vertex nCenter = new Vertex( neighbor.Center);
+                    Vector2 nCenter = new Vector2( neighbor.Center);
                     if (nCenter.X - landmass.Center.X > _generator.SubregionGraph.Width / 2)
                         nCenter.X -= _generator.SubregionGraph.Width;
                     else if (nCenter.X - landmass.Center.X < -_generator.SubregionGraph.Width / 2)
                         nCenter.X += _generator.SubregionGraph.Width;
 
-                    objects.Segments.Add(new SegmentData(new Vertex[] { landmass.Center, nCenter }, Pens.Black));
+                    objects.Segments.Add(new SegmentData(new Vector2[] { landmass.Center, nCenter }, Pens.Black));
                 }
             }
 
@@ -938,13 +938,13 @@ namespace WorldSimulator
             {
                 for (int j = 0; j < verRes; j++)
                 {
-                    Vertex[] v = new Vertex[4];
-                    v[0] = new Vertex(cellSize * i, cellSize * j);
-                    v[1] = new Vertex(cellSize * (i + 1), cellSize * j);
-                    v[2] = new Vertex(cellSize * (i + 1), cellSize * (j + 1));
-                    v[3] = new Vertex(cellSize * i, cellSize * (j + 1));
+                    Vector2[] v = new Vector2[4];
+                    v[0] = new Vector2(cellSize * i, cellSize * j);
+                    v[1] = new Vector2(cellSize * (i + 1), cellSize * j);
+                    v[2] = new Vector2(cellSize * (i + 1), cellSize * (j + 1));
+                    v[3] = new Vector2(cellSize * i, cellSize * (j + 1));
 
-                    Vertex c = new Vertex(cellSize * (i + 0.5), cellSize * (j + 0.5));
+                    Vector2 c = new Vector2(cellSize * (i + 0.5), cellSize * (j + 0.5));
                     Subregion subregion = graph.Locator.GetRegion(c.X, c.Y);
 
                     if (subregion == null)
@@ -981,7 +981,7 @@ namespace WorldSimulator
 
             foreach (Subregion subregion in graph.Subregions)
             {
-                List<Vertex> polygon = subregion.Vertices.ToList();
+                List<Vector2> polygon = subregion.Vertices.ToList();
                 objects.Polygons.Add(new PolygonData(polygon, subregion.Type == SubregionType.Cell ? colorByCell[subregion.Cell] : ridgeColor));
             }
 
@@ -1002,9 +1002,9 @@ namespace WorldSimulator
             {
                 SubregionEdge edge = subregion.GetEdge(subregion.Drainage);
 
-                Vertex v = Vertex.Between(subregion.Center, edge.Center, 0.5);
+                Vector2 v = Vector2.Between(subregion.Center, edge.Center, 0.5);
 
-                Vertex[] vertices = new Vertex[] { v, edge.Center };
+                Vector2[] vertices = new Vector2[] { v, edge.Center };
                 objects.Segments.Add(new SegmentData(vertices, riverPen));
 
                 bool riverOrigin = true;
@@ -1012,16 +1012,16 @@ namespace WorldSimulator
                 foreach (Subregion neighbor in subregion.Neighbors.Where(n => n.River && n.Drainage == subregion))
                 {
                     riverOrigin = false;
-                    Vertex v1 = Vertex.Between(subregion.Center, subregion.GetEdge(neighbor).Center, 0.5);
-                    vertices = new Vertex[] { v1, subregion.GetEdge(neighbor).Center };
+                    Vector2 v1 = Vector2.Between(subregion.Center, subregion.GetEdge(neighbor).Center, 0.5);
+                    vertices = new Vector2[] { v1, subregion.GetEdge(neighbor).Center };
                     objects.Segments.Add(new SegmentData(vertices, riverPen));
-                    vertices = new Vertex[] { v1, v };
+                    vertices = new Vector2[] { v1, v };
                     objects.Segments.Add(new SegmentData(vertices, riverPen));
                 }
 
                 if (riverOrigin)
                 {
-                    vertices = new Vertex[] { v, subregion.Center };
+                    vertices = new Vector2[] { v, subregion.Center };
                     objects.Segments.Add(new SegmentData(vertices, riverPen));
                 }
             }
@@ -1031,7 +1031,7 @@ namespace WorldSimulator
                 if (subregion.Drainage != null)
                 {
                     SubregionEdge edge = subregion.GetEdge(subregion.Drainage);
-                    Vertex[] vertices = new Vertex[] { subregion.Center, edge.Center };
+                    Vector2[] vertices = new Vector2[] { subregion.Center, edge.Center };
                     objects.Segments.Add(new SegmentData(vertices, riverPen));
                 }
             }
@@ -1091,7 +1091,7 @@ namespace WorldSimulator
                         objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, subregionPen));
                         if (_multiplier > 1)
                         {
-                            foreach (Vertex v in sedge.Vertices)
+                            foreach (Vector2 v in sedge.Vertices)
                             {
                                 objects.Vertices.Add(new VertexData(v, subregionBrush));
                             }

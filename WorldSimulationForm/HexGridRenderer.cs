@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HexGrid;
+using Topology;
 using System.Drawing;
 
 namespace WorldSimulator
@@ -38,7 +38,7 @@ namespace WorldSimulator
 
             _objects.Scale = scale;
             if (_objects.Origin == null)
-                _objects.Origin = new Vertex(0, 0);
+                _objects.Origin = new Vector2(0, 0);
 
             Graphics g = Graphics.FromImage(_image);
 
@@ -109,14 +109,14 @@ namespace WorldSimulator
             }
         }
 
-        PointF PointFromVertex(Vertex vertex)
+        PointF PointFromVertex(Vector2 vertex)
         {
             float x = (float)((vertex.X - _objects.Origin.X) * _objects.Scale * _objects.Multiplier);
             float y = (float)((vertex.Y - _objects.Origin.Y) * _objects.Scale * _objects.Multiplier);
             return new PointF(x, y);
         }            
 
-        PointF PointFromVertex(Vertex vertex, double shift)
+        PointF PointFromVertex(Vector2 vertex, double shift)
         {
             float x = (float)(((vertex.X - _objects.Origin.X) * _objects.Scale + shift) * _objects.Multiplier);
             float y = (float)((vertex.Y - _objects.Origin.Y) * _objects.Scale * _objects.Multiplier);

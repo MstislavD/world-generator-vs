@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HexGrid;
+using Topology;
 using PointLocation;
 using RandomExtension;
 
@@ -73,11 +73,11 @@ namespace WorldSimulation
         private void _calculateGeometryCell(Subregion subregion, WorldGenerator generator)
         {
             HexCell cell = subregion.Cell;
-            List<Vertex> subregionVertices = new List<Vertex>();
+            List<Vector2> subregionVertices = new List<Vector2>();
 
             for (int direction = 0; direction < 7; direction++)
             {
-                Vertex[] vertices = _cellRegionVertices(generator, cell, direction);
+                Vector2[] vertices = _cellRegionVertices(generator, cell, direction);
                 subregionVertices.AddRange(vertices);
             }
 
@@ -95,27 +95,27 @@ namespace WorldSimulation
                 {
                     for (int i = 0; i < 4; i++)
                     {
-                        Vertex v = subregionVertices[direction * 5 + 1 + i];
+                        Vector2 v = subregionVertices[direction * 5 + 1 + i];
                         if (v != null)
                             sedge.AddVertex(v);
                     }
 
-                    sedge.Center = Vertex.Between(subregionVertices[direction * 5 + 4], subregionVertices[direction * 5 + 5], 0.5);
+                    sedge.Center = Vector2.Between(subregionVertices[direction * 5 + 4], subregionVertices[direction * 5 + 5], 0.5);
                     sedge.AddVertex(sedge.Center);
 
                     for (int i = 0; i < 4; i++)
                     {
-                        Vertex v = subregionVertices[direction * 5 + 5 + i];
+                        Vector2 v = subregionVertices[direction * 5 + 5 + i];
                         if (v != null)
                             sedge.AddVertex(v);
                     }
                 }
                 else
                 {
-                    Vertex last = null;
+                    Vector2 last = null;
                     for (int i = 0; i < 3; i++)
                     {
-                        Vertex v = subregionVertices[direction * 5 + 2 + i];
+                        Vector2 v = subregionVertices[direction * 5 + 2 + i];
                         if (v != null)
                         {
                             sedge.AddVertex(v);
@@ -128,12 +128,12 @@ namespace WorldSimulation
 
                     for (int i = 0; i < 3; i++)
                     {
-                        Vertex v = subregionVertices[direction * 5 + 5 + i];
+                        Vector2 v = subregionVertices[direction * 5 + 5 + i];
                         if (v != null)
                         {
                             if (sedge.Center == null)
                             {
-                                sedge.Center = Vertex.Between(last, v, 0.5);
+                                sedge.Center = Vector2.Between(last, v, 0.5);
                                 sedge.AddVertex(sedge.Center);
                             }
                             sedge.AddVertex(v);
@@ -155,25 +155,25 @@ namespace WorldSimulation
 
         public void GenerateLocator(RandomExt random) => Locator = new PointLocator<Subregion>(new SubregionPartition(this), random);
 
-        private Vertex[] _cellRegionVertices(WorldGenerator generator, HexCell cell, int direction)
+        private Vector2[] _cellRegionVertices(WorldGenerator generator, HexCell cell, int direction)
         {
             if (cell.GridPositionX == 31 && cell.GridPositionY == 48)
             {
 
             }
 
-            Vertex[] vertices = new Vertex[5];
+            Vector2[] vertices = new Vector2[5];
             HexCell cellRight = cell.GetNeighbor(direction);
             HexCell cellLeft = cell.GetNeighbor(direction + 5);
-            Vertex vertex = cell.GetVertex(direction);
+            Vector2 vertex = cell.GetVertex(direction);
             bool ridgeLeft = generator.HasRidge(cell.GetEdge(direction + 5));
             bool ridgeRight = generator.HasRidge(cell.GetEdge(direction));
             bool ridgeMiddle = cellRight != null && generator.HasRidge(cellRight.GetEdge(direction + 4));
 
             if (ridgeLeft)
-                vertices[0] = Vertex.Between(vertex, cell.Center, _delta);
+                vertices[0] = Vector2.Between(vertex, cell.Center, _delta);
             if (ridgeRight)
-                vertices[4] = Vertex.Between(vertex, cell.Center, _delta);
+                vertices[4] = Vector2.Between(vertex, cell.Center, _delta);
 
             if ((ridgeMiddle || ridgeRight) && !ridgeLeft)
             {
@@ -185,29 +185,29 @@ namespace WorldSimulation
             }
             if (!ridgeMiddle && !ridgeLeft && !ridgeRight)
             {
-                vertices[2] = new Vertex(vertex);
+                vertices[2] = new Vector2(vertex);
             }
             else if (ridgeMiddle && !ridgeLeft && !ridgeRight && _useRidgeSmoothing)
             {
-                vertices[2] = Vertex.Between(vertex, cell.Center, 0.2);
+                vertices[2] = Vector2.Between(vertex, cell.Center, 0.2);
             }
 
             if (cellLeft == null && cellRight != null && ridgeRight)
             {
-                Vertex v1 = Vertex.Between(vertex, cell.Center, _delta);
-                Vertex v2 = Vertex.Between(cell.GetVertex(direction + 1), cell.Center, _delta);
-                Vertex v3 = cell.GetVertex(direction + 5);
+                Vector2 v1 = Vector2.Between(vertex, cell.Center, _delta);
+                Vector2 v2 = Vector2.Between(cell.GetVertex(direction + 1), cell.Center, _delta);
+                Vector2 v3 = cell.GetVertex(direction + 5);
 
-                vertices[1] = Vertex.Crossing(v1, v2, vertex, v3);
+                vertices[1] = Vector2.Crossing(v1, v2, vertex, v3);
                 vertices[2] = null;
             }
             if (cellRight == null && cellLeft != null && ridgeLeft)
             {
-                Vertex v1 = Vertex.Between(vertex, cell.Center, _delta);
-                Vertex v2 = Vertex.Between(cell.GetVertex(direction + 5), cell.Center, _delta);
-                Vertex v3 = cell.GetVertex(direction + 1);
+                Vector2 v1 = Vector2.Between(vertex, cell.Center, _delta);
+                Vector2 v2 = Vector2.Between(cell.GetVertex(direction + 5), cell.Center, _delta);
+                Vector2 v3 = cell.GetVertex(direction + 1);
 
-                vertices[3] = Vertex.Crossing(v1, v2, vertex, v3);
+                vertices[3] = Vector2.Crossing(v1, v2, vertex, v3);
                 vertices[2] = null;
             }        
 
@@ -216,13 +216,13 @@ namespace WorldSimulation
 
         private void _calculateGeometryRidge(Subregion subregion, WorldGenerator generator)
         {
-            Vertex[] vertices = _ridgeSubregionVertices(subregion.Edge, generator);
+            Vector2[] vertices = _ridgeSubregionVertices(subregion.Edge, generator);
             _createRidgeSubregionEdges(subregion, generator, vertices);
 
-            subregion.Center = Vertex.Between(subregion.Edge.Vertex1, subregion.Edge.Vertex2, 0.5);
+            subregion.Center = Vector2.Between(subregion.Edge.Vertex1, subregion.Edge.Vertex2, 0.5);
         }
 
-        private Vertex[] _ridgeSubregionVertices(Edge edge, WorldGenerator generator)
+        private Vector2[] _ridgeSubregionVertices(Edge edge, WorldGenerator generator)
         {
             HexCell c1 = edge.Cell1;
             HexCell c2 = edge.Cell2;
@@ -236,17 +236,17 @@ namespace WorldSimulation
             HexCell cellL = c1.GetNeighbor(dir + 5);
             HexCell cellR = c1.GetNeighbor(dir + 1);
 
-            Vertex[] vertices = new Vertex[10];
+            Vector2[] vertices = new Vector2[10];
 
-            vertices[0] = new Vertex(c1.GetVertex(dir + 1));
-            vertices[5] = new Vertex(c1.GetVertex(dir));
-            vertices[2] = Vertex.Between(vertices[0], c1.Center, _delta);
-            vertices[3] = Vertex.Between(vertices[5], c1.Center, _delta);
+            vertices[0] = new Vector2(c1.GetVertex(dir + 1));
+            vertices[5] = new Vector2(c1.GetVertex(dir));
+            vertices[2] = Vector2.Between(vertices[0], c1.Center, _delta);
+            vertices[3] = Vector2.Between(vertices[5], c1.Center, _delta);
 
             if (c2 != null)
             {
-                vertices[7] = Vertex.Between(c2.GetVertex(dir + 4), c2.Center, _delta);
-                vertices[8] = Vertex.Between(c2.GetVertex(dir + 3), c2.Center, _delta);
+                vertices[7] = Vector2.Between(c2.GetVertex(dir + 4), c2.Center, _delta);
+                vertices[8] = Vector2.Between(c2.GetVertex(dir + 3), c2.Center, _delta);
             }
 
             if (_useRidgeSmoothing)
@@ -270,34 +270,34 @@ namespace WorldSimulation
 
                 if (generator.HasRidge(edge) && !generator.HasRidge(edgeL) && edgeR1 != null && !generator.HasRidge(edgeR1) && cellL != null)
                 {
-                    Vertex cL = new Vertex(cellL.Center);
+                    Vector2 cL = new Vector2(cellL.Center);
                     _normalizeVertex(cL, edge.Vertex1.X);
-                    vertices[5] = Vertex.Between(vertices[5], cL, 0.2);
+                    vertices[5] = Vector2.Between(vertices[5], cL, 0.2);
                 }
                 if (generator.HasRidge(edge) && !generator.HasRidge(edgeR) && edgeL1 != null && !generator.HasRidge(edgeL1) && cellR != null)
                 {
-                    Vertex cR = new Vertex(cellR.Center);
+                    Vector2 cR = new Vector2(cellR.Center);
                     _normalizeVertex(cR, edge.Vertex1.X);
-                    vertices[0] = Vertex.Between(vertices[0], cR, 0.2);
+                    vertices[0] = Vector2.Between(vertices[0], cR, 0.2);
                 }
 
                 if (cellL == null)
                 {
-                    Vertex v1 = c1.GetVertex(dir + 5);
-                    Vertex v2 = c2.GetVertex(dir + 5);
-                    vertices[4] = Vertex.Crossing(vertices[3], vertices[2], vertices[5], v1);
-                    vertices[6] = Vertex.Crossing(vertices[7], vertices[8], vertices[5], v2);
+                    Vector2 v1 = c1.GetVertex(dir + 5);
+                    Vector2 v2 = c2.GetVertex(dir + 5);
+                    vertices[4] = Vector2.Crossing(vertices[3], vertices[2], vertices[5], v1);
+                    vertices[6] = Vector2.Crossing(vertices[7], vertices[8], vertices[5], v2);
                 }
                 if (cellR == null)
                 {
-                    Vertex v1 = c1.GetVertex(dir + 2);
-                    Vertex v2 = c2.GetVertex(dir + 2);
-                    vertices[1] = Vertex.Crossing(vertices[2], vertices[3], vertices[0], v1);
-                    vertices[9] = Vertex.Crossing(vertices[8], vertices[7], vertices[0], v2);
+                    Vector2 v1 = c1.GetVertex(dir + 2);
+                    Vector2 v2 = c2.GetVertex(dir + 2);
+                    vertices[1] = Vector2.Crossing(vertices[2], vertices[3], vertices[0], v1);
+                    vertices[9] = Vector2.Crossing(vertices[8], vertices[7], vertices[0], v2);
                 }
             }         
 
-            foreach (Vertex vertex in vertices.Where(v => v != null))
+            foreach (Vector2 vertex in vertices.Where(v => v != null))
             {
                 _normalizeVertex(vertex, edge.Vertex1.X);
             }
@@ -305,7 +305,7 @@ namespace WorldSimulation
             return vertices;
         }
 
-        private void _createRidgeSubregionEdges(Subregion subregion, WorldGenerator generator, Vertex[] vp)
+        private void _createRidgeSubregionEdges(Subregion subregion, WorldGenerator generator, Vector2[] vp)
         {
             Edge edge = subregion.Edge;
             HexCell cell1 = edge.Cell1;
@@ -325,7 +325,7 @@ namespace WorldSimulation
                     sEdge.AddVertex(vp[(index + 1) % 10] ?? vp[index]);
                 sEdge.AddVertex(vp[(index + 2) % 10]);
 
-                sEdge.Center = Vertex.Between(vp[(index + 2) % 10], vp[(index + 3) % 10], 0.5);
+                sEdge.Center = Vector2.Between(vp[(index + 2) % 10], vp[(index + 3) % 10], 0.5);
                 sEdge.AddVertex(sEdge.Center);
 
                 sEdge.AddVertex(vp[(index + 3) % 10]);
@@ -391,7 +391,7 @@ namespace WorldSimulation
             _subregions.Add(subregion);
         }
 
-        Vertex _smoothingVertexLeft(HexCell cell, int direction)
+        Vector2 _smoothingVertexLeft(HexCell cell, int direction)
         {
             if (cell == null)
                 return null;
@@ -401,18 +401,18 @@ namespace WorldSimulation
             if (cellL == null)
                 return null;
 
-            Vertex vertex = cell.GetVertex(direction);
-            Vertex vertexI = Vertex.Between(vertex, cell.Center, _delta);
-            Vertex vertexO = cell.GetVertex(direction + 5);
+            Vector2 vertex = cell.GetVertex(direction);
+            Vector2 vertexI = Vector2.Between(vertex, cell.Center, _delta);
+            Vector2 vertexO = cell.GetVertex(direction + 5);
 
-            Vertex cellCenterL = new Vertex(cellL.Center);
+            Vector2 cellCenterL = new Vector2(cellL.Center);
             _normalizeVertex(cellCenterL, vertex.X);
-            Vertex vertexL = Vertex.Between(vertex, cellCenterL, _delta);
+            Vector2 vertexL = Vector2.Between(vertex, cellCenterL, _delta);
 
-            return Vertex.Crossing(vertex, vertexO, vertexI, vertexL);
+            return Vector2.Crossing(vertex, vertexO, vertexI, vertexL);
         }
 
-        Vertex _smoothingVertexRight(HexCell cell, int direction)
+        Vector2 _smoothingVertexRight(HexCell cell, int direction)
         {
             if (cell == null)
                 return null;
@@ -422,18 +422,18 @@ namespace WorldSimulation
             if (cellR == null)
                 return null;
 
-            Vertex vertex = cell.GetVertex(direction);
-            Vertex vertexI = Vertex.Between(vertex, cell.Center, _delta);
-            Vertex vertexO = cell.GetVertex(direction + 1);
+            Vector2 vertex = cell.GetVertex(direction);
+            Vector2 vertexI = Vector2.Between(vertex, cell.Center, _delta);
+            Vector2 vertexO = cell.GetVertex(direction + 1);
 
-            Vertex cellCenterR = new Vertex(cellR.Center);
+            Vector2 cellCenterR = new Vector2(cellR.Center);
             _normalizeVertex(cellCenterR, vertex.X);
-            Vertex vertexR = Vertex.Between(vertex, cellCenterR, _delta);
+            Vector2 vertexR = Vector2.Between(vertex, cellCenterR, _delta);
 
-            return Vertex.Crossing(vertex, vertexO, vertexI, vertexR);
+            return Vector2.Crossing(vertex, vertexO, vertexI, vertexR);
         }
 
-        private void _normalizeVertex(Vertex vertex, double edgeX)
+        private void _normalizeVertex(Vector2 vertex, double edgeX)
         {
             double halfWidth = Width / 2;
             if (vertex.X - edgeX > halfWidth)

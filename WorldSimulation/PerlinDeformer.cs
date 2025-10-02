@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HexGrid;
+using Topology;
 using Perlin;
 
 namespace WorldSimulation
@@ -21,7 +21,7 @@ namespace WorldSimulation
 
             foreach (Subregion subregion in graph.Subregions)
             {
-                foreach (Vertex vertex in subregion.Vertices.Append(subregion.Center))
+                foreach (Vector2 vertex in subregion.Vertices.Append(subregion.Center))
                 {
                     vertex.Y = Math.Max(vertex.Y, 0);
                     vertex.Y = Math.Min(vertex.Y, graph.Height);
