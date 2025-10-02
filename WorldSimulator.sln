@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointLocation", "PointLocat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointLocationForm", "PointLocationForm\PointLocationForm.csproj", "{09F8FDC5-1A04-4840-B299-D04925CF7D5C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topology", "Topology\Topology.csproj", "{E2553B10-C82C-43C6-8482-08C6B6EF0C6B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldSimulation", "WorldSimulation\WorldSimulation.csproj", "{D1F8C726-F2FB-459B-820C-AEAE2E5FE80A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldSimulationForm", "WorldSimulationForm\WorldSimulationForm.csproj", "{DFE64FEB-BC8E-441B-BF65-2912EA90BC4F}"
@@ -39,10 +37,6 @@ Global
 		{09F8FDC5-1A04-4840-B299-D04925CF7D5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09F8FDC5-1A04-4840-B299-D04925CF7D5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09F8FDC5-1A04-4840-B299-D04925CF7D5C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E2553B10-C82C-43C6-8482-08C6B6EF0C6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E2553B10-C82C-43C6-8482-08C6B6EF0C6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E2553B10-C82C-43C6-8482-08C6B6EF0C6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E2553B10-C82C-43C6-8482-08C6B6EF0C6B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D1F8C726-F2FB-459B-820C-AEAE2E5FE80A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D1F8C726-F2FB-459B-820C-AEAE2E5FE80A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1F8C726-F2FB-459B-820C-AEAE2E5FE80A}.Release|Any CPU.ActiveCfg = Release|Any CPU

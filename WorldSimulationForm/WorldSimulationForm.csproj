@@ -15,7 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Parameters\Parameters.csproj" />
     <ProjectReference Include="..\RandomExtension\RandomExtension.csproj" />
-    <ProjectReference Include="..\Topology\Topology.csproj" />
     <ProjectReference Include="..\Utilities\Utilities.csproj" />
     <ProjectReference Include="..\WorldSimulation\WorldSimulation.csproj" />
   </ItemGroup>
