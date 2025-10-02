@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Parameters\Parameters.csproj" />
+    <ProjectReference Include="..\Perlin\Perlin.csproj" />
+    <ProjectReference Include="..\PointLocation\PointLocation.csproj" />
+    <ProjectReference Include="..\RandomExtension\RandomExtension.csproj" />
+    <ProjectReference Include="..\Topology\Topology.csproj" />
+    <ProjectReference Include="..\Utilities\Utilities.csproj" />
+  </ItemGroup>
+
 </Project>

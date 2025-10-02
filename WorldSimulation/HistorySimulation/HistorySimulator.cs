@@ -14,14 +14,14 @@ namespace WorldSimulation.HistorySimulation
             "Rain","Snow","Forest","Sand","River","Sea","Rock","Hill","Mountain","Cave","High","Low","Pale","Dark", "Light","Chaos","Faerie","Arcane","Small",
             "Wicked","Dusk","Dawn","Night","Death","Free","Tree","Flower","Broken","Exiled","Evil","Celestial","Storm","Air","Water","Earth","Fire","Corrupted"};
 
-        public RandomExtended.RandomExt Random { get; private set; }
+        public RandomExtension.RandomExt Random { get; private set; }
         public Language NamingLanguage => _generator.NamingLanguage;
         public int Turn { get; private set; }
         public bool IsComplete => _eventsByTurn.Count == 0;
 
         public HistorySimulator(int seed, WorldGenerator generator)
         {
-            Random = new RandomExtended.RandomExt(seed);
+            Random = new RandomExtension.RandomExt(seed);
             _generator = generator;
             _eventsByTurn = new Dictionary<int, HashSet<HistoricEvent>>();
             _races = new List<Race>();

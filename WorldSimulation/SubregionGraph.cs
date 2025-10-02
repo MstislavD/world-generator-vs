@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HexGrid;
 using PointLocation;
-using RandomExtended;
+using RandomExtension;
 
 namespace WorldSimulation
 {

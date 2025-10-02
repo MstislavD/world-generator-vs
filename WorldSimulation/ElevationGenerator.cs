@@ -1,5 +1,5 @@
-﻿using Topology;
-using RandomExtended;
+﻿using HexGrid;
+using RandomExtension;
 using System;
 using System.Collections.Generic;
 using System.Linq;

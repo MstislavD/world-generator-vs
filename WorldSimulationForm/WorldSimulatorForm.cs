@@ -7,12 +7,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Topology;
+using HexGrid;
 using RandomExtension;
 using WorldSimulation;
 using Utilities;
 using Parameters;
 using System.Collections.Concurrent;
+
+using static WorldSimulationForm.Properties.Resources;
+using System.Diagnostics;
+using WorldSimulationForm.Properties;
+using System.Runtime.CompilerServices;
 
 namespace WorldSimulator
 {
@@ -39,8 +44,8 @@ namespace WorldSimulator
         bool _printLog = false;
         PaediaForm _paediaForm;
 
-        WorldSim.Region _highlightedRegion;
-        WorldSim.HistorySimulation.HistoricEvent _currentEvent;
+        WorldSimulation.Region _highlightedRegion;
+        WorldSimulation.HistorySimulation.HistoricEvent _currentEvent;
 
         public WorldSimulatorForm()
         {
@@ -159,7 +164,7 @@ namespace WorldSimulator
 
         private void _paediaForm_RegionHoverBegin(object sender, EventArgs e)
         {
-            WorldSim.Region region = sender as WorldSim.Region;
+            WorldSimulation.Region region = sender as WorldSimulation.Region;
 
             Grid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
             Bitmap overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _regionOutline(region));
@@ -171,8 +176,8 @@ namespace WorldSimulator
 
         private void _paediaForm_RaceHoverBegin(object sender, EventArgs e)
         {
-            WorldSim.HistorySimulation.Race race = sender as WorldSim.HistorySimulation.Race;
-            IEnumerable<WorldSim.Region> regions = _generator.RegionMap.Regions.Where(r => r.Pops.Any(p => p.Race == race));
+            WorldSimulation.HistorySimulation.Race race = sender as WorldSimulation.HistorySimulation.Race;
+            IEnumerable<WorldSimulation.Region> regions = _generator.RegionMap.Regions.Where(r => r.Pops.Any(p => p.Race == race));
 
             Grid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
             Bitmap overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _regionOutline(regions));
@@ -245,7 +250,7 @@ namespace WorldSimulator
 
         private void _generator_LogUpdated(object sender, string e)
         {
-            if (_printLog && sender is WorldSim.HistorySimulation.HistorySimulator)
+            if (_printLog && sender is WorldSimulation.HistorySimulation.HistorySimulator)
             {
                 _logForm.AddEntry(e);
             }               
@@ -277,7 +282,7 @@ namespace WorldSimulator
                     //Console.WriteLine($"Subregion vertices:{strVertices}");
                     //Console.WriteLine($"Cell: {subregion.Cell.GridPositionX}, {subregion.Cell.GridPositionY}");
 
-                    WorldSim.Region region = _generator.RegionMap.GetRegion(subregion);
+                    WorldSimulation.Region region = _generator.RegionMap.GetRegion(subregion);
                   
                     _paediaForm.OnRegionSelected(region);
                     if (!_paediaForm.Visible)
@@ -323,8 +328,8 @@ namespace WorldSimulator
                     string regionInfo = "";
 
                     if (subregion != null)
-                    {                     
-                        WorldSim.Region region = _generator.RegionMap.GetRegion(subregion);
+                    {
+                        WorldSimulation.Region region = _generator.RegionMap.GetRegion(subregion);
 
                         if (!region.Equals(_highlightedRegion))
                         {
@@ -349,16 +354,16 @@ namespace WorldSimulator
                         //{
                         //    regionInfo += $"\nRiver";
                         //}
-                        foreach(WorldSim.HistorySimulation.RegionTrait trait in region.Traits)
+                        foreach(WorldSimulation.HistorySimulation.RegionTrait trait in region.Traits)
                         {
                             regionInfo += $"\n{trait.Name}";
                         }
 
-                        List<WorldSim.HistorySimulation.Population> pops = region.Pops.ToList();
+                        List<WorldSimulation.HistorySimulation.Population> pops = region.Pops.ToList();
                         if (pops.Count > 0)
                         {
                             regionInfo += $"\nPops ({pops.Count}):";
-                            foreach(WorldSim.HistorySimulation.Population pop in pops)
+                            foreach(WorldSimulation.HistorySimulation.Population pop in pops)
                             {
                                 regionInfo += $"\n{pop.Race.Name}";
                             }
@@ -679,25 +684,25 @@ namespace WorldSimulator
             Dictionary<Biome, TextureBrush> brushByBiome = new Dictionary<Biome, TextureBrush>();
             Dictionary<Biome, Brush> colorByBiome = new Dictionary<Biome, Brush>();
 
-            brushByBiome[Biomes.WetTundra] = new TextureBrush(Properties.Resources.wet_tundra);
-            brushByBiome[Biomes.Tundra] = new TextureBrush(Properties.Resources.tundra);
-            brushByBiome[Biomes.DryTundra] = new TextureBrush(imp_textures ? Properties.Resources.dry_tundra_imp : Properties.Resources.dry_tundra);
-            brushByBiome[Biomes.WetTaiga] = new TextureBrush(Properties.Resources.wet_taiga);
-            brushByBiome[Biomes.Taiga] = new TextureBrush(Properties.Resources.taiga);
-            brushByBiome[Biomes.DryTaiga] = new TextureBrush(imp_textures ? Properties.Resources.dry_taiga_imp : Properties.Resources.dry_taiga);
-            brushByBiome[Biomes.MixedForest] = new TextureBrush(Properties.Resources.mixed_forest);
-            brushByBiome[Biomes.ForestSteppe] = new TextureBrush(imp_textures ? Properties.Resources.forest_steppe_imp : Properties.Resources.forest_steppe);
-            brushByBiome[Biomes.TemperateSteppe] = new TextureBrush(imp_textures ? Properties.Resources.temperate_steppe_imp : Properties.Resources.grassland);
-            brushByBiome[Biomes.BroadleafForest] = new TextureBrush(Properties.Resources.broadleaf);
-            brushByBiome[Biomes.SubtropicalSteppe] = new TextureBrush(imp_textures ? Properties.Resources.temperate_steppe_imp : Properties.Resources.grassland);
-            brushByBiome[Biomes.SubtropicalDesert] = new TextureBrush(imp_textures ? Properties.Resources.semidesert_imp : Properties.Resources.semidesert);
-            brushByBiome[Biomes.Rainforest] = new TextureBrush(imp_textures ? Properties.Resources.rainforest_imp : Properties.Resources.rainforest);
-            brushByBiome[Biomes.Savanna] = new TextureBrush(imp_textures ? Properties.Resources.savanna_imp : Properties.Resources.savanna);
-            brushByBiome[Biomes.TropicalDesert] = new TextureBrush(imp_textures ? Properties.Resources.desert_imp : Properties.Resources.desert);
-            brushByBiome[Biomes.ShallowOcean] = new TextureBrush(imp_textures ? Properties.Resources.shallow_sea_imp : Properties.Resources.shallow_sea);
-            brushByBiome[Biomes.DeepOcean] = new TextureBrush(imp_textures ? Properties.Resources.deep_sea_imp : Properties.Resources.deep_sea);
-            brushByBiome[Biomes.PolarSea] = new TextureBrush(imp_textures ? Properties.Resources.deep_sea_imp : Properties.Resources.polar_sea);
-            brushByBiome[Biomes.Mountains] = new TextureBrush(imp_textures ? Properties.Resources.mountains_imp : Properties.Resources.mountains);
+            brushByBiome[Biomes.WetTundra] = new TextureBrush(wet_tundra);
+            brushByBiome[Biomes.Tundra] = new TextureBrush(tundra);
+            brushByBiome[Biomes.DryTundra] = new TextureBrush(dry_tundra);
+            brushByBiome[Biomes.WetTaiga] = new TextureBrush(wet_taiga);
+            brushByBiome[Biomes.Taiga] = new TextureBrush(taiga);
+            brushByBiome[Biomes.DryTaiga] = new TextureBrush(imp_textures ? dry_taiga_imp : dry_taiga);
+            brushByBiome[Biomes.MixedForest] = new TextureBrush(mixed_forest);
+            brushByBiome[Biomes.ForestSteppe] = new TextureBrush(imp_textures ? forest_steppe_imp : forest_steppe);
+            brushByBiome[Biomes.TemperateSteppe] = new TextureBrush(imp_textures ? temperate_steppe_imp : grassland);
+            brushByBiome[Biomes.BroadleafForest] = new TextureBrush(broadleaf);
+            brushByBiome[Biomes.SubtropicalSteppe] = new TextureBrush(imp_textures ? temperate_steppe_imp : grassland);
+            brushByBiome[Biomes.SubtropicalDesert] = new TextureBrush(imp_textures ? semidesert_imp : semidesert);
+            brushByBiome[Biomes.Rainforest] = new TextureBrush(imp_textures ? rainforest_imp : rainforest);
+            brushByBiome[Biomes.Savanna] = new TextureBrush(imp_textures ? savanna_imp : savanna);
+            brushByBiome[Biomes.TropicalDesert] = new TextureBrush(imp_textures ? desert_imp : desert);
+            brushByBiome[Biomes.ShallowOcean] = new TextureBrush(imp_textures ? shallow_sea_imp : shallow_sea);
+            brushByBiome[Biomes.DeepOcean] = new TextureBrush(imp_textures ? deep_sea_imp : deep_sea);
+            brushByBiome[Biomes.PolarSea] = new TextureBrush(imp_textures ? deep_sea_imp : polar_sea);
+            brushByBiome[Biomes.Mountains] = new TextureBrush(imp_textures ? mountains_imp : mountains);
 
             colorByBiome[Biomes.WetTundra] = Brushes.Cyan;
             colorByBiome[Biomes.Tundra] = Brushes.Cyan;
@@ -733,9 +738,9 @@ namespace WorldSimulator
             {
                 RandomExt rnd = new RandomExt(_mountainSeed);
 
-                List<Bitmap> mountains_mst = new List<Bitmap>() { Properties.Resources.mountain };
+                List<Bitmap> mountains_mst = new List<Bitmap>() { mountain };
                 List<Bitmap> mountains_imp =
-                    new List<Bitmap>() { Properties.Resources.mountain_imp4, Properties.Resources.mountain_imp5, Properties.Resources.mountain_imp6 };
+                    new List<Bitmap>() { mountain_imp4, mountain_imp5, mountain_imp6 };
 
                 List<Bitmap> mountains = imp_textures ? mountains_imp : mountains_mst;
 
@@ -777,9 +782,9 @@ namespace WorldSimulator
         {
             RenderObjects objects = new RenderObjects();
 
-            Dictionary<WorldSim.HistorySimulation.Race, Brush> brushByRace = new Dictionary<WorldSim.HistorySimulation.Race, Brush>();
+            Dictionary<WorldSimulation.HistorySimulation.Race, Brush> brushByRace = new Dictionary<WorldSimulation.HistorySimulation.Race, Brush>();
 
-            Func<WorldSim.HistorySimulation.Race, Brush> getBrush = (race) =>
+            Func<WorldSimulation.HistorySimulation.Race, Brush> getBrush = (race) =>
             {
                 if (!brushByRace.ContainsKey(race))
                 {
@@ -789,12 +794,12 @@ namespace WorldSimulator
                 return brushByRace[race];
             };
 
-            foreach (WorldSim.Region region in _generator.RegionMap.Regions)
+            foreach (WorldSimulation.Region region in _generator.RegionMap.Regions)
             {
                 List<Brush> brushes = new List<Brush>();
                 if (!region.IsRidge && !region.IsSea)
                 {
-                    foreach (WorldSim.HistorySimulation.Population pop in region.Pops)
+                    foreach (WorldSimulation.HistorySimulation.Population pop in region.Pops)
                     {
                         brushes.Add(getBrush(pop.Race));
                     }
@@ -880,7 +885,7 @@ namespace WorldSimulator
 
             Func<Subregion, Brush> getBrush = subregion =>
             {
-                WorldSim.Region region = subregion.Region;
+                WorldSimulation.Region region = subregion.Region;
                 if (region.IsSea)
                     return Brushes.Blue;
                 else if (region.Biome == Biomes.Mountains)
@@ -920,8 +925,8 @@ namespace WorldSimulator
             List<SolidBrush> brushes = ((KnownColor[])Enum.GetValues(typeof(KnownColor))).Where(kc=>!kc.Equals(KnownColor.Transparent)).
                 Select(kc=> new SolidBrush(Color.FromKnownColor(kc))).ToList();
 
-            Dictionary<WorldSim.Region, SolidBrush> bbr = _generator.RegionMap.Regions.ToDictionary(r => r, r => random.NextItem(brushes));
-            ConcurrentDictionary<WorldSim.Region, SolidBrush> brushByRegion = new ConcurrentDictionary<WorldSim.Region, SolidBrush>(bbr);
+            Dictionary<WorldSimulation.Region, SolidBrush> bbr = _generator.RegionMap.Regions.ToDictionary(r => r, r => random.NextItem(brushes));
+            ConcurrentDictionary<WorldSimulation.Region, SolidBrush> brushByRegion = new ConcurrentDictionary<WorldSimulation.Region, SolidBrush>(bbr);
 
             int horRes = 1600;
             double cellSize = graph.Width / horRes;
@@ -950,7 +955,7 @@ namespace WorldSimulator
 
                     if (subregion != null)
                     {
-                        WorldSim.Region region = subregion.Region;
+                        WorldSimulation.Region region = subregion.Region;
                         lock (objects.Polygons)
                             objects.Polygons.Add(new PolygonData(v, brushByRegion[region]));
                     }
@@ -1047,7 +1052,7 @@ namespace WorldSimulator
 
         private void History_EventLogged(object sender, EventArgs e)
         {
-            var he = sender as WorldSim.HistorySimulation.HistoricEvent;
+            var he = sender as WorldSimulation.HistorySimulation.HistoricEvent;
             string info = $"T{_generator.History.Turn}: {he.Info}";
             _logForm.AddEntry(info);
         }
@@ -1101,7 +1106,7 @@ namespace WorldSimulator
             }
         }
 
-        private RenderObjects _regionOutline(WorldSim.Region region)
+        private RenderObjects _regionOutline(WorldSimulation.Region region)
         {
             RenderObjects objects = new RenderObjects();
 
@@ -1124,10 +1129,10 @@ namespace WorldSimulator
             return objects;
         }
 
-        private RenderObjects _regionOutline(IEnumerable< WorldSim.Region> regions)
+        private RenderObjects _regionOutline(IEnumerable<WorldSimulation.Region> regions)
         {
             RenderObjects objects = new RenderObjects();
-            HashSet<WorldSim.Region> _outlinedRegions = new HashSet<WorldSim.Region>(regions);
+            HashSet<WorldSimulation.Region> _outlinedRegions = new HashSet<WorldSimulation.Region>(regions);
 
             if (_multiplier != 0)
             {
@@ -1135,7 +1140,7 @@ namespace WorldSimulator
                 objects.Origin = _origin;
             }
 
-            foreach(WorldSim.Region region in regions)
+            foreach(WorldSimulation.Region region in regions)
             {
                 foreach (Subregion sreg in region.Subregions)
                 {

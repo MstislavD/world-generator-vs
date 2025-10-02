@@ -8,9 +8,9 @@ namespace WorldSimulation
         public static Biome WetTundra = new Biome("Tundra", Belt.Polar, Humidity.Wet);
         public static Biome Tundra = new Biome("Tundra", Belt.Polar, Humidity.Seasonal);
         public static Biome DryTundra = new Biome("Tundra", Belt.Polar, Humidity.Dry);
-        public static Biome WetTaiga = new Biome("Taiga", Belt.Boreal, Humidity.Wet);
+        public static Biome WetTaiga = new Biome("Wet Taiga", Belt.Boreal, Humidity.Wet);
         public static Biome Taiga = new Biome("Taiga", Belt.Boreal, Humidity.Seasonal);
-        public static Biome DryTaiga = new Biome("Taiga", Belt.Boreal, Humidity.Dry);
+        public static Biome DryTaiga = new Biome("Dry Taiga", Belt.Boreal, Humidity.Dry);
         public static Biome MixedForest = new Biome("Mixed Forest", Belt.Temperate, Humidity.Wet);
         public static Biome ForestSteppe = new Biome("Forest Steppe", Belt.Temperate, Humidity.Seasonal);
         public static Biome TemperateSteppe = new Biome("Steppe", Belt.Temperate, Humidity.Dry);

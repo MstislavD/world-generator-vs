@@ -6,15 +6,117 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\broadleaf.png" />
+    <None Remove="Resources\desert.png" />
+    <None Remove="Resources\desert2.png" />
+    <None Remove="Resources\desert3.png" />
+    <None Remove="Resources\Desert_02.png" />
+    <None Remove="Resources\dry_taiga.png" />
+    <None Remove="Resources\dry_tundra.png" />
+    <None Remove="Resources\forest_steppe.png" />
+    <None Remove="Resources\grassland.png" />
+    <None Remove="Resources\grassland2.png" />
+    <None Remove="Resources\grasslandnew.png" />
+    <None Remove="Resources\Green_ForestSteppe_01.png" />
+    <None Remove="Resources\Green_Plains_01.png" />
+    <None Remove="Resources\Jungle_03.png" />
+    <None Remove="Resources\marker.png" />
+    <None Remove="Resources\mixed_forest.png" />
+    <None Remove="Resources\mnt1.png" />
+    <None Remove="Resources\mnt2.png" />
+    <None Remove="Resources\mountains.png" />
+    <None Remove="Resources\Mountains_a01_01.png" />
+    <None Remove="Resources\Mountains_a01_02.png" />
+    <None Remove="Resources\Mountains_a01_03.png" />
+    <None Remove="Resources\Mountains_b02_02.png" />
+    <None Remove="Resources\Mountains_c01_01.png" />
+    <None Remove="Resources\Mountains_c01_02.png" />
+    <None Remove="Resources\Mountains_c01_03.png" />
+    <None Remove="Resources\polar_sea.png" />
+    <None Remove="Resources\rainforest.png" />
+    <None Remove="Resources\savanna.png" />
+    <None Remove="Resources\Savanna_03.png" />
+    <None Remove="Resources\seas.png" />
+    <None Remove="Resources\seasnew.png" />
+    <None Remove="Resources\Sea_BIG_01.png" />
+    <None Remove="Resources\sea_deep.png" />
+    <None Remove="Resources\Sea_Small_04.png" />
+    <None Remove="Resources\Sea_Small_07.png" />
+    <None Remove="Resources\semidesert.png" />
+    <None Remove="Resources\Semidesert_02.png" />
+    <None Remove="Resources\semidesert_2.png" />
+    <None Remove="Resources\taiga.png" />
+    <None Remove="Resources\taiganew.png" />
+    <None Remove="Resources\tundra.png" />
+    <None Remove="Resources\tundra_wet.png" />
+    <None Remove="Resources\tundra_wet2.png" />
+    <None Remove="Resources\wet_tundra.png" />
+    <None Remove="Resources\Yellow_Plains_01.png" />
+    <None Remove="Resources\Yellow_Taiga_01.png" />
+    <None Remove="Resources\Yellow_Tundra_01.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\broadleaf.png" />
+    <EmbeddedResource Include="Resources\desert.png" />
+    <EmbeddedResource Include="Resources\desert2.png" />
+    <EmbeddedResource Include="Resources\desert3.png" />
+    <EmbeddedResource Include="Resources\Desert_02.png" />
     <EmbeddedResource Include="Resources\desert_seamless.png" />
+    <EmbeddedResource Include="Resources\dry_taiga.png" />
+    <EmbeddedResource Include="Resources\dry_tundra.png" />
+    <EmbeddedResource Include="Resources\forest_steppe.png" />
+    <EmbeddedResource Include="Resources\grassland.png" />
+    <EmbeddedResource Include="Resources\grassland2.png" />
+    <EmbeddedResource Include="Resources\grasslandnew.png" />
+    <EmbeddedResource Include="Resources\Green_ForestSteppe_01.png" />
+    <EmbeddedResource Include="Resources\Green_Plains_01.png" />
+    <EmbeddedResource Include="Resources\Jungle_03.png" />
+    <EmbeddedResource Include="Resources\marker.png" />
+    <EmbeddedResource Include="Resources\mixed_forest.png" />
+    <EmbeddedResource Include="Resources\mnt1.png" />
+    <EmbeddedResource Include="Resources\mnt2.png" />
+    <EmbeddedResource Include="Resources\mountains.png" />
+    <EmbeddedResource Include="Resources\Mountains_a01_01.png" />
+    <EmbeddedResource Include="Resources\Mountains_a01_02.png" />
+    <EmbeddedResource Include="Resources\Mountains_a01_03.png" />
+    <EmbeddedResource Include="Resources\Mountains_b02_02.png" />
+    <EmbeddedResource Include="Resources\Mountains_c01_01.png" />
+    <EmbeddedResource Include="Resources\Mountains_c01_02.png" />
+    <EmbeddedResource Include="Resources\Mountains_c01_03.png" />
+    <EmbeddedResource Include="Resources\polar_sea.png" />
+    <EmbeddedResource Include="Resources\rainforest.png" />
+    <EmbeddedResource Include="Resources\savanna.png" />
+    <EmbeddedResource Include="Resources\Savanna_03.png" />
+    <EmbeddedResource Include="Resources\seas.png" />
+    <EmbeddedResource Include="Resources\seasnew.png" />
+    <EmbeddedResource Include="Resources\Sea_BIG_01.png" />
+    <EmbeddedResource Include="Resources\sea_deep.png" />
+    <EmbeddedResource Include="Resources\Sea_Small_04.png" />
+    <EmbeddedResource Include="Resources\Sea_Small_07.png" />
+    <EmbeddedResource Include="Resources\semidesert.png" />
+    <EmbeddedResource Include="Resources\Semidesert_02.png" />
+    <EmbeddedResource Include="Resources\semidesert_2.png" />
+    <EmbeddedResource Include="Resources\taiga.png" />
+    <EmbeddedResource Include="Resources\taiganew.png" />
+    <EmbeddedResource Include="Resources\tundra.png" />
+    <EmbeddedResource Include="Resources\tundra_wet.png" />
+    <EmbeddedResource Include="Resources\tundra_wet2.png" />
+    <EmbeddedResource Include="Resources\wet_tundra.png" />
+    <EmbeddedResource Include="Resources\Yellow_Plains_01.png" />
+    <EmbeddedResource Include="Resources\Yellow_Taiga_01.png" />
+    <EmbeddedResource Include="Resources\Yellow_Tundra_01.png" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Parameters\Parameters.csproj" />
+    <ProjectReference Include="..\PointLocationForm\PointLocationForm.csproj" />
     <ProjectReference Include="..\RandomExtension\RandomExtension.csproj" />
+    <ProjectReference Include="..\Topology\Topology.csproj" />
     <ProjectReference Include="..\Utilities\Utilities.csproj" />
     <ProjectReference Include="..\WorldSimulation\WorldSimulation.csproj" />
   </ItemGroup>
@@ -29,9 +131,21 @@
     <Compile Update="ParameterForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Update="WorldSimulatorForm.cs">
       <SubType>Form</SubType>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

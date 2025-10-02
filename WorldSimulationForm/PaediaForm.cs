@@ -7,8 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using WorldSim;
-using WorldSim.HistorySimulation;
+using WorldSimulation;
+using WorldSimulation.HistorySimulation;
 
 namespace WorldSimulator
 {
@@ -20,10 +20,10 @@ namespace WorldSimulator
         WorldGenerator _generator;
         Stack<ViewMode> _viewModes;
         Stack<Race> _viewRaces;
-        Stack<WorldSim.Region> _viewRegions;
+        Stack<WorldSimulation.Region> _viewRegions;
         ViewMode _currentMode;
         Race _currentRace;
-        WorldSim.Region _currentRegion;
+        WorldSimulation.Region _currentRegion;
         bool _back = false;
 
         public PaediaForm()
@@ -32,7 +32,7 @@ namespace WorldSimulator
 
             _viewModes = new Stack<ViewMode>();
             _viewRaces = new Stack<Race>();
-            _viewRegions = new Stack<WorldSim.Region>();
+            _viewRegions = new Stack<WorldSimulation.Region>();
 
             _currentMode = ViewMode.Init;
 
@@ -104,7 +104,7 @@ namespace WorldSimulator
                 }
                 else if (mode == ViewMode.Region)
                 {
-                    WorldSim.Region region = _viewRegions.Pop();
+                    WorldSimulation.Region region = _viewRegions.Pop();
                     OnRegionSelected(region);
                 }
             }
@@ -116,7 +116,7 @@ namespace WorldSimulator
 
             _viewModes = new Stack<ViewMode>();
             _viewRaces = new Stack<Race>();
-            _viewRegions = new Stack<WorldSim.Region>();
+            _viewRegions = new Stack<WorldSimulation.Region>();
             _currentMode = ViewMode.Init;
 
             _itemPanel.Controls.Clear();
@@ -176,7 +176,7 @@ namespace WorldSimulator
             }            
         }
 
-        public void OnRegionSelected(WorldSim.Region region)
+        public void OnRegionSelected(WorldSimulation.Region region)
         {
             _pushCurrentMode();
             _currentMode = ViewMode.Region;

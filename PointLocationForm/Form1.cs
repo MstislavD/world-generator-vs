@@ -8,9 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using RandomExtended;
+using RandomExtension;
 using PointLocation;
-using WorldSim;
+using WorldSimulation;
 
 namespace PointLocationForm
 {

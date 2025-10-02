@@ -9,7 +9,7 @@ namespace WorldSimulation
 {
     public class GenerationParameters : ParameterSet
     {
-        RandomExtended.RandomExt random = new RandomExtended.RandomExt();
+        RandomExtension.RandomExt random = new RandomExtension.RandomExt();
 
         List<Parameter> seedParameters = new List<Parameter>();
 
