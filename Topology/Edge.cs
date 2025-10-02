@@ -13,7 +13,7 @@ namespace Topology
         public Vector2 Vertex1 { get; set; }
         public Vector2 Vertex2 { get; set; }
         public IEnumerable<HexCell> Cells => new List<HexCell>() { Cell1, Cell2 }.Where(c => c != null);
-        public Vector2 Center => Vector2.Between(Vertex1, Vertex2, 0.5);
+        public Vector2 Center => Vector2.Lerp(Vertex1, Vertex2, 0.5);
         public Vector2 Left => Vertex1.X < Vertex2.X ? Vertex1 : Vertex2;
         public Vector2 Right => Vertex1.X <= Vertex2.X ? Vertex2 : Vertex1;
 

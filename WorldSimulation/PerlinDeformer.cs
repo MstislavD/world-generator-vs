@@ -23,8 +23,8 @@ namespace WorldSimulation
             {
                 foreach (Vector2 vertex in subregion.Vertices.Append(subregion.Center))
                 {
-                    vertex.Y = Math.Max(vertex.Y, 0);
-                    vertex.Y = Math.Min(vertex.Y, graph.Height);
+                    /// Here we change coordinates of a vector. It would be more appropriate to use Vector2 as a struct.
+                    vertex.Y = double.Clamp(vertex.Y, 0, graph.Height);
 
                     double transitionMultiplier = 1;
                     if (vertex.Y < transitionBand)

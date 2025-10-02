@@ -1,125 +1,63 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Topology
+﻿namespace Topology
 {
+    /// <summary>
+    /// Representation of a 2-dimensional vector
+    /// </summary>
+    /// <remarks>Should use Vector2 struct from System.Numerics instead, but currently it is not possible, because 
+    /// WorldSimulation algorithms use it as a reference type. Also PointLocation algorithm is running indefenitely when dealing with 
+    /// float values for some reason.</remarks>
     public class Vector2
     {
-        public static Vector2 Crossing(Vector2 v1, Vector2 v2, Vector2 v3, Vector2 v4)
+        /// <summary>
+        /// Finds the intersection point of two lines, each defined by two points
+        /// </summary>
+        /// <remarks> Probably belongs elsewhere</remarks>
+        /// <param name="line1_p1">First point of the first line.</param>
+        /// <param name="line1_p2">Second point of the first line.</param>
+        /// <param name="line2_p1">First point of the second line.</param>
+        /// <param name="line2_p2">Second point of the second line.</param>
+        /// <returns>
+        /// The intersection point if lines intersect, 
+        /// null if lines are parallel or coincident
+        /// </returns>
+        public static Vector2? FindLineIntersection(Vector2 line1_p1, Vector2 line1_p2, Vector2 line2_p1, Vector2 line2_p2)
         {
-            double epsilon = 1e-10;
-            if (Math.Abs(v1.X - v2.X) < epsilon)
+            // Calculate the direction vectors
+            double dx1 = line1_p2.X - line1_p1.X;
+            double dy1 = line1_p2.Y - line1_p1.Y;
+            double dx2 = line2_p2.X - line2_p1.X;
+            double dy2 = line2_p2.Y - line2_p1.Y;
+
+            // Calculate the determinant
+            double determinant = dx1 * dy2 - dx2 * dy1;
+
+            // Check if lines are parallel (determinant is close to zero)
+            if (Math.Abs(determinant) < 1e-10)
             {
-                double x = v1.X;
-                double a2 = (v3.Y - v4.Y) / (v3.X - v4.X);
-                double b2 = v3.Y - a2 * v3.X;
-                double y = a2 * x + b2;
-                return new Vector2(x, y);
+                return null; // Lines are parallel or coincident
             }
-            else if (Math.Abs(v3.X - v4.X) < epsilon)
-            {
-                double x = v3.X;
-                double a1 = (v1.Y - v2.Y) / (v1.X - v2.X);
-                double b1 = v1.Y - a1 * v1.X;
-                double y = a1 * x + b1;
-                return new Vector2(x, y);
-            }
-            else
-            {
-                double a1 = (v1.Y - v2.Y) / (v1.X - v2.X);
-                double b1 = v1.Y - a1 * v1.X;
-                double a2 = (v3.Y - v4.Y) / (v3.X - v4.X);
-                double b2 = v3.Y - a2 * v3.X;
-                double x = (b2 - b1) / (a1 - a2);
-                double y = a1 * x + b1;
-                return new Vector2(x, y);
-            }
+
+            // Calculate parameters for the intersection point
+            double t = ((line2_p1.X - line1_p1.X) * dy2 - (line2_p1.Y - line1_p1.Y) * dx2) / determinant;
+
+            // Calculate the intersection point
+            double intersectionX = line1_p1.X + t * dx1;
+            double intersectionY = line1_p1.Y + t * dy1;
+
+            return new Vector2(intersectionX, intersectionY);
         }
 
-        public static Vector2 Between(Vector2 v1, Vector2 v2, double a)
-        {
-            double x = v1.X + a * (v2.X - v1.X);
-            double y = v1.Y + a * (v2.Y - v1.Y);
-            return new Vector2(x, y);
-        }
-
-        public static double DistanceSquared(Vector2 v1, Vector2 v2)
-        {
-            return (v1.X - v2.X) * (v1.X - v2.X) + (v1.Y - v2.Y) * (v1.Y - v2.Y);
-        }
-
-        public static double Distance(Vector2 v1, Vector2 v2)
-        {
-            return Math.Sqrt((v1.X - v2.X) * (v1.X - v2.X) + (v1.Y - v2.Y) * (v1.Y - v2.Y));
-        }
-
-        public static Vector2 operator +(Vector2 v1, Vector2 v2)
-        {
-            return new Vector2(v1.X + v2.X, v1.Y + v2.Y);
-        }
-
-        public static Vector2 operator -(Vector2 v1, Vector2 v2)
-        {
-            return new Vector2(v1.X - v2.X, v1.Y - v2.Y);
-        }
-
-        public static Vector2 operator -(Vector2 v)
-        {
-            return new Vector2(-v.X, -v.Y);
-        }
-
-        public static Vector2 operator *(double a, Vector2 v)
-        {
-            return new Vector2(a * v.X, a * v.Y);
-        }
-
-        public static Vector2 operator *(Vector2 v, double a)
-        {
-            return new Vector2(a * v.X, a * v.Y);
-        }
-
-        public static Vector2 operator *(int a, Vector2 v)
-        {
-            return new Vector2(a * v.X, a * v.Y);
-        }
-
-        public static Vector2 operator *(Vector2 v, int a)
-        {
-            return new Vector2(a * v.X, a * v.Y);
-        }
-
-        public static Vector2 operator *(float a, Vector2 v)
-        {
-            return new Vector2(a * v.X, a * v.Y);
-        }
-
-        public static Vector2 operator *(Vector2 v, float a)
-        {
-            return new Vector2(a * v.X, a * v.Y);
-        }
-
-
-        public Vector2(double x, double y)
-        {
-            X = x;
-            Y = y;
-        }
-
-        public Vector2(Vector2 v)
-        {
-            X = v.X;
-            Y = v.Y;
-        }
-
+        public static Vector2 Lerp(Vector2 v1, Vector2 v2, double a) => new Vector2(double.Lerp(v1.X, v2.X, a), double.Lerp(v1.Y, v2.Y, a));
+        public static double DistanceSquared(Vector2 v1, Vector2 v2) => (v1.X - v2.X) * (v1.X - v2.X) + (v1.Y - v2.Y) * (v1.Y - v2.Y);
+        public static double Distance(Vector2 v1, Vector2 v2) => Math.Sqrt(DistanceSquared(v1, v2));
+        public static Vector2 operator +(Vector2 v1, Vector2 v2) => new(v1.X + v2.X, v1.Y + v2.Y);
+        public static Vector2 operator -(Vector2 v1, Vector2 v2) => new(v1.X - v2.X, v1.Y - v2.Y);
+        public static Vector2 operator -(Vector2 v) => new(-v.X, -v.Y);
+        public static Vector2 operator *(double a, Vector2 v) => new(a * v.X, a * v.Y);
+        public Vector2(double x, double y) {X = x; Y = y;}
+        public Vector2(Vector2 v) {X = v.X; Y = v.Y;}
         public double X { get; set; }
         public double Y { get; set; }
-
-        public override string ToString()
-        {
-            return $"[{X}, {Y}]";
-        }
+        public override string ToString() => $"[{X}, {Y}]";
     }
 }

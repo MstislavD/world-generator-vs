@@ -100,7 +100,7 @@ namespace WorldSimulation
                             sedge.AddVertex(v);
                     }
 
-                    sedge.Center = Vector2.Between(subregionVertices[direction * 5 + 4], subregionVertices[direction * 5 + 5], 0.5);
+                    sedge.Center = Vector2.Lerp(subregionVertices[direction * 5 + 4], subregionVertices[direction * 5 + 5], 0.5);
                     sedge.AddVertex(sedge.Center);
 
                     for (int i = 0; i < 4; i++)
@@ -133,7 +133,7 @@ namespace WorldSimulation
                         {
                             if (sedge.Center == null)
                             {
-                                sedge.Center = Vector2.Between(last, v, 0.5);
+                                sedge.Center = Vector2.Lerp(last, v, 0.5);
                                 sedge.AddVertex(sedge.Center);
                             }
                             sedge.AddVertex(v);
@@ -171,9 +171,9 @@ namespace WorldSimulation
             bool ridgeMiddle = cellRight != null && generator.HasRidge(cellRight.GetEdge(direction + 4));
 
             if (ridgeLeft)
-                vertices[0] = Vector2.Between(vertex, cell.Center, _delta);
+                vertices[0] = Vector2.Lerp(vertex, cell.Center, _delta);
             if (ridgeRight)
-                vertices[4] = Vector2.Between(vertex, cell.Center, _delta);
+                vertices[4] = Vector2.Lerp(vertex, cell.Center, _delta);
 
             if ((ridgeMiddle || ridgeRight) && !ridgeLeft)
             {
@@ -189,25 +189,25 @@ namespace WorldSimulation
             }
             else if (ridgeMiddle && !ridgeLeft && !ridgeRight && _useRidgeSmoothing)
             {
-                vertices[2] = Vector2.Between(vertex, cell.Center, 0.2);
+                vertices[2] = Vector2.Lerp(vertex, cell.Center, 0.2);
             }
 
             if (cellLeft == null && cellRight != null && ridgeRight)
             {
-                Vector2 v1 = Vector2.Between(vertex, cell.Center, _delta);
-                Vector2 v2 = Vector2.Between(cell.GetVertex(direction + 1), cell.Center, _delta);
+                Vector2 v1 = Vector2.Lerp(vertex, cell.Center, _delta);
+                Vector2 v2 = Vector2.Lerp(cell.GetVertex(direction + 1), cell.Center, _delta);
                 Vector2 v3 = cell.GetVertex(direction + 5);
 
-                vertices[1] = Vector2.Crossing(v1, v2, vertex, v3);
+                vertices[1] = Vector2.FindLineIntersection(v1, v2, vertex, v3);
                 vertices[2] = null;
             }
             if (cellRight == null && cellLeft != null && ridgeLeft)
             {
-                Vector2 v1 = Vector2.Between(vertex, cell.Center, _delta);
-                Vector2 v2 = Vector2.Between(cell.GetVertex(direction + 5), cell.Center, _delta);
+                Vector2 v1 = Vector2.Lerp(vertex, cell.Center, _delta);
+                Vector2 v2 = Vector2.Lerp(cell.GetVertex(direction + 5), cell.Center, _delta);
                 Vector2 v3 = cell.GetVertex(direction + 1);
 
-                vertices[3] = Vector2.Crossing(v1, v2, vertex, v3);
+                vertices[3] = Vector2.FindLineIntersection(v1, v2, vertex, v3);
                 vertices[2] = null;
             }        
 
@@ -219,7 +219,7 @@ namespace WorldSimulation
             Vector2[] vertices = _ridgeSubregionVertices(subregion.Edge, generator);
             _createRidgeSubregionEdges(subregion, generator, vertices);
 
-            subregion.Center = Vector2.Between(subregion.Edge.Vertex1, subregion.Edge.Vertex2, 0.5);
+            subregion.Center = Vector2.Lerp(subregion.Edge.Vertex1, subregion.Edge.Vertex2, 0.5);
         }
 
         private Vector2[] _ridgeSubregionVertices(Edge edge, WorldGenerator generator)
@@ -240,13 +240,13 @@ namespace WorldSimulation
 
             vertices[0] = new Vector2(c1.GetVertex(dir + 1));
             vertices[5] = new Vector2(c1.GetVertex(dir));
-            vertices[2] = Vector2.Between(vertices[0], c1.Center, _delta);
-            vertices[3] = Vector2.Between(vertices[5], c1.Center, _delta);
+            vertices[2] = Vector2.Lerp(vertices[0], c1.Center, _delta);
+            vertices[3] = Vector2.Lerp(vertices[5], c1.Center, _delta);
 
             if (c2 != null)
             {
-                vertices[7] = Vector2.Between(c2.GetVertex(dir + 4), c2.Center, _delta);
-                vertices[8] = Vector2.Between(c2.GetVertex(dir + 3), c2.Center, _delta);
+                vertices[7] = Vector2.Lerp(c2.GetVertex(dir + 4), c2.Center, _delta);
+                vertices[8] = Vector2.Lerp(c2.GetVertex(dir + 3), c2.Center, _delta);
             }
 
             if (_useRidgeSmoothing)
@@ -272,28 +272,28 @@ namespace WorldSimulation
                 {
                     Vector2 cL = new Vector2(cellL.Center);
                     _normalizeVertex(cL, edge.Vertex1.X);
-                    vertices[5] = Vector2.Between(vertices[5], cL, 0.2);
+                    vertices[5] = Vector2.Lerp(vertices[5], cL, 0.2);
                 }
                 if (generator.HasRidge(edge) && !generator.HasRidge(edgeR) && edgeL1 != null && !generator.HasRidge(edgeL1) && cellR != null)
                 {
                     Vector2 cR = new Vector2(cellR.Center);
                     _normalizeVertex(cR, edge.Vertex1.X);
-                    vertices[0] = Vector2.Between(vertices[0], cR, 0.2);
+                    vertices[0] = Vector2.Lerp(vertices[0], cR, 0.2);
                 }
 
                 if (cellL == null)
                 {
                     Vector2 v1 = c1.GetVertex(dir + 5);
                     Vector2 v2 = c2.GetVertex(dir + 5);
-                    vertices[4] = Vector2.Crossing(vertices[3], vertices[2], vertices[5], v1);
-                    vertices[6] = Vector2.Crossing(vertices[7], vertices[8], vertices[5], v2);
+                    vertices[4] = Vector2.FindLineIntersection(vertices[3], vertices[2], vertices[5], v1);
+                    vertices[6] = Vector2.FindLineIntersection(vertices[7], vertices[8], vertices[5], v2);
                 }
                 if (cellR == null)
                 {
                     Vector2 v1 = c1.GetVertex(dir + 2);
                     Vector2 v2 = c2.GetVertex(dir + 2);
-                    vertices[1] = Vector2.Crossing(vertices[2], vertices[3], vertices[0], v1);
-                    vertices[9] = Vector2.Crossing(vertices[8], vertices[7], vertices[0], v2);
+                    vertices[1] = Vector2.FindLineIntersection(vertices[2], vertices[3], vertices[0], v1);
+                    vertices[9] = Vector2.FindLineIntersection(vertices[8], vertices[7], vertices[0], v2);
                 }
             }         
 
@@ -325,7 +325,7 @@ namespace WorldSimulation
                     sEdge.AddVertex(vp[(index + 1) % 10] ?? vp[index]);
                 sEdge.AddVertex(vp[(index + 2) % 10]);
 
-                sEdge.Center = Vector2.Between(vp[(index + 2) % 10], vp[(index + 3) % 10], 0.5);
+                sEdge.Center = Vector2.Lerp(vp[(index + 2) % 10], vp[(index + 3) % 10], 0.5);
                 sEdge.AddVertex(sEdge.Center);
 
                 sEdge.AddVertex(vp[(index + 3) % 10]);
@@ -402,14 +402,14 @@ namespace WorldSimulation
                 return null;
 
             Vector2 vertex = cell.GetVertex(direction);
-            Vector2 vertexI = Vector2.Between(vertex, cell.Center, _delta);
+            Vector2 vertexI = Vector2.Lerp(vertex, cell.Center, _delta);
             Vector2 vertexO = cell.GetVertex(direction + 5);
 
             Vector2 cellCenterL = new Vector2(cellL.Center);
             _normalizeVertex(cellCenterL, vertex.X);
-            Vector2 vertexL = Vector2.Between(vertex, cellCenterL, _delta);
+            Vector2 vertexL = Vector2.Lerp(vertex, cellCenterL, _delta);
 
-            return Vector2.Crossing(vertex, vertexO, vertexI, vertexL);
+            return Vector2.FindLineIntersection(vertex, vertexO, vertexI, vertexL);
         }
 
         Vector2 _smoothingVertexRight(HexCell cell, int direction)
@@ -423,14 +423,14 @@ namespace WorldSimulation
                 return null;
 
             Vector2 vertex = cell.GetVertex(direction);
-            Vector2 vertexI = Vector2.Between(vertex, cell.Center, _delta);
+            Vector2 vertexI = Vector2.Lerp(vertex, cell.Center, _delta);
             Vector2 vertexO = cell.GetVertex(direction + 1);
 
             Vector2 cellCenterR = new Vector2(cellR.Center);
             _normalizeVertex(cellCenterR, vertex.X);
-            Vector2 vertexR = Vector2.Between(vertex, cellCenterR, _delta);
+            Vector2 vertexR = Vector2.Lerp(vertex, cellCenterR, _delta);
 
-            return Vector2.Crossing(vertex, vertexO, vertexI, vertexR);
+            return Vector2.FindLineIntersection(vertex, vertexO, vertexI, vertexR);
         }
 
         private void _normalizeVertex(Vector2 vertex, double edgeX)

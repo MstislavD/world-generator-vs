@@ -1002,7 +1002,7 @@ namespace WorldSimulator
             {
                 SubregionEdge edge = subregion.GetEdge(subregion.Drainage);
 
-                Vector2 v = Vector2.Between(subregion.Center, edge.Center, 0.5);
+                Vector2 v = Vector2.Lerp(subregion.Center, edge.Center, 0.5);
 
                 Vector2[] vertices = new Vector2[] { v, edge.Center };
                 objects.Segments.Add(new SegmentData(vertices, riverPen));
@@ -1012,7 +1012,7 @@ namespace WorldSimulator
                 foreach (Subregion neighbor in subregion.Neighbors.Where(n => n.River && n.Drainage == subregion))
                 {
                     riverOrigin = false;
-                    Vector2 v1 = Vector2.Between(subregion.Center, subregion.GetEdge(neighbor).Center, 0.5);
+                    Vector2 v1 = Vector2.Lerp(subregion.Center, subregion.GetEdge(neighbor).Center, 0.5);
                     vertices = new Vector2[] { v1, subregion.GetEdge(neighbor).Center };
                     objects.Segments.Add(new SegmentData(vertices, riverPen));
                     vertices = new Vector2[] { v1, v };

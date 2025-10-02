@@ -25,7 +25,7 @@ namespace WorldSimulation
                         for (int i = 0; i < newVerticesCount - 1; i++)
                         {
                             double delta = (i + 1) / (double)newVerticesCount;
-                            Vector2 v = Vector2.Between(previousVertex, vertex, delta);
+                            Vector2 v = Vector2.Lerp(previousVertex, vertex, delta);
                             edge.AddVertex(v);
                         }
                     }
