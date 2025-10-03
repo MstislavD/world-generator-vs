@@ -16,19 +16,19 @@ namespace WorldSimulator
         Bitmap _image;
         RenderObjects _objects;
 
-        static public Bitmap Render(Grid grid, int maxWidth, int maxHeight, RenderObjects objects)
+        static public Bitmap Render(HexGrid grid, int maxWidth, int maxHeight, RenderObjects objects)
         {
             return new HexGridRenderer(grid, maxWidth, maxHeight, objects)._image;
         }
 
-        HexGridRenderer(Grid grid, int maxWidth, int maxHeight, RenderObjects objects)
+        HexGridRenderer(HexGrid grid, int maxWidth, int maxHeight, RenderObjects objects)
         {
-            double xScale = (maxWidth - 1) / grid.XDimension;
-            double yScale = (maxHeight - 1) / grid.YDimension;
+            double xScale = (maxWidth - 1) / grid.Width;
+            double yScale = (maxHeight - 1) / grid.Height;
             double scale = Math.Min(xScale, yScale);
 
-            int imageWidth = (int)(grid.XDimension * scale) + 1;
-            int imageHeight = (int)(grid.YDimension * scale) + 1;
+            int imageWidth = (int)(grid.Width * scale) + 1;
+            int imageHeight = (int)(grid.Height * scale) + 1;
 
             _objects = objects;
 
@@ -47,7 +47,7 @@ namespace WorldSimulator
                 PointF[] points = polygon.Vertices.Select(v => PointFromVertex(v)).ToArray();
                 g.FillPolygon(polygon.Brush, points);
 
-                if (polygon.Vertices.Any(v => v.X > grid.XDimension))
+                if (polygon.Vertices.Any(v => v.X > grid.Width))
                 {
                     points = polygon.Vertices.Select(v => PointFromVertex(v, -imageWidth + 1)).ToArray();
                     g.FillPolygon(polygon.Brush, points);
@@ -88,7 +88,7 @@ namespace WorldSimulator
             }
         }
 
-        private void _drawSegments(Grid grid, int imageWidth, Graphics g, SegmentData segment)
+        private void _drawSegments(HexGrid grid, int imageWidth, Graphics g, SegmentData segment)
         {
             if (segment.Pen.Width == 0)
                 segment.Pen.Width = (int)(grid.HexSide * ridgeMultiplier * _objects.Scale);
@@ -97,7 +97,7 @@ namespace WorldSimulator
             points = _repair(points, imageWidth);
             g.DrawLines(segment.Pen, points);
 
-            if (segment.Vertices.Any(v => v.X > grid.XDimension))
+            if (segment.Vertices.Any(v => v.X > grid.Width))
             {
                 points = segment.Vertices.Select(v => PointFromVertex(v, -imageWidth + 1)).ToArray();
                 g.DrawLines(segment.Pen, points);

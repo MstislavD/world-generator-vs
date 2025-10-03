@@ -49,5 +49,40 @@ namespace Topology
 
             return new Vector2(intersectionX, intersectionY);
         }
+
+        /// <summary>
+        /// Returns graph nodes connected to the starting one and satisfying the condition
+        /// </summary>
+        /// <typeparam name="TCell"></typeparam>
+        /// <param name="start"></param>
+        /// <param name="condition"></param>
+        /// <returns></returns>
+        public static IEnumerable<TCell> Flood<TCell>(TCell start, Func<TCell, bool> condition)
+            where TCell : INeighbors<TCell>
+        {
+            HashSet<TCell> flooded = [];
+            HashSet<TCell> flooding = [start];
+
+            while (flooding.Count > 0)
+            {
+                flooded.UnionWith(flooding);
+                flooding = flooding.SelectMany(c => c.Neighbors).Where(condition).Except(flooded).ToHashSet();
+            }
+
+            return flooded;
+        }
+
+        public static bool IsConnection<TCell, T>(TCell cell, Func<TCell, T> value)
+            where TCell: INeighbors<TCell>
+        {
+            HashSet<TCell> sameNeighbors = cell.Neighbors.Where(c => value(c).Equals(value(cell))).ToHashSet();
+            if (sameNeighbors.Count == 0)
+            {
+                return false;
+            }
+            TCell starterCell = sameNeighbors.First();
+            IEnumerable<TCell> connectedNeighbors = Flood(starterCell, sameNeighbors.Contains);
+            return sameNeighbors.Count > connectedNeighbors.Count();
+        }
     }
 }

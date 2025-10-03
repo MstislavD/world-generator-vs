@@ -22,10 +22,10 @@ namespace WorldSimulation
         double _delta = 0.5;
         const bool _useRidgeSmoothing = true;
 
-        public SubregionGraph(Grid grid, WorldGenerator generator)
+        public SubregionGraph(HexGrid grid, WorldGenerator generator)
         {
-            Width = grid.XDimension;
-            Height = grid.YDimension;
+            Width = grid.Width;
+            Height = grid.Height;
 
             foreach (Edge edge in grid.Edges.Where(generator.HasRidge))
             {
@@ -157,11 +157,6 @@ namespace WorldSimulation
 
         private Vector2[] _cellRegionVertices(WorldGenerator generator, HexCell cell, int direction)
         {
-            if (cell.GridPositionX == 31 && cell.GridPositionY == 48)
-            {
-
-            }
-
             Vector2[] vertices = new Vector2[5];
             HexCell cellRight = cell.GetNeighbor(direction);
             HexCell cellLeft = cell.GetNeighbor(direction + 5);

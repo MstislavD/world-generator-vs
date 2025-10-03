@@ -20,7 +20,7 @@ namespace PointLocationForm
         int _seed;
         int _step;
         List<Region> _regions;
-        Grid _grid;
+        HexGrid _grid;
         RegionPartition _partition;
         PointLocator<Region> _locator;
         Dictionary<Region, SolidBrush> _colorByRegion;
@@ -181,7 +181,7 @@ namespace PointLocationForm
             _step = 0;
             _initiated = true;
 
-            _grid = new Grid(20, 20);
+            _grid = new HexGrid(20, 20);
 
             //_partition = new RegionPartition(_regions, 7.0, 0.0, 0.0, 7.0);
             //_locator = new PointLocator<Region>(_partition);
@@ -195,8 +195,8 @@ namespace PointLocationForm
             Graphics g = Graphics.FromImage(image);
             g.Clear(Color.White);
 
-            _geometrySize = (float)_grid.YDimension;
-            float scale = (float)(_imageSize / _grid.XDimension);
+            _geometrySize = (float)_grid.Height;
+            float scale = (float)(_imageSize / _grid.Width);
             float radius = 3;
             float diameter = radius * 2;
 

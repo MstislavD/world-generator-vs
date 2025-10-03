@@ -30,5 +30,8 @@ namespace Topology
         public override string ToString() => $"{Left} - {Right}";
     }
 
+    /// <summary>
+    /// Concrete implementation of the generic Edge class.
+    /// </summary>
     public class Edge : Edge<HexCell> { }
 }

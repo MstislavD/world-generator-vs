@@ -166,7 +166,7 @@ namespace WorldSimulator
         {
             WorldSimulation.Region region = sender as WorldSimulation.Region;
 
-            Grid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
+            HexGrid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
             Bitmap overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _regionOutline(region));
 
             Graphics g = CreateGraphics();
@@ -179,7 +179,7 @@ namespace WorldSimulator
             WorldSimulation.HistorySimulation.Race race = sender as WorldSimulation.HistorySimulation.Race;
             IEnumerable<WorldSimulation.Region> regions = _generator.RegionMap.Regions.Where(r => r.Pops.Any(p => p.Race == race));
 
-            Grid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
+            HexGrid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
             Bitmap overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _regionOutline(regions));
 
             Graphics g = CreateGraphics();
@@ -334,7 +334,7 @@ namespace WorldSimulator
                         if (!region.Equals(_highlightedRegion))
                         {
                             _highlightedRegion = region;
-                            Grid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
+                            HexGrid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
                             Bitmap overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _regionOutline(region));
 
                             Graphics g = CreateGraphics();
@@ -455,7 +455,7 @@ namespace WorldSimulator
 
             int gridLevel = (int)_cmbGridLevel.SelectedItem;
 
-            Grid grid = _generator.GetGrid(gridLevel);
+            HexGrid grid = _generator.GetGrid(gridLevel);
 
             RenderObjects objects = new RenderObjects();
             if (_cmbMapMode.SelectedItem.Equals(MapMode.Elevation))
@@ -504,7 +504,7 @@ namespace WorldSimulator
             g.DrawImage(_image, _imageLeft, _margin);
         }
 
-        private RenderObjects _elevationImage(Grid grid)
+        private RenderObjects _elevationImage(HexGrid grid)
         {
             Dictionary<Elevation, Brush> brushByElevation = new Dictionary<Elevation, Brush>();
             brushByElevation[Elevation.DeepOcean] =  Brushes.MediumBlue;
@@ -527,7 +527,7 @@ namespace WorldSimulator
             return objects;
         }
 
-        private RenderObjects _heightImage(Grid grid)
+        private RenderObjects _heightImage(HexGrid grid)
         {            
             Color lowlandColor = Color.Green;
             Color uplandColor = Color.Yellow;

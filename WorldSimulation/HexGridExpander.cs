@@ -10,8 +10,8 @@ namespace WorldSimulation
 {
     public class ExpandedHexGrid
     {
-        public Grid ParentGrid;
-        public Grid Grid;
+        public HexGrid ParentGrid;
+        public HexGrid Grid;
         public Dictionary<HexCell, HexCell> ParentByCell;
         public Dictionary<HexCell, List<HexCell>> ChildrenByCell;
         public IEnumerable<HexCell> Regions => ParentGrid.Cells;
@@ -20,16 +20,16 @@ namespace WorldSimulation
 
     public class HexGridExpander
     {
-        static public ExpandedHexGrid ExpandBroad(Grid grid, RandomExt random)
+        static public ExpandedHexGrid ExpandBroad(HexGrid grid, RandomExt random)
         {
-            Grid expandedGrid = new Grid(grid.Width * 2, grid.Height * 2 + 1);
+            HexGrid expandedGrid = new HexGrid(grid.Columns * 2, grid.Rows * 2 + 1);
             Dictionary<HexCell, HexCell> parentByCellTmp = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, HexCell> parentByCell = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, List<HexCell>> childrenByCell = new Dictionary<HexCell, List<HexCell>>();
 
-            for (int x = 0; x < grid.Width; x++)
+            for (int x = 0; x < grid.Columns; x++)
             {
-                for (int y = 0; y < grid.Height; y++)
+                for (int y = 0; y < grid.Rows; y++)
                 {
                     HexCell parentCell = grid.GetCell(x, y);
                     int childX = x * 2 + y % 2;
@@ -58,16 +58,16 @@ namespace WorldSimulation
             return new ExpandedHexGrid() {Grid = expandedGrid, ParentGrid = grid, ParentByCell = parentByCell, ChildrenByCell = childrenByCell };
         }
 
-        static public ExpandedHexGrid Expand(Topology.Grid grid, RandomExt random)
+        static public ExpandedHexGrid Expand(Topology.HexGrid grid, RandomExt random)
         {
-            Topology.Grid expandedGrid = new Topology.Grid(grid.Width * 2, grid.Height * 2 - 1);
+            Topology.HexGrid expandedGrid = new Topology.HexGrid(grid.Columns * 2, grid.Rows * 2 - 1);
             Dictionary<HexCell, HexCell> parentByCellTmp = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, HexCell> parentByCell = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, List<HexCell>> childrenByCell = new Dictionary<HexCell, List<HexCell>>();
 
-            for (int x = 0; x < grid.Width; x++)
+            for (int x = 0; x < grid.Columns; x++)
             {
-                for (int y = 0; y < grid.Height; y++)
+                for (int y = 0; y < grid.Rows; y++)
                 {
                     HexCell parentCell = grid.GetCell(x, y);
                     int childX = x * 2 + y % 2;
@@ -96,17 +96,17 @@ namespace WorldSimulation
             return new ExpandedHexGrid() { Grid = expandedGrid, ParentGrid = grid, ParentByCell = parentByCell, ChildrenByCell = childrenByCell };
         }
 
-        static public ExpandedHexGrid Expand(Topology.Grid grid, RandomExt random, int sizeVariance)
+        static public ExpandedHexGrid Expand(Topology.HexGrid grid, RandomExt random, int sizeVariance)
         {
-            Topology.Grid expandedGrid = new Topology.Grid(grid.Width * 2, grid.Height * 2 - 1);
+            Topology.HexGrid expandedGrid = new Topology.HexGrid(grid.Columns * 2, grid.Rows * 2 - 1);
             Dictionary<HexCell, HexCell> parentByCellTmp = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, HexCell> parentByCell = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, int> sizeByParentCell = new Dictionary<HexCell, int>();
             Dictionary<HexCell, List<HexCell>> childrenByCell = new Dictionary<HexCell, List<HexCell>>();
 
-            for (int x = 0; x < grid.Width; x++)
+            for (int x = 0; x < grid.Columns; x++)
             {
-                for (int y = 0; y < grid.Height; y++)
+                for (int y = 0; y < grid.Rows; y++)
                 {
                     HexCell parentCell = grid.GetCell(x, y);
                     int childX = x * 2 + y % 2;
@@ -114,7 +114,7 @@ namespace WorldSimulation
                     HexCell childCell = expandedGrid.GetCell(childX, childY);
                     parentByCellTmp[childCell] = parentCell;
                     childrenByCell[parentCell] = new List<HexCell>() { childCell };
-                    sizeByParentCell[parentCell] = x > 0 && x < grid.Height - 1 ? 7 : 5;
+                    sizeByParentCell[parentCell] = x > 0 && x < grid.Rows - 1 ? 7 : 5;
                 }
             }
 

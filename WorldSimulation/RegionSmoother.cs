@@ -9,7 +9,7 @@ namespace WorldSimulation
 {
     class RegionSmoother
     {
-        public static void Smooth(WorldGenerator generator, Grid grid)
+        public static void Smooth(WorldGenerator generator, HexGrid grid)
         {
             foreach (HexCell cell in grid.Cells)
             {
@@ -72,16 +72,16 @@ namespace WorldSimulation
             }
         }
 
-        static void _moveVertex(Grid grid, Vector2 v, Vector2 target)
+        static void _moveVertex(HexGrid grid, Vector2 v, Vector2 target)
         {
             double dx = target.X - v.X;
-            if (dx < -grid.XDimension / 2)
+            if (dx < -grid.Width / 2)
             {
-                dx += grid.XDimension;
+                dx += grid.Width;
             }
-            if (dx > grid.XDimension / 2)
+            if (dx > grid.Width / 2)
             {
-                dx -= grid.XDimension;
+                dx -= grid.Width;
             }
             v.X = dx * 0.25 + v.X;
             v.Y = (target.Y - v.Y) * 0.25 + v.Y;
@@ -137,6 +137,6 @@ namespace WorldSimulation
             }
         }
 
-        static bool _borderCell(Grid grid, HexCell cell) => cell != null && cell.Center.X + grid.HexSide / 2 > grid.XDimension;
+        static bool _borderCell(HexGrid grid, HexCell cell) => cell != null && cell.Center.X + grid.HexSide / 2 > grid.Width;
     }
 }

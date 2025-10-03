@@ -8,14 +8,14 @@ namespace PointLocationForm
 {
     class HexGridPartition : IRegionPartition<HexCell>
     {
-        Grid _grid;
+        HexGrid _grid;
 
-        public HexGridPartition(Grid grid)
+        public HexGridPartition(HexGrid grid)
         {
-            Top = Math.Round(grid.YDimension * 2);
-            Bottom = Math.Round(-grid.YDimension);
-            Left = Math.Round(-grid.XDimension);
-            Right = Math.Round(grid.XDimension * 2);
+            Top = Math.Round(grid.Height * 2);
+            Bottom = Math.Round(-grid.Height);
+            Left = Math.Round(-grid.Width);
+            Right = Math.Round(grid.Width * 2);
             _grid = grid;
         }
 

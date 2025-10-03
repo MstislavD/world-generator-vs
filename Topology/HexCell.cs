@@ -38,15 +38,10 @@ namespace Topology
             neighbor == null ? default :
             _edges.Select((e, i) => (e, i)).First(t => neighbor.Equals(_neighbors[t.i])).e;
         public int GetDirection(TEdge edge) => _edges.ToList().IndexOf(edge);
-        public int GridPositionX { get; set; }
-        public int GridPositionY { get; set; }
     }
 
     /// <summary>
-    /// Concrete representation of the generic HexCell class.
+    /// Concrete implementation of the generic HexCell class.
     /// </summary>
-    public class HexCell : HexCell<HexCell, Edge>
-    {
-
-    }
+    public class HexCell : HexCell<HexCell, Edge> { }
 }

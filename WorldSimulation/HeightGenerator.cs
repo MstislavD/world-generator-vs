@@ -15,7 +15,7 @@ namespace WorldSimulation
         const double _heightFactor = 10;
         const double _noRidgeDelta = 2;
 
-        public static void Generate(WorldGenerator generator, Grid grid, RandomExt random)
+        public static void Generate(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             Func<HexCell, HexCell, bool> _ridgeBetween = (c1, c2) => generator.HasRidge(c1.GetEdgeByNeighbor(c2));
 

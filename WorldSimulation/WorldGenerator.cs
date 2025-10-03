@@ -22,7 +22,7 @@ namespace WorldSimulation
 
         GenerationParameters _parameters;
 
-        List<Grid> _grids;
+        List<HexGrid> _grids;
 
         public WorldGenerator(IParameterSupplier supplier)
         {
@@ -56,11 +56,11 @@ namespace WorldSimulation
             RandomExt heightRandom = new RandomExt(_parameters.HeightSeed);
             NamingLanguage = new Language(Seed);
 
-            _grids = new List<Grid>();
+            _grids = new List<HexGrid>();
             CellData = new Dictionary<HexCell, CellData>();
             EdgeData = new Dictionary<Edge, EdgeData>();
 
-            Grid grid = new Grid(_gridWidth, _gridHeight);
+            HexGrid grid = new HexGrid(_gridWidth, _gridHeight);
             _grids.Add(grid);
             _addData(grid);
 
@@ -149,7 +149,7 @@ namespace WorldSimulation
 
         public event EventHandler GenerationComplete;
         public event EventHandler<string> LogUpdated;
-        public Grid GetGrid(int level) => _grids[level];
+        public HexGrid GetGrid(int level) => _grids[level];
         public int GridLevels { get; } = 3;
         public SubregionGraph SubregionGraph { get; private set; }
         public RegionMap RegionMap { get; private set; }
@@ -181,7 +181,7 @@ namespace WorldSimulation
         public Humidity GetHumidity(Subregion subregion) => subregion.Region.Humidity;
         public Belt GetBelt(Subregion subregion) => subregion.Region.Belt;
         public double GetHeightD(Subregion subregion) => GetHeight(subregion);
-        public bool LastGrid(Grid grid) => grid.Equals(_grids[GridLevels]);
+        public bool LastGrid(HexGrid grid) => grid.Equals(_grids[GridLevels]);
         internal Dictionary<HexCell, CellData> CellData { get; private set; }
         internal Dictionary<Edge, EdgeData> EdgeData { get; private set; }
         public bool GenerationIsComplete { get; private set; }
@@ -278,7 +278,7 @@ namespace WorldSimulation
 
         public bool IsSeedParameter(Parameter parameter) => Parameters.IsSeed(parameter);
 
-        void _addData(Grid grid)
+        void _addData(HexGrid grid)
         {
             foreach (HexCell cell in grid.Cells)
             {

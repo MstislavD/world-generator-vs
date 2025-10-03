@@ -10,7 +10,7 @@ namespace WorldSimulation
 {
     class ElevationGenerator
     {
-        public static void GenerateRandom(WorldGenerator generator, Grid grid, RandomExt random)
+        public static void GenerateRandom(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             List<HexCell> cells = grid.Cells.ToList();
             int landCount = grid.CellCount - (int)(generator.SeaPct * grid.CellCount);
@@ -27,7 +27,7 @@ namespace WorldSimulation
 
         public static void GenerateFromParent(WorldGenerator generator, ExpandedHexGrid expandedGrid)
         {
-            Grid grid = expandedGrid.Grid;
+            HexGrid grid = expandedGrid.Grid;
             Dictionary<HexCell, CellData> cData = generator.CellData;
             Dictionary<Edge, EdgeData> eData = generator.EdgeData;
 
@@ -54,7 +54,7 @@ namespace WorldSimulation
             }
         }
 
-        public static void GenerateModify(WorldGenerator generator, Grid grid, RandomExt random)
+        public static void GenerateModify(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             _createIslands(generator, grid, random);
             _riseLand(generator, grid, random);
@@ -63,7 +63,7 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        private static void _createShallowSeas(WorldGenerator generator, Topology.Grid grid, RandomExt random)
+        private static void _createShallowSeas(WorldGenerator generator, Topology.HexGrid grid, RandomExt random)
         {
             List<HexCell> seaCells = grid.Cells.Where(generator.IsSea).ToList();
             int shallowCount = seaCells.Count - (int)(generator.Parameters.DeepPct.Current.DoubleValue * seaCells.Count);
@@ -74,14 +74,15 @@ namespace WorldSimulation
             };
         }
 
-        public static void GenerateScriptPangea(WorldGenerator generator, Topology.Grid grid, RandomExt random)
+        public static void GenerateScriptPangea(WorldGenerator generator, Topology.HexGrid grid, RandomExt random)
         {
-            int center = grid.Width / 2;
+            int center = grid.Columns / 2;
             int landCount = grid.CellCount - (int)(generator.SeaPct * grid.CellCount);
             int smallLands = random.Next((int)(landCount * 0.2));
             int pangeaCells = landCount - smallLands;
 
-            HexCell newCell = random.NextItemExtract(grid.Cells.Where(c => c.GridPositionX == center).ToList());
+            HexCell newCell = grid.GetCell(center, random.Next(grid.Rows));
+
             List<HexCell> cellPool = new List<HexCell>() { newCell };
 
             for (int i = 0; i < pangeaCells; i++)
@@ -105,7 +106,7 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        public static void GenerateScriptTwoContinents(WorldGenerator generator, Topology.Grid grid, RandomExt random)
+        public static void GenerateScriptTwoContinents(WorldGenerator generator, Topology.HexGrid grid, RandomExt random)
         {
             HashSet<HexCell> continentCells = new HashSet<HexCell>();
 
@@ -148,7 +149,7 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        public static void GenerateScriptThreeContinents(WorldGenerator generator, Topology.Grid grid, RandomExt random)
+        public static void GenerateScriptThreeContinents(WorldGenerator generator, Topology.HexGrid grid, RandomExt random)
         {
             HashSet<HexCell> continentCells = new HashSet<HexCell>();
             HashSet<HexCell> continentCellsTmp = new HashSet<HexCell>();
@@ -210,7 +211,7 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        static void _riseLand(WorldGenerator generator, Grid grid, RandomExt random)
+        static void _riseLand(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             List<HexCell> landCells = grid.Cells.Where(generator.IsLand).ToList();
             int count = (int)(landCells.Count * generator.Parameters.RisePct.Current.DoubleValue);
@@ -223,7 +224,7 @@ namespace WorldSimulation
             }
         }
 
-        static void _lowerLand(WorldGenerator generator, Grid grid, RandomExt random)
+        static void _lowerLand(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             List<HexCell> landCells = grid.Cells.Where(c => generator.GetElevation(c) > Elevation.Lowland).ToList();
             int count = (int)(landCells.Count * generator.Parameters.LowerPct.Current.DoubleValue);
@@ -236,7 +237,7 @@ namespace WorldSimulation
             }
         }
 
-        static void _createRidges(WorldGenerator generator, Grid grid, RandomExt random)
+        static void _createRidges(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             List<Edge> edges = grid.Edges.Where(generator.PossibleRidge).ToList();
             int count = (int)(edges.Count * generator.Parameters.RidgePct.Current.DoubleValue);
@@ -247,7 +248,7 @@ namespace WorldSimulation
             };
         }
 
-        static void _destroyRidges(WorldGenerator generator, Grid grid, RandomExt random)
+        static void _destroyRidges(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             List<Edge> edges = grid.Edges.Where(generator.HasRidge).ToList();
             int ridgeCount = (int)(edges.Count * generator.Parameters.RidgeClearPct.Current.DoubleValue);
@@ -258,13 +259,13 @@ namespace WorldSimulation
             };
         }
 
-        static void _createIslands(WorldGenerator generator, Grid grid, RandomExt random)
+        static void _createIslands(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             int islandCount = (int)(grid.Cells.Count(generator.IsSea) * generator.Parameters.IslandPct.Current.DoubleValue);
 
             Func<HexCell, bool> noLandAround = c => !c.Neighbors.Any(generator.IsLand);
             Func<HexCell, bool> isShallow = c => generator.GetElevation(c) == Elevation.ShallowOcean;
-            Func<HexCell, bool> isNotLandConnection = c => !Grid.IsConnection(c, generator.IsLand);
+            Func<HexCell, bool> isNotLandConnection = c => !Geometry.IsConnection(c, generator.IsLand);
 
             List<HexCell> shallowSeas = grid.Cells.Where(isShallow).Where(noLandAround).ToList();
 
@@ -330,7 +331,7 @@ namespace WorldSimulation
         //    }
         //}
 
-        static void _createMountainRegions(WorldGenerator generator, Grid grid, RandomExt random)
+        static void _createMountainRegions(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             foreach (Edge edge in grid.Edges.Where(generator.HasRidge))
             {
