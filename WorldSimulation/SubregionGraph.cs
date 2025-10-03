@@ -198,7 +198,7 @@ namespace WorldSimulation
                 Vector2 v2 = Vector2.Lerp(cell.GetVertex(direction + 1), cell.Center, _delta);
                 Vector2 v3 = cell.GetVertex(direction + 5);
 
-                vertices[1] = Vector2.FindLineIntersection(v1, v2, vertex, v3);
+                vertices[1] = Geometry.FindLineIntersection(v1, v2, vertex, v3);
                 vertices[2] = null;
             }
             if (cellRight == null && cellLeft != null && ridgeLeft)
@@ -207,7 +207,7 @@ namespace WorldSimulation
                 Vector2 v2 = Vector2.Lerp(cell.GetVertex(direction + 5), cell.Center, _delta);
                 Vector2 v3 = cell.GetVertex(direction + 1);
 
-                vertices[3] = Vector2.FindLineIntersection(v1, v2, vertex, v3);
+                vertices[3] = Geometry.FindLineIntersection(v1, v2, vertex, v3);
                 vertices[2] = null;
             }        
 
@@ -285,15 +285,15 @@ namespace WorldSimulation
                 {
                     Vector2 v1 = c1.GetVertex(dir + 5);
                     Vector2 v2 = c2.GetVertex(dir + 5);
-                    vertices[4] = Vector2.FindLineIntersection(vertices[3], vertices[2], vertices[5], v1);
-                    vertices[6] = Vector2.FindLineIntersection(vertices[7], vertices[8], vertices[5], v2);
+                    vertices[4] = Geometry.FindLineIntersection(vertices[3], vertices[2], vertices[5], v1);
+                    vertices[6] = Geometry.FindLineIntersection(vertices[7], vertices[8], vertices[5], v2);
                 }
                 if (cellR == null)
                 {
                     Vector2 v1 = c1.GetVertex(dir + 2);
                     Vector2 v2 = c2.GetVertex(dir + 2);
-                    vertices[1] = Vector2.FindLineIntersection(vertices[2], vertices[3], vertices[0], v1);
-                    vertices[9] = Vector2.FindLineIntersection(vertices[8], vertices[7], vertices[0], v2);
+                    vertices[1] = Geometry.FindLineIntersection(vertices[2], vertices[3], vertices[0], v1);
+                    vertices[9] = Geometry.FindLineIntersection(vertices[8], vertices[7], vertices[0], v2);
                 }
             }         
 
@@ -409,7 +409,7 @@ namespace WorldSimulation
             _normalizeVertex(cellCenterL, vertex.X);
             Vector2 vertexL = Vector2.Lerp(vertex, cellCenterL, _delta);
 
-            return Vector2.FindLineIntersection(vertex, vertexO, vertexI, vertexL);
+            return Geometry.FindLineIntersection(vertex, vertexO, vertexI, vertexL);
         }
 
         Vector2 _smoothingVertexRight(HexCell cell, int direction)
@@ -430,7 +430,7 @@ namespace WorldSimulation
             _normalizeVertex(cellCenterR, vertex.X);
             Vector2 vertexR = Vector2.Lerp(vertex, cellCenterR, _delta);
 
-            return Vector2.FindLineIntersection(vertex, vertexO, vertexI, vertexR);
+            return Geometry.FindLineIntersection(vertex, vertexO, vertexI, vertexR);
         }
 
         private void _normalizeVertex(Vector2 vertex, double edgeX)

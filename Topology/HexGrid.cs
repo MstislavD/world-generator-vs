@@ -18,9 +18,8 @@ namespace Topology
         public static IEnumerable<T> Flood<T>(T starterCell, Func<T, bool> canBeAdded)
             where T: INeighbors<T>
         {
-            HashSet<T> floodedCells = new HashSet<T>();
-            HashSet<T> inProcess = new HashSet<T>();
-            inProcess.Add(starterCell);
+            HashSet<T> floodedCells = [];
+            HashSet<T> inProcess = [starterCell];
 
             Func<T, bool> isNotProcessed = c => !(floodedCells.Contains(c) || inProcess.Contains(c));
 
@@ -37,7 +36,6 @@ namespace Topology
 
             return floodedCells;
         }
-
         public static bool IsConnection<T>(HexCell cell, Func<HexCell, T> value)
         {
             HashSet<HexCell> sameNeighbors = cell.Neighbors.Where(c => value(c).Equals(value(cell))).ToHashSet();
@@ -49,7 +47,6 @@ namespace Topology
             IEnumerable<HexCell> connectedNeighbors = Grid.Flood(starterCell, sameNeighbors.Contains);
             return sameNeighbors.Count > connectedNeighbors.Count();
         }
-
 
         public Grid(int _width, int _height)
         {
