@@ -40,13 +40,8 @@ namespace Topology
 
         void _runForEachCell(Action<int, int> method)
         {
-            for (int y = 0; y < Rows; y++)
-            {
-                for (int x = 0; x < Columns; x++)
-                {
-                    method(x, y);
-                }
-            }
+            foreach((int x, int y) t in Range(0, Rows).SelectMany(y => Range(0, Columns).Select(x => (x, y))))
+                method(t.x, t.y);
         }
 
         void _createCell(int x, int y)
@@ -149,18 +144,8 @@ namespace Topology
         void _createEdges(int x, int y)
         {
             TCell cell = _cells[x, y];
-
-            _createEdge(cell, 0);
-            _createEdge(cell, 1);
-            _createEdge(cell, 2);
-
-            for (int i = 3; i < 6; i++)
-            {
-                if (cell.GetNeighbor(i) == null)
-                {
-                    TEdge edge = _createEdge(cell, i);
-                }
-            }
+            foreach (int i in Range(0, 6).Where(i => i < 3 || cell.GetNeighbor(i) == null)) 
+                _createEdge(cell, i);
         }
 
         TEdge _createEdge(TCell cell, int direction)
