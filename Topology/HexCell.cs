@@ -7,6 +7,10 @@ using Topology;
 
 namespace Topology
 {
+    /// <summary>
+    /// An interface of a graph node.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface INeighbors<T>
     {
         IEnumerable<T> Neighbors { get; }
@@ -26,7 +30,7 @@ namespace Topology
 
         public Vector2? Center { get; set; }
         public void AddNeighbor(TCell cell, int direction) => _neighbors[direction] = cell;
-        public void AddVertex(Vector2 vertex, int direction) => _vertices[direction] = vertex;
+        public void SetVertex(Vector2 vertex, int direction) => _vertices[direction] = vertex;
         public void AddEdge(TEdge edge, int direction) => _edges[direction] = edge;
         public TCell GetNeighbor(int direction) => _neighbors[direction % 6];
         public Vector2 GetVertex(int direction) => _vertices[direction % 6];
@@ -34,9 +38,7 @@ namespace Topology
         public IEnumerable<Vector2> Vertices => _vertices;
         public IEnumerable<TCell> Neighbors => _neighbors.Where(n => n != null);
         public IEnumerable<TEdge> Edges => _edges;
-        public TEdge? GetEdgeByNeighbor(TCell neighbor) => 
-            neighbor == null ? default :
-            _edges.Select((e, i) => (e, i)).First(t => neighbor.Equals(_neighbors[t.i])).e;
+        public TEdge? GetEdgeByNeighbor(TCell neighbor) => _edges[Array.IndexOf(_neighbors, neighbor)];
         public int GetDirection(TEdge edge) => _edges.ToList().IndexOf(edge);
     }
 

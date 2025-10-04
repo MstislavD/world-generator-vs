@@ -1,11 +1,15 @@
 ﻿namespace Topology
 {
     /// <summary>
-    /// Representation of a 2-dimensional vector. Analogous to System.Numerics.Vector2 struct.
+    /// Representation of a 2-dimensional vector.
     /// </summary>
-    /// <remarks>Ideally should use System.Numerics.Vector2 instead, but currently it is not possible, because 
-    /// WorldSimulation algorithms use it as a reference type. Also PointLocation algorithm is running indefenitely when dealing with 
-    /// float values for some reason.</remarks>
+    /// <remarks>
+    /// <para>Analogous to System.Numerics.Vector2 struct, but is used as a reference type to
+    /// decrease memory consumption (one vector is shared by three hexagons).</para>
+    /// <para>Should use float values but PointLocation algorithm currently doesn't converge when dealing with 
+    /// floats for some reason.</para>
+    /// </remarks>
+    ///
     public class Vector2
     {
         public static Vector2 Lerp(Vector2 v1, Vector2 v2, double a) => new Vector2(double.Lerp(v1.X, v2.X, a), double.Lerp(v1.Y, v2.Y, a));

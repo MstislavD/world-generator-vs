@@ -1,12 +1,14 @@
-﻿using static System.Linq.Enumerable;
+﻿using System.Reflection;
+using System.Runtime.ExceptionServices;
+using static System.Linq.Enumerable;
 
 namespace Topology
 {
     /// <summary>
-    /// 
+    /// Representation of a grid of hexagons. Gives access to contained hexagons and edges.
     /// </summary>
-    /// <typeparam name="TCell"></typeparam>
-    /// <typeparam name="TEdge"></typeparam>
+    /// <typeparam name="TCell">Hexagon class.</typeparam>
+    /// <typeparam name="TEdge">Edge class.</typeparam>
     public class HexGrid<TCell, TEdge>
         where TCell : HexCell<TCell, TEdge>, new()
         where TEdge : Edge<TCell>, new()
@@ -18,14 +20,19 @@ namespace Topology
         static double _hexWidth = _hexSide * Math.Sqrt(3);
         static double _hexHalfSide = _hexSide / 2;
 
-        public HexGrid(int _width, int _height)
+        public HexGrid(int _columns, int _rows)
         {
-            _cells = new TCell[_width, _height];
+            System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
 
-            _runForEachCell(_createCell);
-            _runForEachCell(_designateNeighbors);
-            _runForEachCell(_addVertices);
-            _runForEachCell(_createEdges);
+            _cells = new TCell[_columns, _rows];
+
+            foreach (var c in _coords) _createCell(c.x, c.y);
+            foreach (var c in _coords) _linkToNeighbors(c.x, c.y);
+            foreach (var c in _coords) _createVertices(c.x, c.y);
+            foreach (var c in _coords) _updateVertices(c.x, c.y, _defaultVertex);
+            foreach (var c in _coords) _createEdges(c.x, c.y);
+
+            System.Diagnostics.Debug.WriteLine($"{this} generated in {sw.ElapsedMilliseconds} ms");
         }
 
         public int Columns => _cells.GetLength(0);
@@ -34,41 +41,33 @@ namespace Topology
         public double Height => (Rows + 1.0 / 3) * 1.5 * _hexSide;
         public TCell GetCell(int x, int y) => _cells[x, y];
         public double HexSide => _hexSide;
-        public IEnumerable<TCell> Cells => Range(0, Rows).SelectMany(y => Range(0, Columns).Select(x => GetCell(x, y)));
+        public IEnumerable<TCell> Cells => _coords.Select(c => GetCell(c.x, c.y));
         public IEnumerable<TEdge> Edges => _edges;
         public int CellCount => _cells.Length;
+        public override string ToString() => $"Grid [{Columns}, {Rows}]";
 
-        void _runForEachCell(Action<int, int> method)
-        {
-            foreach((int x, int y) t in Range(0, Rows).SelectMany(y => Range(0, Columns).Select(x => (x, y))))
-                method(t.x, t.y);
-        }
+        IEnumerable<(int x, int y)> _coords => Range(0, Rows).SelectMany(y => Range(0, Columns).Select(x => (x, y)));
 
         void _createCell(int x, int y)
         {
-            TCell cell = new TCell();
-            _cells[x, y] = cell;
-
-            int evenRow = y % 2;
-            double centerX = (x + 0.5 + 0.5 * evenRow) * _hexWidth;
+            double centerX = (x + 0.5 * (1 + y % 2)) * _hexWidth;
             double centerY = (y * 3 + 2) * _hexHalfSide;
-
-            cell.Center = new Vector2(centerX, centerY);
+            _cells[x, y] = new TCell() { Center = new Vector2(centerX, centerY) };
         }
 
-        void _designateNeighbors(int x, int y)
+        void _linkToNeighbors(int x, int y)
         {
             int evenRow = y % 2;
 
             TCell cell = _cells[x, y];
 
             TCell? neNeighbor = _getCell(x + evenRow, y - 1);
-            TCell? eNeighbor = _getCell(x + 1, y);
+            TCell? eeNeighbor = _getCell(x + 1, y);
             TCell? seNeighbor = _getCell(x + evenRow, y + 1);
 
-            _markAsNeighbors(cell, neNeighbor, 0);
-            _markAsNeighbors(cell, eNeighbor, 1);
-            _markAsNeighbors(cell, seNeighbor, 2);
+            _linkTwoCells(cell, neNeighbor, 0);
+            _linkTwoCells(cell, eeNeighbor, 1);
+            _linkTwoCells(cell, seNeighbor, 2);
         }
 
         TCell? _getCell(int x, int y)
@@ -78,7 +77,7 @@ namespace Topology
             return (y < 0 || y >= Rows) ? null : _cells[x, y];
         }
 
-        void _markAsNeighbors(TCell cell1, TCell? cell2, int direction)
+        void _linkTwoCells(TCell cell1, TCell? cell2, int direction)
         {
             if (cell2 != null)
             {
@@ -87,58 +86,74 @@ namespace Topology
             }
         }
 
-        void _addVertices(int x, int y)
+        // determines if the cell is responsible for the vertex when vertices are shared
+        // if vertices are not shared, every cell is responsible for all of its vertices (i.e. when Vector2 is struct)
+        bool _responsible(int x, int y, int dir)
+        {
+            return dir switch
+            {
+                1 => y == 0 || (x == Columns - 1 && y % 2 == 1),
+                2 => y == Rows - 1 || (x == Columns - 1 && y % 2 == 1),
+                4 => y == Rows - 1 || (x == 0 && y % 2 != 1),
+                5 => y == 0 || (x == 0 && y % 2 != 1),
+                _ => true
+            };
+        }
+
+        //returns vertex reference when another cell is responsible for the vertex
+        Vector2 _findVertex(TCell cell, int dir)
+        {
+            return dir switch
+            {
+                1 => cell.GetNeighbor(0).GetVertex(3),
+                2 => cell.GetNeighbor(2).GetVertex(0),
+                4 => cell.GetNeighbor(3).GetVertex(0),
+                5 => cell.GetNeighbor(5).GetVertex(3),
+                _ => throw new Exception()
+            };
+        }
+
+        Vector2 _defaultVertex(TCell cell, int direction)
+        {
+            if (cell.Center == null) throw new Exception();
+            return direction switch
+            {
+                0 => new Vector2(cell.Center.X, cell.Center.Y - _hexSide),
+                1 => new Vector2(cell.Center.X + 0.5 * _hexWidth, cell.Center.Y - _hexHalfSide),
+                2 => new Vector2(cell.Center.X + 0.5 * _hexWidth, cell.Center.Y + _hexHalfSide),
+                3 => new Vector2(cell.Center.X, cell.Center.Y + _hexSide),
+                4 => new Vector2(cell.Center.X - 0.5 * _hexWidth, cell.Center.Y + _hexHalfSide),
+                5 => new Vector2(cell.Center.X - 0.5 * _hexWidth, cell.Center.Y - _hexHalfSide),
+                _ => throw new Exception()
+            };
+        }
+
+        // 
+        void _updateVertices(int x, int y, Func<TCell, int, Vector2> formula)
         {
             TCell cell = _cells[x, y];
-            int evenRow = y % 2;
 
-            if (cell.Center == null) throw new Exception();
-
-            Vector2 up = _addVertexToCell(cell, 0, cell.Center.X, cell.Center.Y - _hexSide);
-            Vector2 down = _addVertexToCell(cell, 3, cell.Center.X, cell.Center.Y + _hexSide);
-
-            if (y == 0 || (x == Columns - 1 && evenRow == 1))
+            for (int direction = 0; direction < 6; direction++)
             {
-                _addVertexToCell(cell, 1, cell.Center.X + 0.5 * _hexWidth, cell.Center.Y - _hexHalfSide);
-            }
-            else
-            {
-                cell.GetNeighbor(0).AddVertex(up, 4);
-            }
-
-            if (y == 0 || (x == 0 && evenRow == 0))
-            {
-                _addVertexToCell(cell, 5, cell.Center.X - 0.5 * _hexWidth, cell.Center.Y - _hexHalfSide);
-            }
-            else
-            {
-                cell.GetNeighbor(5).AddVertex(up, 2);
-            }
-
-            if (y == Rows - 1 || (x == Columns - 1 && evenRow == 1))
-            {
-                _addVertexToCell(cell, 2, cell.Center.X + 0.5 * _hexWidth, cell.Center.Y + _hexHalfSide);
-            }
-            else
-            {
-                cell.GetNeighbor(2).AddVertex(down, 5);
-            }
-
-            if (y == Rows - 1 || (x == 0 && evenRow == 0))
-            {
-                _addVertexToCell(cell, 4, cell.Center.X - 0.5 * _hexWidth, cell.Center.Y + _hexHalfSide);
-            }
-            else
-            {
-                cell.GetNeighbor(3).AddVertex(down, 1);
+                if (_responsible(x, y, direction))
+                {
+                    Vector2 updated = formula(cell, direction);
+                    cell.GetVertex(direction).X = updated.X;
+                    cell.GetVertex(direction).Y = updated.Y;
+                }
+                else
+                {
+                    cell.SetVertex(_findVertex(cell, direction), direction);
+                }
             }
         }
 
-        Vector2 _addVertexToCell(TCell cell, int direction, double x, double y)
-        {
-            Vector2 vertex = new Vector2(x, y);
-            cell.AddVertex(vertex, direction);
-            return vertex;
+        void _createVertices(int x, int y)
+        {  
+            TCell cell = _cells[x, y];
+            for (int direction = 0; direction < 6; direction++)
+                if (_responsible(x, y, direction)) 
+                    cell.SetVertex(new Vector2(0, 0), direction);
         }
 
         void _createEdges(int x, int y)
@@ -162,6 +177,9 @@ namespace Topology
         }
     }
 
+    /// <summary>
+    /// Implementaion of the generic HexGrid class.
+    /// </summary>
     public class HexGrid : HexGrid<HexCell, Edge>
     {
         public HexGrid(int _width, int _height) : base(_width, _height) { }
