@@ -29,7 +29,7 @@ namespace Topology
             foreach (var c in _coords) _createCell(c.x, c.y);
             foreach (var c in _coords) _linkToNeighbors(c.x, c.y);
             foreach (var c in _coords) _createVertices(c.x, c.y);
-            foreach (var c in _coords) _updateVertices(c.x, c.y, _defaultVertex);
+            foreach (var c in _coords) _linkVertices(c.x, c.y);
             foreach (var c in _coords) _createEdges(c.x, c.y);
 
             System.Diagnostics.Debug.WriteLine($"{this} generated in {sw.ElapsedMilliseconds} ms");
@@ -44,6 +44,28 @@ namespace Topology
         public IEnumerable<TCell> Cells => _coords.Select(c => GetCell(c.x, c.y));
         public IEnumerable<TEdge> Edges => _edges;
         public int CellCount => _cells.Length;
+
+        /// <summary>
+        /// Update all vertices based on vertex context and a formula provided by the caller.
+        /// </summary>
+        /// <param name="formula"></param>
+        public void UpdateVertices(Func<Vector2, TCell, TCell, TCell, Vector2> formula)
+        {
+            foreach ((int x, int y) in _coords)
+            {
+                TCell cell = _cells[x, y];
+                for (int direction = 0; direction < 6; direction++)
+                {
+                    if (_responsible(x, y, direction))
+                    {
+                        Vector2 updated = formula(cell.GetVertex(direction), cell, cell.GetNeighbor(direction + 5), cell.GetNeighbor(direction));
+                        cell.GetVertex(direction).X = updated.X;
+                        cell.GetVertex(direction).Y = updated.Y;
+                    }
+                }
+            }
+        }
+
         public override string ToString() => $"Grid [{Columns}, {Rows}]";
 
         IEnumerable<(int x, int y)> _coords => Range(0, Rows).SelectMany(y => Range(0, Columns).Select(x => (x, y)));
@@ -128,32 +150,20 @@ namespace Topology
             };
         }
 
-        // 
-        void _updateVertices(int x, int y, Func<TCell, int, Vector2> formula)
-        {
-            TCell cell = _cells[x, y];
-
-            for (int direction = 0; direction < 6; direction++)
-            {
-                if (_responsible(x, y, direction))
-                {
-                    Vector2 updated = formula(cell, direction);
-                    cell.GetVertex(direction).X = updated.X;
-                    cell.GetVertex(direction).Y = updated.Y;
-                }
-                else
-                {
-                    cell.SetVertex(_findVertex(cell, direction), direction);
-                }
-            }
-        }
-
         void _createVertices(int x, int y)
         {  
             TCell cell = _cells[x, y];
             for (int direction = 0; direction < 6; direction++)
                 if (_responsible(x, y, direction)) 
-                    cell.SetVertex(new Vector2(0, 0), direction);
+                    cell.SetVertex(_defaultVertex(cell, direction), direction);
+        }
+
+        void _linkVertices(int x, int y)
+        {
+            TCell cell = _cells[x, y];
+            for (int direction = 0; direction < 6; direction++)
+                if (!_responsible(x, y, direction))
+                    cell.SetVertex(_findVertex(cell, direction), direction);
         }
 
         void _createEdges(int x, int y)

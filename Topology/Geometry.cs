@@ -74,6 +74,7 @@ namespace Topology
 
         public static bool IsConnection<TCell, T>(TCell cell, Func<TCell, T> value)
             where TCell: INeighbors<TCell>
+            where T: notnull
         {
             HashSet<TCell> sameNeighbors = cell.Neighbors.Where(c => value(c).Equals(value(cell))).ToHashSet();
             if (sameNeighbors.Count == 0)

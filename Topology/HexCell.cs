@@ -28,7 +28,7 @@ namespace Topology
         TCell[] _neighbors = new TCell[6];
         TEdge[] _edges = new TEdge[6];
 
-        public Vector2? Center { get; set; }
+        public Vector2 Center { get; set; }
         public void AddNeighbor(TCell cell, int direction) => _neighbors[direction] = cell;
         public void SetVertex(Vector2 vertex, int direction) => _vertices[direction] = vertex;
         public void AddEdge(TEdge edge, int direction) => _edges[direction] = edge;
@@ -38,7 +38,7 @@ namespace Topology
         public IEnumerable<Vector2> Vertices => _vertices;
         public IEnumerable<TCell> Neighbors => _neighbors.Where(n => n != null);
         public IEnumerable<TEdge> Edges => _edges;
-        public TEdge? GetEdgeByNeighbor(TCell neighbor) => _edges[Array.IndexOf(_neighbors, neighbor)];
+        public TEdge GetEdgeByNeighbor(TCell neighbor) => _edges[Array.IndexOf(_neighbors, neighbor)];
         public int GetDirection(TEdge edge) => _edges.ToList().IndexOf(edge);
     }
 
