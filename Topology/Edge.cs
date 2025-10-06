@@ -14,8 +14,8 @@ namespace Topology
     {
         public TCell? Cell1 { get; set; }
         public TCell? Cell2 { get; set; }
-        public Vector2? Vertex1 { get; set; }
-        public Vector2? Vertex2 { get; set; }
+        public Vector2 Vertex1 { get; set; }
+        public Vector2 Vertex2 { get; set; }
         public IEnumerable<TCell?> Cells => new[] { Cell1, Cell2 }.Where(c => c != null);
         public Vector2 Center => Vector2.Lerp(Vertex1, Vertex2, 0.5);
         public Vector2 Left => Vertex1.X < Vertex2.X ? Vertex1 : Vertex2;

@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Data;
 using Topology;
 using RandomExtension;
 using WorldSimulation;
@@ -16,17 +8,14 @@ using System.Collections.Concurrent;
 
 using static WorldSimulationForm.Properties.Resources;
 using System.Diagnostics;
-using WorldSimulationForm.Properties;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.Xml;
 
 namespace WorldSimulator
 {
     enum MapMode { Elevation, Height, Temperature, Precipitation, Biomes, Pops, Cells, Landmasses }
     public partial class WorldSimulatorForm : ParameterForm
     {
+        float _panelWidth = 0.05f;
         int _margin = 5;
-        int _panelWidth = 100;
         int _mountainSeed;
       
         WorldGenerator _generator;
@@ -37,7 +26,7 @@ namespace WorldSimulator
         Point _mouse;
         Label _lblInfo;
 
-        Bitmap _image;
+        Bitmap? _image;
 
         double _multiplier = 0;
         Vector2 _origin = new Vector2(0, 0);
@@ -45,8 +34,8 @@ namespace WorldSimulator
         bool _printLog = false;
         PaediaForm _paediaForm;
 
-        WorldSimulation.Region _highlightedRegion;
-        WorldSimulation.HistorySimulation.HistoricEvent _currentEvent;
+        WorldSimulation.Region? _highlightedRegion;
+        WorldSimulation.HistorySimulation.HistoricEvent? _currentEvent;
 
         public WorldSimulatorForm()
         {
@@ -63,9 +52,8 @@ namespace WorldSimulator
             _paediaForm.RegionHoverBegin += _paediaForm_RegionHoverBegin;
 
             FlowLayoutPanel panel = new FlowLayoutPanel();
-            panel.Top = _margin;
-            panel.Left = _margin;
-            panel.Width = _panelWidth;
+            panel.Location = new Point(_margin);
+            panel.Width = (int)(_panelWidth * ClientSize.Width);
             panel.AutoSize = true;
             panel.FlowDirection = FlowDirection.TopDown;
             Controls.Add(panel);
@@ -73,7 +61,7 @@ namespace WorldSimulator
             Button btnStart = new Button();
             btnStart.Text = "Start";
             btnStart.Click += _start;
-            btnStart.Width = _panelWidth - 5;
+            _setButtonSize(btnStart, panel);
             panel.Controls.Add(btnStart);
 
             _cmbGridLevel = new ComboBox();
@@ -85,7 +73,7 @@ namespace WorldSimulator
 
             _cmbGridLevel.SelectedValueChanged += (s, e) => CreateGraphics().Clear(BackColor);
             _cmbGridLevel.SelectedValueChanged += _redrawMap;
-            _cmbGridLevel.Width = _panelWidth - _cmbGridLevel.Margin.Left * 2;
+            _cmbGridLevel.Width = panel.Width - _cmbGridLevel.Margin.Left * 2;
             _cmbGridLevel.DropDownStyle = ComboBoxStyle.DropDownList;
             panel.Controls.Add(_cmbGridLevel);
 
@@ -94,9 +82,9 @@ namespace WorldSimulator
             {
                 _cmbMapMode.Items.Add(mode);
             }
-            _cmbMapMode.SelectedItem = MapMode.Pops;
+            _cmbMapMode.SelectedItem = MapMode.Biomes;
             _cmbMapMode.SelectedValueChanged += _redrawMap;
-            _cmbMapMode.Width = _panelWidth - _cmbMapMode.Margin.Left * 2;
+            _cmbMapMode.Width = panel.Width - _cmbMapMode.Margin.Left * 2;
             _cmbMapMode.DropDownStyle = ComboBoxStyle.DropDownList;
             panel.Controls.Add(_cmbMapMode);
 
@@ -109,7 +97,7 @@ namespace WorldSimulator
             _cmbBiomesMode.Items.Add("Texture Imp");
             _cmbBiomesMode.SelectedItem = "Texture";
             _cmbBiomesMode.SelectedValueChanged += _redrawMap;
-            _cmbBiomesMode.Width = _panelWidth - _cmbBiomesMode.Margin.Left * 2;
+            _cmbBiomesMode.Width = panel.Width - _cmbBiomesMode.Margin.Left * 2;
             _cmbBiomesMode.DropDownStyle = ComboBoxStyle.DropDownList;
             panel.Controls.Add(_cmbBiomesMode);
 
@@ -119,15 +107,13 @@ namespace WorldSimulator
             Button btnLog = new Button();
             btnLog.Text = "Log";
             btnLog.Click += BtnLog_Click;
-            btnLog.Width = _panelWidth-5;
-            btnLog.Height += 3;
+            _setButtonSize(btnLog, panel);
             panel.Controls.Add(btnLog);
 
             Button btnPaedia = new Button();
             btnPaedia.Text = "Paedia";
             btnPaedia.Click += BtnPaedia_Click;
-            btnPaedia.Width = _panelWidth - 5;
-            btnPaedia.Height += 3;
+            _setButtonSize(btnPaedia, panel);
             panel.Controls.Add(btnPaedia);
 
             Button btnNextEvent = new Button();
@@ -135,8 +121,7 @@ namespace WorldSimulator
             btnNextEvent.Click += BtnNextEvent_Click2;
             btnNextEvent.Click += (s, e) => btnNextEvent.Text = _generator.GenerationIsComplete ? $"Next ({_generator.History.Turn})" : "Next Event";
             _generator.GenerationComplete += (s, e) => btnNextEvent.Text = "Next Event";
-            btnNextEvent.Width = _panelWidth - 5;
-            btnNextEvent.Height += 3;
+            _setButtonSize(btnNextEvent, panel);
             _generator.GenerationComplete += (s,e) => btnNextEvent.Enabled = true;
             _generator.GenerationComplete += (s, e) => _currentEvent = null;
             panel.Controls.Add(btnNextEvent);
@@ -144,8 +129,7 @@ namespace WorldSimulator
             Button btnLocatorForm = new Button();
             btnLocatorForm.Text = "Locator Test";
             btnLocatorForm.Click += (s, e) => new PointLocationForm.Form1(_generator.SubregionGraph).Visible = true;
-            btnLocatorForm.Width = _panelWidth - 5;
-            btnLocatorForm.Height += 3;
+            _setButtonSize(btnLocatorForm, panel);
             panel.Controls.Add(btnLocatorForm);
 
             _lblInfo = new Label();
@@ -163,10 +147,14 @@ namespace WorldSimulator
             _generator.GenerationComplete += _redrawMap;
         }
 
-        private void _paediaForm_RegionHoverBegin(object sender, EventArgs e)
+        private void _setButtonSize(Button btn, FlowLayoutPanel panel)
         {
-            WorldSimulation.Region region = sender as WorldSimulation.Region;
+            btn.Size = new Size(panel.ClientSize.Width - btn.Margin.All * 2, panel.ClientSize.Width / 3);
+        }
+            
 
+        private void _paediaForm_RegionHoverBegin(object? sender, WorldSimulation.Region region)
+        {
             HexGrid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
             Bitmap overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _regionOutline(region));
 
@@ -175,9 +163,8 @@ namespace WorldSimulator
             g.DrawImage(overlay, _imageLeft, _margin);
         }
 
-        private void _paediaForm_RaceHoverBegin(object sender, EventArgs e)
+        private void _paediaForm_RaceHoverBegin(object? sender, WorldSimulation.HistorySimulation.Race race)
         {
-            WorldSimulation.HistorySimulation.Race race = sender as WorldSimulation.HistorySimulation.Race;
             IEnumerable<WorldSimulation.Region> regions = _generator.RegionMap.Regions.Where(r => r.Pops.Any(p => p.Race == race));
 
             HexGrid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
@@ -249,7 +236,7 @@ namespace WorldSimulator
                 _logForm.Hide();
         }
 
-        private void _generator_LogUpdated(object sender, string e)
+        private void _generator_LogUpdated(object? sender, string e)
         {
             if (_printLog && sender is WorldSimulation.HistorySimulation.HistorySimulator)
             {
@@ -387,14 +374,15 @@ namespace WorldSimulator
             }
         }
 
-        private int _imageLeft => _panelWidth + _margin * 2;
+        private int _imageLeft => (int)(ClientSize.Width * _panelWidth + _margin * 2);
 
         private CheckBox _addCheckBox(string name, FlowLayoutPanel panel)
         {
             CheckBox chb = new CheckBox();
             chb.CheckedChanged += _redrawMap;
             chb.Text = name;
-            chb.Width = _panelWidth - chb.Margin.Left * 2;
+            chb.Width = panel.Width - chb.Margin.Left * 2;
+            chb.Height = chb.Width / 3;
             panel.Controls.Add(chb);
             return chb;
         }
@@ -449,7 +437,7 @@ namespace WorldSimulator
 
         protected override bool IsSeedParameter(Parameter parameter) => _generator.IsSeedParameter(parameter);
 
-        private void _redrawMap(object sender, EventArgs e)
+        private void _redrawMap(object? sender, EventArgs e)
         {
             if (!_generator.GenerationIsComplete)
             {
@@ -502,7 +490,7 @@ namespace WorldSimulator
                 objects.Origin = _origin;
             }
 
-            int imageMaxWidth = ClientSize.Width - _margin * 3 - _panelWidth;
+            int imageMaxWidth = (int)(ClientSize.Width * (1- _panelWidth) - _margin * 3);
             int imageMaxHeight = ClientSize.Height - _margin * 2;
             _image = HexGridRenderer.Render(grid, imageMaxWidth, imageMaxHeight, objects);
 
@@ -1042,7 +1030,7 @@ namespace WorldSimulator
             }
         }
 
-        void _start(object sender, EventArgs e)
+        void _start(object? sender, EventArgs e)
         {
             _mountainSeed = new Random().Next();
             _logForm.Clear();

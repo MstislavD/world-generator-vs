@@ -82,9 +82,9 @@ namespace WorldSimulator
         private void PaediaForm_MouseEnter(object sender, EventArgs e)
         {
             if (_currentMode == ViewMode.Race)
-                RaceHoverBegin?.Invoke(_currentRace, new EventArgs());
+                RaceHoverBegin?.Invoke(this, _currentRace);
             else if (_currentMode == ViewMode.Region)
-                RegionHoverBegin?.Invoke(_currentRegion, new EventArgs());
+                RegionHoverBegin?.Invoke(this, _currentRegion);
         }
 
         private void BtnBack_Click(object sender, EventArgs e)
@@ -122,10 +122,10 @@ namespace WorldSimulator
             _itemPanel.Controls.Clear();
         }
 
-        public event EventHandler RaceHoverBegin;
+        public event EventHandler<Race> RaceHoverBegin;
         public event EventHandler RaceHoverEnd;
-        public event EventHandler RegionHoverBegin;
-        public event EventHandler RegionHoverEnd;
+        public event EventHandler<WorldSimulation.Region> RegionHoverBegin;
+        public event EventHandler<WorldSimulation.Region> RegionHoverEnd;
 
         private void PaediaForm_Shown(object sender, EventArgs e)
         {
@@ -146,7 +146,7 @@ namespace WorldSimulator
                 info = info.Substring(0, info.Length - 2).ToLower();
 
                 Label lblRace = _selectableLabel(race.Name + $" ({info})");
-                lblRace.MouseEnter += (s, e) => RaceHoverBegin?.Invoke(race, e);
+                lblRace.MouseEnter += (s, e) => RaceHoverBegin?.Invoke(this, race);
                 lblRace.MouseLeave += (s, e) => RaceHoverEnd?.Invoke(race, e);
                 lblRace.MouseClick += (s, e) => OnRaceSelected(race);
             }
@@ -192,7 +192,7 @@ namespace WorldSimulator
                 Label lblPop = _selectableLabel(pop.Race.Name);
             }
 
-            RegionHoverBegin(region, new EventArgs());
+            RegionHoverBegin(this, region);
         }
 
         private void OnRaceSelected(Race race)
