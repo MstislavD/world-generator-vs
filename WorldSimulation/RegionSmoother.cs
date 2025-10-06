@@ -17,11 +17,10 @@ namespace WorldSimulation
 
             HexCell? smoothed = _smoothedHex(c1, c2, c3, (c1, c2) => generator.IsLand(c1) == generator.IsLand(c2));
             if (smoothed == null) smoothed = _smoothedHex(c1, c2, c3, (c1, c2) => generator.GetCellParent(c1) == generator.GetCellParent(c2));
-            if (smoothed == null) smoothed = _smoothedHex(c1, c2, c3, (cc1, cc2) => !generator.HasRidge(cc1.GetEdgeByNeighbor(cc2)));
+            if (smoothed == null) smoothed = _smoothedHex(c1, c2, c3, (c1, c2) => !generator.HasRidge(c1.GetEdgeByNeighbor(c2)));
 
             return smoothed != null ? _moveVertex(grid, vertex, smoothed.Center) : vertex;
         }
-
 
         static TCell? _smoothedHex<TCell>(TCell c1, TCell c2, TCell c3, Func<TCell, TCell, bool> value)
         {
@@ -42,6 +41,7 @@ namespace WorldSimulation
 
         static Vector2 _moveVertex(HexGrid grid, Vector2 v, Vector2 target)
         {
+            // assuming wrapping by y axis
             double dx = target.X - v.X;
             if (dx < -grid.Width / 2)
             {

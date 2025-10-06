@@ -12,9 +12,8 @@ namespace Topology
     public static class Geometry
     {
         /// <summary>
-        /// Finds the intersection point of two lines, each defined by two points
+        /// Finds the intersection point of two lines, each defined by two points.
         /// </summary>
-        /// <remarks> Probably belongs elsewhere</remarks>
         /// <param name="line1_p1">First point of the first line.</param>
         /// <param name="line1_p2">Second point of the first line.</param>
         /// <param name="line2_p1">First point of the second line.</param>
@@ -72,11 +71,20 @@ namespace Topology
             return flooded;
         }
 
-        public static bool IsConnection<TCell, T>(TCell cell, Func<TCell, T> value)
+        /// <summary>
+        /// Returns true if the graph node is a bottle-neck connection for its neighbors based on
+        /// a given property.
+        /// </summary>
+        /// <typeparam name="TCell"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="node">The node tested.</param>
+        /// <param name="value_func">The function that returns a node's property.</param>
+        /// <returns></returns>
+        public static bool IsConnection<TCell, T>(TCell node, Func<TCell, T> value_func)
             where TCell: INeighbors<TCell>
             where T: notnull
         {
-            HashSet<TCell> sameNeighbors = cell.Neighbors.Where(c => value(c).Equals(value(cell))).ToHashSet();
+            HashSet<TCell> sameNeighbors = node.Neighbors.Where(c => value_func(c).Equals(value_func(node))).ToHashSet();
             if (sameNeighbors.Count == 0)
             {
                 return false;

@@ -21,8 +21,8 @@
         public static Vector2 operator *(double a, Vector2 v) => new(a * v.X, a * v.Y);
         public Vector2(double x, double y) {X = x; Y = y;}
         public Vector2(Vector2 v) {X = v.X; Y = v.Y;}
-        public double X { get; set; }
-        public double Y { get; set; }
+        public double X { get; internal set; }
+        public double Y { get; internal set; }
         public override string ToString() => $"[{X}, {Y}]";
     }
 }

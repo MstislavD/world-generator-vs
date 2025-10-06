@@ -12,6 +12,8 @@ namespace WorldSimulation
         public SubregionEdge PrevEdge { get; set; }
         public SubregionEdge NextEdge { get; set; }
         public Vector2 Center { get; set; }
+
+        public void RecalculateCenter() => Center = _vertices[(_vertices.Count + 1) / 2];
         public IEnumerable<Edge> Edges
         {
             get

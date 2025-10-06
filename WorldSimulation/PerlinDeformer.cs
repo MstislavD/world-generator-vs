@@ -16,33 +16,50 @@ namespace WorldSimulation
             settings.XStitched = true;
             PerlinNoise perlinX = new PerlinNoise(frequency, frequency, settings, random);
             PerlinNoise perlinY = new PerlinNoise(frequency, frequency, settings, random);
-
-            double transitionBand = strength;
-
+            
             foreach (Subregion subregion in graph.Subregions)
             {
-                foreach (Vector2 vertex in subregion.Vertices.Append(subregion.Center))
+                //foreach (Vector2 vertex in subregion.Vertices.Append(subregion.Center))
+                //{
+                //    Vector2 deformed = _deformVertex(graph, strength, perlinX, perlinY, vertex);
+                //    vertex.X = deformed.X;
+                //    vertex.Y = deformed.Y;
+                //}
+
+                foreach (SubregionEdge edge in subregion.Edges)
                 {
-                    /// Here we change coordinates of a vector. It would be more appropriate to use Vector2 as a struct.
-                    vertex.Y = double.Clamp(vertex.Y, 0, graph.Height);
-
-                    double transitionMultiplier = 1;
-                    if (vertex.Y < transitionBand)
-                        transitionMultiplier = vertex.Y / transitionBand;
-                    else if (vertex.Y > graph.Height - transitionBand)
-                        transitionMultiplier = (graph.Height - vertex.Y) / transitionBand;
-
-                    double sampleX = perlinX.Sample(vertex.X / graph.Width, vertex.Y / graph.Width);
-                    double x = vertex.X + strength * (sampleX - 0.5);
-                    vertex.X = x;
-
-                    double sampleY = perlinY.Sample(vertex.X / graph.Width, vertex.Y / graph.Width);
-                    double y = vertex.Y + strength * (sampleY - 0.5) * transitionMultiplier;
-                    vertex.Y = y;
+                    List<Vector2> vertices = [];
+                    vertices.AddRange(edge.Vertices.Select(v => _deformVertex(graph, strength, perlinX, perlinY, v)));
+                    if (edge.Center != null) edge.Center = _deformVertex(graph, strength, perlinX, perlinY, edge.Center);
+                    edge.ClearVertices();
+                    foreach (Vector2 vertex in vertices)
+                        edge.AddVertex(vertex);
                 }
+                subregion.Center = _deformVertex(graph, strength, perlinX, perlinY, subregion.Center);
             }
+        }
 
-           
+        private static Vector2 _deformVertex(SubregionGraph graph, double strength, PerlinNoise perlinX, PerlinNoise perlinY, Vector2 vertex)
+        {
+            double threshold = strength;
+
+            double y = double.Clamp(vertex.Y, 0, graph.Height);
+
+            // deformation strength is 0 at the upper and lower borders of the map, increasing
+            // linearly towards thresholds, and constant between them
+            double multiplier = 1;
+            if (y < threshold)
+                multiplier = y / threshold;
+            else if (y > graph.Height - threshold)
+                multiplier = (graph.Height - y) / threshold;
+
+            double sampleX = perlinX.Sample(vertex.X / graph.Width, y / graph.Width);
+            double x = vertex.X + strength * (sampleX - 0.5);
+
+            double sampleY = perlinY.Sample(vertex.X / graph.Width, y / graph.Width);
+            y = y + strength * (sampleY - 0.5) * multiplier;
+
+            return new(x, y);
         }
     }
 }

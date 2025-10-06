@@ -266,13 +266,13 @@ namespace WorldSimulation
                 if (generator.HasRidge(edge) && !generator.HasRidge(edgeL) && edgeR1 != null && !generator.HasRidge(edgeR1) && cellL != null)
                 {
                     Vector2 cL = new Vector2(cellL.Center);
-                    _normalizeVertex(cL, edge.Vertex1.X);
+                    cL = _normalizeVertex(cL, edge.Vertex1.X);
                     vertices[5] = Vector2.Lerp(vertices[5], cL, 0.2);
                 }
                 if (generator.HasRidge(edge) && !generator.HasRidge(edgeR) && edgeL1 != null && !generator.HasRidge(edgeL1) && cellR != null)
                 {
                     Vector2 cR = new Vector2(cellR.Center);
-                    _normalizeVertex(cR, edge.Vertex1.X);
+                    cR =_normalizeVertex(cR, edge.Vertex1.X);
                     vertices[0] = Vector2.Lerp(vertices[0], cR, 0.2);
                 }
 
@@ -292,10 +292,7 @@ namespace WorldSimulation
                 }
             }         
 
-            foreach (Vector2 vertex in vertices.Where(v => v != null))
-            {
-                _normalizeVertex(vertex, edge.Vertex1.X);
-            }
+            vertices = vertices.Select(v => v == null ? null : _normalizeVertex(v, edge.Vertex1.X)).ToArray();
 
             return vertices;
         }
@@ -401,7 +398,7 @@ namespace WorldSimulation
             Vector2 vertexO = cell.GetVertex(direction + 5);
 
             Vector2 cellCenterL = new Vector2(cellL.Center);
-            _normalizeVertex(cellCenterL, vertex.X);
+            cellCenterL = _normalizeVertex(cellCenterL, vertex.X);
             Vector2 vertexL = Vector2.Lerp(vertex, cellCenterL, _delta);
 
             return Geometry.FindLineIntersection(vertex, vertexO, vertexI, vertexL);
@@ -422,23 +419,25 @@ namespace WorldSimulation
             Vector2 vertexO = cell.GetVertex(direction + 1);
 
             Vector2 cellCenterR = new Vector2(cellR.Center);
-            _normalizeVertex(cellCenterR, vertex.X);
+            cellCenterR = _normalizeVertex(cellCenterR, vertex.X);
             Vector2 vertexR = Vector2.Lerp(vertex, cellCenterR, _delta);
 
             return Geometry.FindLineIntersection(vertex, vertexO, vertexI, vertexR);
         }
 
-        private void _normalizeVertex(Vector2 vertex, double edgeX)
+        private Vector2 _normalizeVertex(Vector2 vertex, double edgeX)
         {
+            double x = vertex.X;
             double halfWidth = Width / 2;
-            if (vertex.X - edgeX > halfWidth)
+            if (x - edgeX > halfWidth)
             {
-                vertex.X -= Width;
+                x -= Width;
             }
-            else if (edgeX - vertex.X > halfWidth)
+            else if (edgeX - x > halfWidth)
             {
-                vertex.X += Width;
+                x += Width;
             }
+            return new Vector2(x, vertex.Y);
         }
     }
 }

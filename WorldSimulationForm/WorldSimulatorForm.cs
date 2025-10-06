@@ -18,6 +18,7 @@ using static WorldSimulationForm.Properties.Resources;
 using System.Diagnostics;
 using WorldSimulationForm.Properties;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.Xml;
 
 namespace WorldSimulator
 {
@@ -313,15 +314,15 @@ namespace WorldSimulator
                         y = y / Math.Pow(2, _multiplier) + _origin.Y;
                     }
 
-                    Subregion subregion = _generator.SubregionGraph.Locator.GetRegion(x, y);
+                    Subregion subregion = _generator.SubregionGraph.Locator?.GetRegion(x, y);
                                         
                     if (subregion == null)
                     {
                         double width = _generator.SubregionGraph.Width;
-                        subregion = _generator.SubregionGraph.Locator.GetRegion(x + width, y);
+                        subregion = _generator.SubregionGraph.Locator?.GetRegion(x + width, y);
                         if (subregion == null)
                         {
-                            subregion = _generator.SubregionGraph.Locator.GetRegion(x - width, y);
+                            subregion = _generator.SubregionGraph.Locator?.GetRegion(x - width, y);
                         }
                     }
 
@@ -418,22 +419,26 @@ namespace WorldSimulator
             }      
             else if (e.KeyCode == Keys.D)
             {
-                _origin.X += _generator.SubregionGraph.Width / Math.Pow(2, _multiplier + 2);
+                double dx = _generator.SubregionGraph.Width / Math.Pow(2, _multiplier + 2);
+                _origin = new(_origin.X + dx, _origin.Y);
                 _redrawMap(sender, e);
             }
             else if (e.KeyCode == Keys.A)
             {
-                _origin.X -= _generator.SubregionGraph.Width / Math.Pow(2, _multiplier + 2);
+                double dx = -_generator.SubregionGraph.Width / Math.Pow(2, _multiplier + 2);
+                _origin = new(_origin.X + dx, _origin.Y);
                 _redrawMap(sender, e);
             }
             else if (e.KeyCode == Keys.S)
             {
-                _origin.Y += _generator.SubregionGraph.Height / Math.Pow(2, _multiplier + 2);
+                double dy = _generator.SubregionGraph.Height / Math.Pow(2, _multiplier + 2);
+                _origin = new(_origin.X, _origin.Y + dy);
                 _redrawMap(sender, e);
             }
             else if (e.KeyCode == Keys.W)
             {
-                _origin.Y -= _generator.SubregionGraph.Height / Math.Pow(2, _multiplier + 2);
+                double dy = -_generator.SubregionGraph.Height / Math.Pow(2, _multiplier + 2);
+                _origin = new(_origin.X, _origin.Y + dy);
                 _redrawMap(sender, e);
             }
             else if (e.KeyCode == Keys.R)
@@ -901,13 +906,13 @@ namespace WorldSimulator
             {
                 foreach(Landmass neighbor in landmass.Neighbors)
                 {
-                    Vector2 nCenter = new Vector2( neighbor.Center);
-                    if (nCenter.X - landmass.Center.X > _generator.SubregionGraph.Width / 2)
-                        nCenter.X -= _generator.SubregionGraph.Width;
-                    else if (nCenter.X - landmass.Center.X < -_generator.SubregionGraph.Width / 2)
-                        nCenter.X += _generator.SubregionGraph.Width;
+                    double x = neighbor.Center.X;
+                    if (x - landmass.Center.X > _generator.SubregionGraph.Width / 2)
+                        x -= _generator.SubregionGraph.Width;
+                    else if (x - landmass.Center.X < -_generator.SubregionGraph.Width / 2)
+                        x += _generator.SubregionGraph.Width;
 
-                    objects.Segments.Add(new SegmentData(new Vector2[] { landmass.Center, nCenter }, Pens.Black));
+                    objects.Segments.Add(new SegmentData([landmass.Center, new(x, neighbor.Center.Y)], Pens.Black));
                 }
             }
 
