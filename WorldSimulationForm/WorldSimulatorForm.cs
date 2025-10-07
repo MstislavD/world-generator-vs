@@ -6,11 +6,10 @@ using Utilities;
 using Parameters;
 using System.Collections.Concurrent;
 
-using static WorldSimulationForm.Properties.Resources;
-using System.Diagnostics;
-
-namespace WorldSimulator
+namespace WorldSimulationForm
 {
+    using static WorldSimulationForm.Properties.Resources;
+
     enum MapMode { Elevation, Height, Temperature, Precipitation, Biomes, Pops, Cells, Landmasses }
     public partial class WorldSimulatorForm : ParameterForm
     {
@@ -43,14 +42,14 @@ namespace WorldSimulator
             Visible = true;
             WindowState = FormWindowState.Maximized;
 
-            _generator = new WorldGenerator(this); //905916449
+            _generator = new WorldGenerator(this);
             _generator.LogUpdated += _generator_LogUpdated;
 
             _logForm = new LogForm();
             _paediaForm = new PaediaForm();
             _paediaForm.RaceHoverBegin += _paediaForm_RaceHoverBegin;
             _paediaForm.RegionHoverBegin += _paediaForm_RegionHoverBegin;
-
+            
             FlowLayoutPanel panel = new FlowLayoutPanel();
             panel.Location = new Point(_margin);
             panel.Width = (int)(_panelWidth * ClientSize.Width);
@@ -65,23 +64,16 @@ namespace WorldSimulator
             panel.Controls.Add(btnStart);
 
             _cmbGridLevel = new ComboBox();
-            for (int level = 0; level <= _generator.GridLevels; level++)
-            {
-                _cmbGridLevel.Items.Add(level);
-            }
+            _cmbGridLevel.Items.AddRange(Enumerable.Range(0, _generator.GridLevels + 1).Cast<object>().ToArray());
             _cmbGridLevel.SelectedItem = _generator.GridLevels;
-
-            _cmbGridLevel.SelectedValueChanged += (s, e) => CreateGraphics().Clear(BackColor);
+            _cmbGridLevel.SelectedValueChanged += (s, e) => CreateGraphics().Clear(BackColor); // move to the _redrawMap method?
             _cmbGridLevel.SelectedValueChanged += _redrawMap;
             _cmbGridLevel.Width = panel.Width - _cmbGridLevel.Margin.Left * 2;
             _cmbGridLevel.DropDownStyle = ComboBoxStyle.DropDownList;
             panel.Controls.Add(_cmbGridLevel);
 
             _cmbMapMode = new ComboBox();
-            foreach (MapMode mode in Enum.GetValues(typeof(MapMode)))
-            {
-                _cmbMapMode.Items.Add(mode);
-            }
+            _cmbMapMode.Items.AddRange(Enum.GetValues(typeof(MapMode)).Cast<object>().ToArray());
             _cmbMapMode.SelectedItem = MapMode.Biomes;
             _cmbMapMode.SelectedValueChanged += _redrawMap;
             _cmbMapMode.Width = panel.Width - _cmbMapMode.Margin.Left * 2;
@@ -118,11 +110,10 @@ namespace WorldSimulator
 
             Button btnNextEvent = new Button();
             btnNextEvent.Text = "Next Event";
-            btnNextEvent.Click += BtnNextEvent_Click2;
-            btnNextEvent.Click += (s, e) => btnNextEvent.Text = _generator.GenerationIsComplete ? $"Next ({_generator.History.Turn})" : "Next Event";
-            _generator.GenerationComplete += (s, e) => btnNextEvent.Text = "Next Event";
             _setButtonSize(btnNextEvent, panel);
-            _generator.GenerationComplete += (s,e) => btnNextEvent.Enabled = true;
+            btnNextEvent.Click += BtnNextEvent_Click;
+            _generator.GenerationComplete += (s, e) => btnNextEvent.Text = "Next Event";
+            _generator.GenerationComplete += (s, e) => btnNextEvent.Enabled = true;
             _generator.GenerationComplete += (s, e) => _currentEvent = null;
             panel.Controls.Add(btnNextEvent);
 
@@ -134,7 +125,7 @@ namespace WorldSimulator
 
             _lblInfo = new Label();
             _lblInfo.AutoSize = true;
-            _lblInfo.MaximumSize = new Size(100, 1000);
+            _lblInfo.MaximumSize = new Size(panel.Width - _lblInfo.Margin.Left * 2, 1000);
             panel.Controls.Add(_lblInfo);
 
             MouseMove += WorldSimulatorForm_MouseMove;
@@ -183,52 +174,7 @@ namespace WorldSimulator
                 _paediaForm.Hide();
         }
 
-        private void BtnNextEvent_Click(object sender, EventArgs e)
-        {
-            if (_generator.History == null)
-                return;
-
-            if (ModifierKeys == Keys.Alt)
-                _currentEvent = _generator.History.NextEvents(1000);
-            else if (ModifierKeys == Keys.Shift)
-                _currentEvent = _generator.History.NextEvents(100);
-            else if (ModifierKeys == Keys.Control)
-                _currentEvent = _generator.History.NextEvents(10);
-            else
-                _currentEvent = _generator.History.NextEvent();
-
-            _updateAfterEvents(sender);
-        }
-
-        private void _updateAfterEvents(object sender)
-        {
-            (sender as Button).Text = $"Next ({_generator.History.Turn})";
-
-            if (_generator.History.IsComplete)
-            {
-                (sender as Button).Enabled = false;
-            }
-            else
-            {
-                _redrawMap(this, null);
-                if (_logForm.Visible)
-                {
-                    _logForm.Update();
-                    _logForm.Focus();
-                }
-            }
-        }
-
-        private void BtnNextEvent_Click2(object sender, EventArgs e)
-        {
-            if (_generator.History == null)
-                return;
-
-            _currentEvent = _generator.History.NextTrackedEvent();
-            _updateAfterEvents(sender);
-        }
-
-        private void BtnLog_Click(object sender, EventArgs e)
+        private void BtnLog_Click(object? sender, EventArgs e)
         {
             if (!_logForm.Visible)
                 _logForm.Show();

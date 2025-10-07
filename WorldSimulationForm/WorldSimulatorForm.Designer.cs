@@ -1,4 +1,4 @@
-﻿namespace WorldSimulator
+﻿namespace WorldSimulationForm
 {
     partial class WorldSimulatorForm
     {

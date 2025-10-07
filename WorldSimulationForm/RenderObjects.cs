@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Topology;
 
-namespace WorldSimulator
+namespace WorldSimulationForm
 {
     class RenderObjects
     {

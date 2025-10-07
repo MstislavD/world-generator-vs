@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using WorldSimulation;
 using WorldSimulation.HistorySimulation;
 
-namespace WorldSimulator
+namespace WorldSimulationForm
 {
     enum ViewMode {Init, Races, Race, Region }
 

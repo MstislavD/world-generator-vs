@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Topology;
 using System.Drawing;
 
-namespace WorldSimulator
+namespace WorldSimulationForm
 { 
     class HexGridRenderer
     {

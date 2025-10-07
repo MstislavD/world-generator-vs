@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace WorldSimulator
+namespace WorldSimulationForm
 {
     public partial class LogForm : Form
     {

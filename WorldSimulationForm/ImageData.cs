@@ -1,7 +1,7 @@
 ﻿using Topology;
 using System.Drawing;
 
-namespace WorldSimulator
+namespace WorldSimulationForm
 {
     struct ImageData
     {
