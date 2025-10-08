@@ -16,9 +16,12 @@ namespace WorldSimulationForm
         float _panelWidth = 0.05f;
         int _margin = 5;
         int _mountainSeed;
-      
+
+        bool _trackedEvents = true;
+
         WorldGenerator _generator;
 
+        Button _btnNextEvent;
         ComboBox _cmbGridLevel;
         ComboBox _cmbMapMode, _cmbBiomesMode;
         CheckBox _chbRegionBorder, _chbSubregionBorder;
@@ -108,14 +111,10 @@ namespace WorldSimulationForm
             _setButtonSize(btnPaedia, panel);
             panel.Controls.Add(btnPaedia);
 
-            Button btnNextEvent = new Button();
-            btnNextEvent.Text = "Next Event";
-            _setButtonSize(btnNextEvent, panel);
-            btnNextEvent.Click += BtnNextEvent_Click;
-            _generator.GenerationComplete += (s, e) => btnNextEvent.Text = "Next Event";
-            _generator.GenerationComplete += (s, e) => btnNextEvent.Enabled = true;
-            _generator.GenerationComplete += (s, e) => _currentEvent = null;
-            panel.Controls.Add(btnNextEvent);
+            _btnNextEvent = new Button() { Text = "Next Event", Enabled = false };
+            _setButtonSize(_btnNextEvent, panel);
+            _btnNextEvent.Click += BtnNextEvent_Click;
+            panel.Controls.Add(_btnNextEvent);
 
             Button btnLocatorForm = new Button();
             btnLocatorForm.Text = "Locator Test";
@@ -135,7 +134,7 @@ namespace WorldSimulationForm
 
             KeyDown += _handleInput;
 
-            _generator.GenerationComplete += _redrawMap;
+            _generator.GenerationComplete += _updateUI;
         }
 
         private void _setButtonSize(Button btn, FlowLayoutPanel panel)
@@ -164,6 +163,24 @@ namespace WorldSimulationForm
             Graphics g = CreateGraphics();
             g.DrawImage(_image, _imageLeft, _margin);
             g.DrawImage(overlay, _imageLeft, _margin);
+        }
+
+        private void BtnNextEvent_Click(object? sender, EventArgs e)
+        {
+            var hist = _generator.History;
+
+            if (sender == null || hist == null) return;
+
+            int eventsCount = ModifierKeys switch
+            {
+                Keys.Alt => 1000,
+                Keys.Shift => 100,
+                Keys.Control => 10,
+                _ => 1
+            };
+            _currentEvent = _trackedEvents ? hist.NextTrackedEvent() : hist.NextEvents(eventsCount);
+
+            _updateUI(sender, e);
         }
 
         private void BtnPaedia_Click(object sender, EventArgs e)
@@ -382,66 +399,6 @@ namespace WorldSimulationForm
         }
 
         protected override bool IsSeedParameter(Parameter parameter) => _generator.IsSeedParameter(parameter);
-
-        private void _redrawMap(object? sender, EventArgs e)
-        {
-            if (!_generator.GenerationIsComplete)
-            {
-                return;
-            }         
-
-            Graphics g = CreateGraphics();
-
-            int gridLevel = (int)_cmbGridLevel.SelectedItem;
-
-            HexGrid grid = _generator.GetGrid(gridLevel);
-
-            RenderObjects objects = new RenderObjects();
-            if (_cmbMapMode.SelectedItem.Equals(MapMode.Elevation))
-            {
-                objects = _elevationImage(grid);
-            }
-            else if (_cmbMapMode.SelectedItem.Equals(MapMode.Height))
-            {
-                objects = _heightImage(grid);
-            }
-            else if (_cmbMapMode.SelectedItem.Equals(MapMode.Temperature))
-            {
-                objects = _temperatureImage();
-            }
-            else if (_cmbMapMode.SelectedItem.Equals(MapMode.Precipitation))
-            {
-                objects = _precipitationImage();
-            }
-            else if (_cmbMapMode.SelectedItem.Equals(MapMode.Biomes))
-            {
-                objects = _biomesImage();
-            }
-            else if (_cmbMapMode.SelectedItem.Equals(MapMode.Pops))
-            {
-                objects = _popImage();
-            }
-            else if (_cmbMapMode.SelectedItem.Equals(MapMode.Cells))
-            {
-                objects = _cellsImage();
-            }
-            else if (_cmbMapMode.SelectedItem.Equals(MapMode.Landmasses))
-            {
-                objects = _landmassImage();
-            }
-
-            if (_multiplier != 0)
-            {
-                objects.Multiplier = Math.Pow(2, _multiplier);
-                objects.Origin = _origin;
-            }
-
-            int imageMaxWidth = (int)(ClientSize.Width * (1- _panelWidth) - _margin * 3);
-            int imageMaxHeight = ClientSize.Height - _margin * 2;
-            _image = HexGridRenderer.Render(grid, imageMaxWidth, imageMaxHeight, objects);
-
-            g.DrawImage(_image, _imageLeft, _margin);
-        }
 
         private RenderObjects _elevationImage(HexGrid grid)
         {
@@ -980,13 +937,13 @@ namespace WorldSimulationForm
         {
             _mountainSeed = new Random().Next();
             _logForm.Clear();
-            //_generator.Regenerate();
 
-            //_mountainSeed = 1611544660;
             Console.WriteLine($"Generation seed: {_mountainSeed}");
             _generator.Regenerate(_mountainSeed);
             _paediaForm.InitializeHistory(_generator);
             _generator.History.EventLogged += History_EventLogged;
+
+            _updateUI(sender, e);
         }
 
         private void History_EventLogged(object sender, EventArgs e)

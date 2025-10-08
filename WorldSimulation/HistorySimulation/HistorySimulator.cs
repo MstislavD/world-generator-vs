@@ -17,7 +17,8 @@ namespace WorldSimulation.HistorySimulation
         public RandomExtension.RandomExt Random { get; private set; }
         public Language NamingLanguage => _generator.NamingLanguage;
         public int Turn { get; private set; }
-        public bool IsComplete => _eventsByTurn.Count == 0;
+        public bool IsFinished { get; private set; } = false;
+        public int EventCount { get; private set; }
 
         public HistorySimulator(int seed, WorldGenerator generator)
         {
@@ -31,18 +32,20 @@ namespace WorldSimulation.HistorySimulation
 
         public void Simulate(int turns)
         {
-            List<WorldTrait> worldTraits = new List<WorldTrait>();
-            worldTraits.Add(WorldTrait.PRESAPIENT_CREATURES(this));
-            //worldTraits.Add(WorldTrait.PRESAPIENT_CREATURES_EXACT_NUMBER(this, 1));
-            worldTraits.Add(WorldTrait.RANDOM_RACE_NAMES(this));
-            //worldTraits.Add(WorldTrait.MTG_RACE_NAMES(this));
-            worldTraits.Add(WorldTrait.POPS_CAN_MIGRATE(this));
-            worldTraits.Add(WorldTrait.POPS_CAN_GROW(this));
-            worldTraits.Add(WorldTrait.PREFERABLE_BELTS(this));
-            worldTraits.Add(WorldTrait.PREFERABLE_HUMIDITY(this));
-            worldTraits.Add(WorldTrait.MIGRATORY_AND_SEDENTARY(this));
-            worldTraits.Add(WorldTrait.SLOW_AND_FAST_BREEDERS(this));
-            worldTraits.Add(WorldTrait.SUBRACES(this));
+            List<WorldTrait> worldTraits =
+            [
+                WorldTrait.PRESAPIENT_CREATURES(this),
+                //WorldTrait.PRESAPIENT_CREATURES_EXACT_NUMBER(this, 1);
+                WorldTrait.RANDOM_RACE_NAMES(this),
+                //WorldTrait.MTG_RACE_NAMES(this);
+                WorldTrait.POPS_CAN_MIGRATE(this),
+                WorldTrait.POPS_CAN_GROW(this),
+                WorldTrait.PREFERABLE_BELTS(this),
+                WorldTrait.PREFERABLE_HUMIDITY(this),
+                WorldTrait.MIGRATORY_AND_SEDENTARY(this),
+                WorldTrait.SLOW_AND_FAST_BREEDERS(this),
+                WorldTrait.SUBRACES(this),
+            ];
 
             foreach (WorldTrait trait in worldTraits)
                 _log($"New world trait: {trait.Name}");
@@ -74,7 +77,7 @@ namespace WorldSimulation.HistorySimulation
             PopCreated?.Invoke(pop, new EventArgs());
         }
 
-        public HistoricEvent NextEvent()
+        HistoricEvent _nextEvent()
         {
             int failedEvents = 100000;
 
@@ -85,12 +88,18 @@ namespace WorldSimulation.HistorySimulation
                     HistoricEvent hEvent = _eventsByTurn[Turn].First();
                     _eventsByTurn[Turn].Remove(hEvent);
                     if (hEvent.Resolve())
+                    {
+                        EventCount += 1;
                         return hEvent;
+                    }                        
                     else
                     {
                         failedEvents -= 1;
                         if (failedEvents == 0)
+                        {
+                            IsFinished = true;
                             return null;
+                        }                            
                     }
                 }
                 else
@@ -100,6 +109,7 @@ namespace WorldSimulation.HistorySimulation
                 }
             }
 
+            IsFinished = true;
             return null;
         }
 
@@ -107,19 +117,19 @@ namespace WorldSimulation.HistorySimulation
         {
             HistoricEvent hEvent = null;
             for (int i = 0; i < events; i++)
-                hEvent = NextEvent();
+                hEvent = _nextEvent();
             return hEvent;
         }
 
         public HistoricEvent NextTrackedEvent()
         {
-            HistoricEvent hEvent = NextEvent();
+            HistoricEvent hEvent = _nextEvent();
             while (hEvent != null && !hEvent.Tracked)
-                hEvent = NextEvent();
+                hEvent = _nextEvent();
             return hEvent;
         }
 
-        public Race CreateRace(string name, Region region)
+        internal Race CreateRace(string name, Region region)
         {
             Race race = new Race();
             race.Name = name;
@@ -139,7 +149,7 @@ namespace WorldSimulation.HistorySimulation
             return race;
         }
 
-        public void AddEvent(HistoricEvent hEvent)
+        internal void AddEvent(HistoricEvent hEvent)
         {
             int turn = Turn + hEvent.Turn + 1;
             if (!_eventsByTurn.ContainsKey(turn))

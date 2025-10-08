@@ -144,7 +144,7 @@ namespace WorldSimulation
             History.Simulate();
 
             GenerationIsComplete = true;
-            GenerationComplete?.Invoke(this, null);
+            GenerationComplete?.Invoke(this, EventArgs.Empty);
         }
 
         public event EventHandler GenerationComplete;

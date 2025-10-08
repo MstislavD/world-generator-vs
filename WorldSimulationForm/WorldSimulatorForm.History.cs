@@ -3,53 +3,76 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Topology;
 
 namespace WorldSimulationForm
 {
     public partial class WorldSimulatorForm
     {
-        bool _trackedEvents = true;
-
-        private void BtnNextEvent_Click(object sender, EventArgs e)
+        private void _updateUI(object? sender, EventArgs e)
         {
-            if (sender == null || _generator.History == null) return;
-
-            if (_trackedEvents)
+            if (_generator.History.EventCount == 0)
             {
-                _currentEvent = _generator.History.NextTrackedEvent();
+                _btnNextEvent.Text = "Next Event";
+                _btnNextEvent.Enabled = _generator.History.IsFinished;
+                _currentEvent = null;
             }
             else
             {
-                if (ModifierKeys == Keys.Alt)
-                    _currentEvent = _generator.History.NextEvents(1000);
-                else if (ModifierKeys == Keys.Shift)
-                    _currentEvent = _generator.History.NextEvents(100);
-                else if (ModifierKeys == Keys.Control)
-                    _currentEvent = _generator.History.NextEvents(10);
-                else
-                    _currentEvent = _generator.History.NextEvent();
-            }          
+                _btnNextEvent.Text = $"Next ({_generator.History.Turn})";
+            }
 
-            _updateAfterEvents(sender);
+            Invalidate();
+
+            if (_logForm.Visible)
+            {
+                _logForm.Update();
+                _logForm.Focus();
+            }
         }
 
-        private void _updateAfterEvents(object sender)
+        private void _redrawMap(object? sender, EventArgs e)
         {
-            (sender as Button).Text = _generator.GenerationIsComplete ? $"Next ({_generator.History.Turn})" : "Next Event";
+            Invalidate();
+        }
 
-            if (_generator.History.IsComplete)
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            if (!_generator.GenerationIsComplete ||
+                _cmbGridLevel.SelectedItem == null ||
+                _cmbMapMode.SelectedItem == null
+                ) return;
+
+            int gridLevel = (int)_cmbGridLevel.SelectedItem;
+
+            HexGrid grid = _generator.GetGrid(gridLevel);
+
+            RenderObjects objects = _cmbMapMode.SelectedItem switch
             {
-                (sender as Button).Enabled = false;
-            }
-            else
+                MapMode.Elevation => _elevationImage(grid),
+                MapMode.Height => _heightImage(grid),
+                MapMode.Temperature => _temperatureImage(),
+                MapMode.Precipitation => _precipitationImage(),
+                MapMode.Biomes => _biomesImage(),
+                MapMode.Pops => _popImage(),
+                MapMode.Cells => _cellsImage(),
+                MapMode.Landmasses => _landmassImage(),
+                _ => throw new Exception()
+            };            
+
+            if (_multiplier != 0)
             {
-                _redrawMap(this, null);
-                if (_logForm.Visible)
-                {
-                    _logForm.Update();
-                    _logForm.Focus();
-                }
+                objects.Multiplier = Math.Pow(2, _multiplier);
+                objects.Origin = _origin;
             }
+
+            int imageMaxWidth = (int)(ClientSize.Width * (1 - _panelWidth) - _margin * 3);
+            int imageMaxHeight = ClientSize.Height - _margin * 2;
+            _image = HexGridRenderer.Render(grid, imageMaxWidth, imageMaxHeight, objects);
+
+            e.Graphics.DrawImage(_image, _imageLeft, _margin);
         }
     }
 }
