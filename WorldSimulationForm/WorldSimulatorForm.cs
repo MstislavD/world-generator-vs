@@ -2,6 +2,7 @@
 using RandomExtension;
 using System.Collections.Concurrent;
 using System.Data;
+using System.Drawing;
 using System.Globalization;
 using Topology;
 using Utilities;
@@ -55,8 +56,8 @@ namespace WorldSimulationForm
 
             _logForm = new LogForm();
             _paediaForm = new PaediaForm();
-            _paediaForm.RaceHoverBegin += _paediaForm_RaceHoverBegin;
-            _paediaForm.RegionHoverBegin += _paediaForm_RegionHoverBegin;
+            _paediaForm.RaceHoverBegin += RaceHoverBegin;
+            _paediaForm.RegionHoverBegin += RegionHoverBegin;
             
             FlowLayoutPanel panel = new FlowLayoutPanel();
             panel.Location = new Point(_margin);
@@ -133,17 +134,15 @@ namespace WorldSimulationForm
             return cmb;
         }
 
-        private void _paediaForm_RegionHoverBegin(object? sender, WorldSimulation.Region region)
+        private void RegionHoverBegin(object? sender, WorldSimulation.Region? region)
         {
-            if (_cmbGridLevel.SelectedItem == null || _image == null) return;
             _highlightedRegion = region;
             _newHighlight = true;
             Invalidate();
         }
 
-        private void _paediaForm_RaceHoverBegin(object? sender, Race race)
+        private void RaceHoverBegin(object? sender, Race race)
         {
-            if (_cmbGridLevel.SelectedItem == null || _image == null) return;
             _highlightedArea = _generator.RegionMap.Regions.Where(r => r.Pops.Any(p => p.Race == race)).ToList();
             _highlightedRegion = null;
             _newHighlight = true;
@@ -184,11 +183,11 @@ namespace WorldSimulationForm
                 _logForm.Hide();
         }
 
-        private void _generator_LogUpdated(object? sender, string e)
+        private void _generator_LogUpdated(object? sender, string entry)
         {
             if (_printLog && sender is HistorySimulator)
             {
-                _logForm.AddEntry(e);
+                _logForm.AddEntry(entry);
             }               
         }
 
@@ -224,9 +223,7 @@ namespace WorldSimulationForm
                     if (!_paediaForm.Visible)
                         _paediaForm.Show();
                     _paediaForm.Focus();
-                }
-
-                
+                }               
 
                 //Console.WriteLine($"Last trapezoid: {_generator.SubregionGraph.Locator.LastTrapezoid}");
             }
@@ -267,18 +264,12 @@ namespace WorldSimulationForm
 
                         // cursor moved to new subregion
                         if (!region.Equals(_highlightedRegion))
-                        {
-                            _highlightedRegion = region;
-                            _newHighlight = true;
-                            Invalidate();
-                        }                       
+                            RegionHoverBegin(sender, region);                   
                     }
                     // cursor doesn't point to a subregion
                     else if (_highlightedRegion != null)
                     {
-                        _highlightedRegion = null;
-                        _newHighlight = true;
-                        Invalidate();
+                        RegionHoverBegin(sender, null);
                     }
 
                     _lblInfo.Text = $"X: {x:F2}\nY: {y:F2}{_regionInfo(_highlightedRegion)}";
