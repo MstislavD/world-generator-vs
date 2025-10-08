@@ -1,10 +1,12 @@
-﻿using System.Data;
-using Topology;
+﻿using Parameters;
 using RandomExtension;
-using WorldSimulation;
-using Utilities;
-using Parameters;
 using System.Collections.Concurrent;
+using System.Data;
+using System.Globalization;
+using Topology;
+using Utilities;
+using WorldSimulation;
+using WorldSimulation.HistorySimulation;
 
 namespace WorldSimulationForm
 {
@@ -18,6 +20,7 @@ namespace WorldSimulationForm
         int _mountainSeed;
 
         bool _trackedEvents = true;
+        bool _newHighlight = false;
 
         WorldGenerator _generator;
 
@@ -37,13 +40,15 @@ namespace WorldSimulationForm
         PaediaForm _paediaForm;
 
         WorldSimulation.Region? _highlightedRegion;
-        WorldSimulation.HistorySimulation.HistoricEvent? _currentEvent;
+        List<WorldSimulation.Region> _highlightedArea = [];
+        HistoricEvent? _currentEvent;
 
         public WorldSimulatorForm()
         {
             DoubleBuffered = true;
             Visible = true;
             WindowState = FormWindowState.Maximized;
+            KeyPreview = true;
 
             _generator = new WorldGenerator(this);
             _generator.LogUpdated += _generator_LogUpdated;
@@ -60,67 +65,32 @@ namespace WorldSimulationForm
             panel.FlowDirection = FlowDirection.TopDown;
             Controls.Add(panel);
 
-            Button btnStart = new Button();
-            btnStart.Text = "Start";
+            Button btnStart = _addButton(panel, "Start");
             btnStart.Click += _start;
-            _setButtonSize(btnStart, panel);
-            panel.Controls.Add(btnStart);
 
-            _cmbGridLevel = new ComboBox();
-            _cmbGridLevel.Items.AddRange(Enumerable.Range(0, _generator.GridLevels + 1).Cast<object>().ToArray());
-            _cmbGridLevel.SelectedItem = _generator.GridLevels;
-            _cmbGridLevel.SelectedValueChanged += (s, e) => CreateGraphics().Clear(BackColor); // move to the _redrawMap method?
-            _cmbGridLevel.SelectedValueChanged += _redrawMap;
-            _cmbGridLevel.Width = panel.Width - _cmbGridLevel.Margin.Left * 2;
-            _cmbGridLevel.DropDownStyle = ComboBoxStyle.DropDownList;
-            panel.Controls.Add(_cmbGridLevel);
+            _cmbGridLevel = _addComboBox(panel, Enumerable.Range(0, _generator.GridLevels + 1).Cast<object>().ToArray(), _generator.GridLevels);
+            _cmbMapMode = _addComboBox(panel, Enum.GetValues(typeof(MapMode)).Cast<object>().ToArray(), MapMode.Biomes);
 
-            _cmbMapMode = new ComboBox();
-            _cmbMapMode.Items.AddRange(Enum.GetValues(typeof(MapMode)).Cast<object>().ToArray());
-            _cmbMapMode.SelectedItem = MapMode.Biomes;
-            _cmbMapMode.SelectedValueChanged += _redrawMap;
-            _cmbMapMode.Width = panel.Width - _cmbMapMode.Margin.Left * 2;
-            _cmbMapMode.DropDownStyle = ComboBoxStyle.DropDownList;
-            panel.Controls.Add(_cmbMapMode);
+            _chbRegionBorder = _addCheckBox(panel, "Region Borders");
+            _chbSubregionBorder = _addCheckBox(panel, "SRegion Borders");
 
-            _chbRegionBorder = _addCheckBox("Region Borders", panel);
-            _chbSubregionBorder = _addCheckBox("SRegion Borders", panel);
-
-            _cmbBiomesMode = new ComboBox();
-            _cmbBiomesMode.Items.Add("Color");
-            _cmbBiomesMode.Items.Add("Texture");
-            _cmbBiomesMode.Items.Add("Texture Imp");
-            _cmbBiomesMode.SelectedItem = "Texture";
-            _cmbBiomesMode.SelectedValueChanged += _redrawMap;
-            _cmbBiomesMode.Width = panel.Width - _cmbBiomesMode.Margin.Left * 2;
-            _cmbBiomesMode.DropDownStyle = ComboBoxStyle.DropDownList;
-            panel.Controls.Add(_cmbBiomesMode);
+            _cmbBiomesMode = _addComboBox(panel, ["Color", "Texture", "Texture Imp"], "Texture");
 
             AddParameterControls(_generator.Parameters, panel);
             OnParameterUpdate += (s, p) => _generator.Generate();
 
-            Button btnLog = new Button();
-            btnLog.Text = "Log";
+            Button btnLog = _addButton(panel, "Log");
             btnLog.Click += BtnLog_Click;
-            _setButtonSize(btnLog, panel);
-            panel.Controls.Add(btnLog);
 
-            Button btnPaedia = new Button();
-            btnPaedia.Text = "Paedia";
+            Button btnPaedia = _addButton(panel, "Paedia");
             btnPaedia.Click += BtnPaedia_Click;
-            _setButtonSize(btnPaedia, panel);
-            panel.Controls.Add(btnPaedia);
 
-            _btnNextEvent = new Button() { Text = "Next Event", Enabled = false };
-            _setButtonSize(_btnNextEvent, panel);
+            _btnNextEvent = _addButton(panel, "Next Event");
+            _btnNextEvent.Enabled = false;
             _btnNextEvent.Click += BtnNextEvent_Click;
-            panel.Controls.Add(_btnNextEvent);
 
-            Button btnLocatorForm = new Button();
-            btnLocatorForm.Text = "Locator Test";
+            Button btnLocatorForm = _addButton(panel, "Locator Test");
             btnLocatorForm.Click += (s, e) => new PointLocationForm.Form1(_generator.SubregionGraph).Visible = true;
-            _setButtonSize(btnLocatorForm, panel);
-            panel.Controls.Add(btnLocatorForm);
 
             _lblInfo = new Label();
             _lblInfo.AutoSize = true;
@@ -128,41 +98,56 @@ namespace WorldSimulationForm
             panel.Controls.Add(_lblInfo);
 
             MouseMove += WorldSimulatorForm_MouseMove;
-            MouseClick += WorldSimulatorForm_MouseClick;
-
-            KeyPreview = true;
-
-            KeyDown += _handleInput;
-
-            _generator.GenerationComplete += _updateUI;
+            MouseClick += WorldSimulatorForm_MouseClick;          
+            KeyDown += WorldSimulatorForm_KeyDown;
         }
 
-        private void _setButtonSize(Button btn, FlowLayoutPanel panel)
+        private Button _addButton(FlowLayoutPanel panel, string text)
         {
+            Button btn = new Button() { Text = text };
             btn.Size = new Size(panel.ClientSize.Width - btn.Margin.All * 2, panel.ClientSize.Width / 3);
+            panel.Controls.Add(btn);
+            return btn;
         }
-            
+
+        private CheckBox _addCheckBox(FlowLayoutPanel panel, string name)
+        {
+            CheckBox chb = new CheckBox();
+            chb.CheckedChanged += _updateUI;
+            chb.Text = name;
+            chb.Width = panel.Width - chb.Margin.Left * 2;
+            chb.Height = chb.Width / 3;
+            panel.Controls.Add(chb);
+            return chb;
+        }
+
+        private ComboBox _addComboBox(FlowLayoutPanel panel, object[] items, object item)
+        {
+            ComboBox cmb = new ComboBox();
+            cmb.Items.AddRange(items);
+            cmb.SelectedItem = item;
+            cmb.SelectedValueChanged += _updateUI;
+            cmb.Width = panel.Width - cmb.Margin.Left * 2;
+            cmb.DropDownStyle = ComboBoxStyle.DropDownList;
+            panel.Controls.Add(cmb);
+            return cmb;
+        }
 
         private void _paediaForm_RegionHoverBegin(object? sender, WorldSimulation.Region region)
         {
-            HexGrid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
-            Bitmap overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _regionOutline(region));
-
-            Graphics g = CreateGraphics();
-            g.DrawImage(_image, _imageLeft, _margin);
-            g.DrawImage(overlay, _imageLeft, _margin);
+            if (_cmbGridLevel.SelectedItem == null || _image == null) return;
+            _highlightedRegion = region;
+            _newHighlight = true;
+            Invalidate();
         }
 
-        private void _paediaForm_RaceHoverBegin(object? sender, WorldSimulation.HistorySimulation.Race race)
+        private void _paediaForm_RaceHoverBegin(object? sender, Race race)
         {
-            IEnumerable<WorldSimulation.Region> regions = _generator.RegionMap.Regions.Where(r => r.Pops.Any(p => p.Race == race));
-
-            HexGrid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
-            Bitmap overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _regionOutline(regions));
-
-            Graphics g = CreateGraphics();
-            g.DrawImage(_image, _imageLeft, _margin);
-            g.DrawImage(overlay, _imageLeft, _margin);
+            if (_cmbGridLevel.SelectedItem == null || _image == null) return;
+            _highlightedArea = _generator.RegionMap.Regions.Where(r => r.Pops.Any(p => p.Race == race)).ToList();
+            _highlightedRegion = null;
+            _newHighlight = true;
+            Invalidate();
         }
 
         private void BtnNextEvent_Click(object? sender, EventArgs e)
@@ -183,7 +168,7 @@ namespace WorldSimulationForm
             _updateUI(sender, e);
         }
 
-        private void BtnPaedia_Click(object sender, EventArgs e)
+        private void BtnPaedia_Click(object? sender, EventArgs e)
         {
             if (!_paediaForm.Visible)
                 _paediaForm.Show();
@@ -201,13 +186,13 @@ namespace WorldSimulationForm
 
         private void _generator_LogUpdated(object? sender, string e)
         {
-            if (_printLog && sender is WorldSimulation.HistorySimulation.HistorySimulator)
+            if (_printLog && sender is HistorySimulator)
             {
                 _logForm.AddEntry(e);
             }               
         }
 
-        private void WorldSimulatorForm_MouseClick(object sender, MouseEventArgs e)
+        private void WorldSimulatorForm_MouseClick(object? sender, MouseEventArgs e)
         {
             if (_image != null && _mouse.X >= _imageLeft && _mouse.X < _image.Width + _imageLeft && _mouse.Y >= _margin && _mouse.Y < _image.Height + _margin)
             {
@@ -247,16 +232,22 @@ namespace WorldSimulationForm
             }
         }
 
-        private void WorldSimulatorForm_MouseMove(object sender, MouseEventArgs e)
+        private void WorldSimulatorForm_MouseMove(object? sender, MouseEventArgs e)
         {
             if (e.Location != _mouse)
             {
                 _mouse = e.Location;
+                _lblInfo.Text = "";
 
-                if (_image != null && _mouse.X >= _imageLeft && _mouse.X < _image.Width + _imageLeft && _mouse.Y >= _margin && _mouse.Y < _image.Height + _margin)
+                SubregionGraph graph = _generator.SubregionGraph;
+
+                // cursor is inside the map image
+                if (graph != null && _image != null &&
+                    _mouse.X >= _imageLeft && _mouse.X < _image.Width + _imageLeft &&
+                    _mouse.Y >= _margin && _mouse.Y < _image.Height + _margin)
                 {
-                    double x = _generator.SubregionGraph.Width * (_mouse.X - _imageLeft) / _image.Width;
-                    double y = _generator.SubregionGraph.Height * (_mouse.Y - _margin) / _image.Height;
+                    double x = graph.Width * (_mouse.X - _imageLeft) / _image.Width;
+                    double y = graph.Height * (_mouse.Y - _margin) / _image.Height;
 
                     if (_multiplier > 0)
                     {
@@ -264,133 +255,103 @@ namespace WorldSimulationForm
                         y = y / Math.Pow(2, _multiplier) + _origin.Y;
                     }
 
-                    Subregion subregion = _generator.SubregionGraph.Locator?.GetRegion(x, y);
-                                        
-                    if (subregion == null)
-                    {
-                        double width = _generator.SubregionGraph.Width;
-                        subregion = _generator.SubregionGraph.Locator?.GetRegion(x + width, y);
-                        if (subregion == null)
-                        {
-                            subregion = _generator.SubregionGraph.Locator?.GetRegion(x - width, y);
-                        }
-                    }
+                    Subregion subregion = 
+                        graph.Locator.GetRegion(x, y) ??
+                        graph.Locator.GetRegion(x + graph.Width, y) ??
+                        graph.Locator.GetRegion(x - graph.Width, y);
 
-                    string regionInfo = "";
-
-                    if (subregion != null)
+                    // cursor points to a subregion
+                    if (subregion != null && _cmbGridLevel.SelectedItem != null)
                     {
                         WorldSimulation.Region region = _generator.RegionMap.GetRegion(subregion);
 
+                        // cursor moved to new subregion
                         if (!region.Equals(_highlightedRegion))
                         {
                             _highlightedRegion = region;
-                            HexGrid grid = _generator.GetGrid((int)_cmbGridLevel.SelectedItem);
-                            Bitmap overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _regionOutline(region));
-
-                            Graphics g = CreateGraphics();
-                            g.DrawImage(_image, _imageLeft, _margin);
-                            g.DrawImage(overlay, _imageLeft, _margin);
-                        }
-
-                        regionInfo = $"\n{region.Name}";
-                        regionInfo += $"\n{region.Biome}";
-                        //regionInfo += $"\n{region.Belt}\n{region.Humidity}";
-                        regionInfo += $"\nSize: {region.Size}\nHeight: {region.Height:F1}m";
-                        if (!region.IsSea)
-                        {
-                            regionInfo += $"\nWater: {region.Water:F2}";
-                        }
-                        //if (region.River != null)
-                        //{
-                        //    regionInfo += $"\nRiver";
-                        //}
-                        foreach(WorldSimulation.HistorySimulation.RegionTrait trait in region.Traits)
-                        {
-                            regionInfo += $"\n{trait.Name}";
-                        }
-
-                        List<WorldSimulation.HistorySimulation.Population> pops = region.Pops.ToList();
-                        if (pops.Count > 0)
-                        {
-                            regionInfo += $"\nPops ({pops.Count}):";
-                            foreach(WorldSimulation.HistorySimulation.Population pop in pops)
-                            {
-                                regionInfo += $"\n{pop.Race.Name}";
-                            }
-                        }
-
+                            _newHighlight = true;
+                            Invalidate();
+                        }                       
                     }
+                    // cursor doesn't point to a subregion
                     else if (_highlightedRegion != null)
                     {
                         _highlightedRegion = null;
-                        Graphics g = CreateGraphics();
-                        g.DrawImage(_image, _imageLeft, _margin);
+                        _newHighlight = true;
+                        Invalidate();
                     }
 
-                    _lblInfo.Text = $"X: {x:F2}\nY: {y:F2}{regionInfo}";
-                }
-                else
-                {
-                    _lblInfo.Text = "";
+                    _lblInfo.Text = $"X: {x:F2}\nY: {y:F2}{_regionInfo(_highlightedRegion)}";
                 }
             }
+        }
+
+        private string _regionInfo(WorldSimulation.Region? region)
+        {
+            string regionInfo = "";
+
+            if (region == null) return "";
+
+            regionInfo = $"\n{region.Name}";
+            regionInfo += $"\n{region.Biome}";
+            regionInfo += $"\nSize: {region.Size}";
+            regionInfo += $"\nHeight: {region.Height:F1}m";
+            regionInfo += !region.IsSea ? $"\nWater: {region.Water:F2}" : "";
+            regionInfo += string.Concat(region.Traits.Select(t => $"\n{t.Name}"));
+
+            List<Population> pops = region.Pops.ToList();
+            if (pops.Count > 0)
+            {
+                regionInfo += $"\nPops ({pops.Count}):";
+                regionInfo += string.Concat(pops.Select(p => $"\n{p.Race.Name}"));
+            }
+
+            return regionInfo;
         }
 
         private int _imageLeft => (int)(ClientSize.Width * _panelWidth + _margin * 2);
 
-        private CheckBox _addCheckBox(string name, FlowLayoutPanel panel)
-        {
-            CheckBox chb = new CheckBox();
-            chb.CheckedChanged += _redrawMap;
-            chb.Text = name;
-            chb.Width = panel.Width - chb.Margin.Left * 2;
-            chb.Height = chb.Width / 3;
-            panel.Controls.Add(chb);
-            return chb;
-        }
-
-        private void _handleInput(object sender, KeyEventArgs e)
+        private void WorldSimulatorForm_KeyDown(object? sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Add)
             {
                 _multiplier += 1;
-                _redrawMap(sender, e);
+                _updateUI(sender, e);
             }
             else if (e.KeyCode == Keys.Subtract)
             {
                 _multiplier -= 1;
-                _redrawMap(sender, e);
+                _updateUI(sender, e);
             }
             else if (e.KeyCode == Keys.Home)
             {
                 _multiplier = 0;
                 _origin = new Vector2(0, 0);
-                _redrawMap(sender, e);
+                _updateUI(sender, e);
             }      
             else if (e.KeyCode == Keys.D)
             {
                 double dx = _generator.SubregionGraph.Width / Math.Pow(2, _multiplier + 2);
                 _origin = new(_origin.X + dx, _origin.Y);
-                _redrawMap(sender, e);
+                _updateUI(sender, e);
             }
             else if (e.KeyCode == Keys.A)
             {
                 double dx = -_generator.SubregionGraph.Width / Math.Pow(2, _multiplier + 2);
                 _origin = new(_origin.X + dx, _origin.Y);
-                _redrawMap(sender, e);
+                _updateUI(sender, e);
             }
             else if (e.KeyCode == Keys.S)
             {
                 double dy = _generator.SubregionGraph.Height / Math.Pow(2, _multiplier + 2);
                 _origin = new(_origin.X, _origin.Y + dy);
-                _redrawMap(sender, e);
+                _updateUI(sender, e);
             }
             else if (e.KeyCode == Keys.W)
             {
                 double dy = -_generator.SubregionGraph.Height / Math.Pow(2, _multiplier + 2);
                 _origin = new(_origin.X, _origin.Y + dy);
-                _redrawMap(sender, e);
+                _updateUI(sender, e);
             }
             else if (e.KeyCode == Keys.R)
             {
@@ -946,10 +907,9 @@ namespace WorldSimulationForm
             _updateUI(sender, e);
         }
 
-        private void History_EventLogged(object sender, EventArgs e)
+        private void History_EventLogged(object? sender, HistoricEvent e)
         {
-            var he = sender as WorldSimulation.HistorySimulation.HistoricEvent;
-            string info = $"T{_generator.History.Turn}: {he.Info}";
+            string info = $"T{_generator.History.Turn}: {e.Info}";
             _logForm.AddEntry(info);
         }
 
@@ -1025,10 +985,10 @@ namespace WorldSimulationForm
             return objects;
         }
 
-        private RenderObjects _regionOutline(IEnumerable<WorldSimulation.Region> regions)
+        private RenderObjects _areaOutline(IEnumerable<WorldSimulation.Region> regions)
         {
             RenderObjects objects = new RenderObjects();
-            HashSet<WorldSimulation.Region> _outlinedRegions = new HashSet<WorldSimulation.Region>(regions);
+            HashSet<WorldSimulation.Region> _outlinedRegions = [.. regions];
 
             if (_multiplier != 0)
             {
@@ -1047,8 +1007,7 @@ namespace WorldSimulationForm
                         {
                             objects.PreImageSegments.Add(new SegmentData(sedge.Vertices.ToArray(), Color.Red, 5));
                             objects.Segments.Add(new SegmentData(sedge.Vertices.ToArray(), Color.Black, 3));
-                        }
-                            
+                        }                            
                     }
                 }
             }            

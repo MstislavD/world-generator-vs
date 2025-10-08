@@ -157,7 +157,7 @@ namespace WorldSimulation.HistorySimulation
             _eventsByTurn[turn].Add(hEvent);
             hEvent.OnResolution += (s, e) => _log($"T{Turn}: {s}");
             if (hEvent.Tracked)
-                hEvent.OnResolution += (s, e) => EventLogged?.Invoke(hEvent, new EventArgs());
+                hEvent.OnResolution += (s, e) => EventLogged?.Invoke(this, hEvent);
         }
 
         public string GetRaceName()
@@ -172,7 +172,7 @@ namespace WorldSimulation.HistorySimulation
         public IEnumerable<Region> Regions => _generator.RegionMap.Regions;
 
         public event EventHandler<string> LogUpdate;
-        public event EventHandler EventLogged;
+        public event EventHandler<HistoricEvent> EventLogged;
 
         internal event EventHandler<RegionTraitSelectionArgs> RegionTraitsSelection;
         internal event EventHandler RegionTraitsSelectionFinish;

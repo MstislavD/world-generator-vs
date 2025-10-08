@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Topology;
+﻿using Topology;
 
 namespace WorldSimulationForm
 {
@@ -11,10 +6,12 @@ namespace WorldSimulationForm
     {
         private void _updateUI(object? sender, EventArgs e)
         {
+            if (!_generator.GenerationIsComplete) return;
+
             if (_generator.History.EventCount == 0)
             {
                 _btnNextEvent.Text = "Next Event";
-                _btnNextEvent.Enabled = _generator.History.IsFinished;
+                _btnNextEvent.Enabled = !_generator.History.IsFinished;
                 _currentEvent = null;
             }
             else
@@ -22,23 +19,22 @@ namespace WorldSimulationForm
                 _btnNextEvent.Text = $"Next ({_generator.History.Turn})";
             }
 
-            Invalidate();
+            _image = null;
 
             if (_logForm.Visible)
             {
                 _logForm.Update();
                 _logForm.Focus();
             }
-        }
 
-        private void _redrawMap(object? sender, EventArgs e)
-        {
             Invalidate();
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
+
+            e.Graphics.Clear(BackColor);
 
             if (!_generator.GenerationIsComplete ||
                 _cmbGridLevel.SelectedItem == null ||
@@ -70,9 +66,19 @@ namespace WorldSimulationForm
 
             int imageMaxWidth = (int)(ClientSize.Width * (1 - _panelWidth) - _margin * 3);
             int imageMaxHeight = ClientSize.Height - _margin * 2;
-            _image = HexGridRenderer.Render(grid, imageMaxWidth, imageMaxHeight, objects);
-
+            _image = _image ?? HexGridRenderer.Render(grid, imageMaxWidth, imageMaxHeight, objects);
             e.Graphics.DrawImage(_image, _imageLeft, _margin);
+
+            Bitmap? overlay = null;
+            if (_newHighlight)
+                if (_highlightedRegion != null)
+                    overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _regionOutline(_highlightedRegion));
+                else if (_highlightedArea != null)
+                    overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _areaOutline(_highlightedArea));                            
+            if (overlay != null)
+                e.Graphics.DrawImage(overlay, _imageLeft, _margin);
+
+            _newHighlight = false;
         }
     }
 }
