@@ -36,8 +36,8 @@ namespace Perlin
     {
         public struct Settings
         {
-            public bool XStitched;
-            public bool YStitched;
+            public bool XWrapped;
+            public bool YWrapped;
         }
 
         Random _random;
@@ -89,7 +89,7 @@ namespace Perlin
 
         public float Sample(float x, float y)
         {
-            if (_settings.XStitched)
+            if (_settings.XWrapped)
             {
                 if (x > 1)
                 {
@@ -120,14 +120,14 @@ namespace Perlin
                     vectors[i, j] = _random.NextDouble();
                 }
 
-            if (_settings.XStitched)
+            if (_settings.XWrapped)
             {
                 for (int j = 0; j < y; j++)
                 {
                     vectors[x - 1, j] = vectors[0, j];
                 }
             }
-            if (_settings.YStitched)
+            if (_settings.YWrapped)
             {
                 for (int i = 0; i < x; i++)
                 {
