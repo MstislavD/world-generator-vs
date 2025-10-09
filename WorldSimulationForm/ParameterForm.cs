@@ -1,6 +1,7 @@
 ﻿using Parameters;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using System.Windows.Forms;
 
 namespace WorldSimulationForm
 {
+    [DesignerCategory("")]
     public abstract class ParameterForm : Form, IParameterSupplier
     {
         Dictionary<Parameter, CheckBox> _chbByParameter = new Dictionary<Parameter, CheckBox>();

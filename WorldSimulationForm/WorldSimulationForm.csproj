@@ -123,23 +123,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="LogForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="PaediaForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="ParameterForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="LogForm.cs" />
+    <Compile Update="PaediaForm.cs" />
+    <Compile Update="ParameterForm.cs" />
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Update="WorldSimulatorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="WorldSimulatorForm.cs" />
   </ItemGroup>
 
   <ItemGroup>

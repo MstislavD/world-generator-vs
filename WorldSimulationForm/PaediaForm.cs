@@ -14,6 +14,7 @@ namespace WorldSimulationForm
 {
     enum ViewMode {Init, Races, Race, Region }
 
+    [DesignerCategory("")]
     public partial class PaediaForm : Form
     {
         FlowLayoutPanel _itemPanel;

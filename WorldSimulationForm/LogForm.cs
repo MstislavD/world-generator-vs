@@ -10,6 +10,7 @@ using System.Windows.Forms;
 
 namespace WorldSimulationForm
 {
+    [DesignerCategory("")]
     public partial class LogForm : Form
     {
         FlowLayoutPanel _logPanel;

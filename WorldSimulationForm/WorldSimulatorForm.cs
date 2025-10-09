@@ -1,6 +1,7 @@
 ﻿using Parameters;
 using RandomExtension;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Globalization;
@@ -14,6 +15,8 @@ namespace WorldSimulationForm
     using static WorldSimulationForm.Properties.Resources;
 
     enum MapMode { Elevation, Height, Temperature, Precipitation, Biomes, Pops, Cells, Landmasses }
+
+    [DesignerCategory("")]
     public partial class WorldSimulatorForm : ParameterForm
     {
         float _panelWidth = 0.05f;
