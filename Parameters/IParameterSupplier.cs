@@ -11,4 +11,10 @@ namespace Parameters
         ParameterValue GetValue(Parameter parameter);
         event EventHandler<Parameter> OnParameterUpdate;
     }
+
+    public interface IParameterBSupplier
+    {
+        object GetValue(ParameterB parameter);
+        event EventHandler<ParameterB> OnParameterBUpdate;
+    }
 }

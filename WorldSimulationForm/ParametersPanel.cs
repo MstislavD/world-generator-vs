@@ -1,5 +1,6 @@
 ﻿using Parameters;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -12,7 +13,7 @@ using System.Windows.Forms;
 namespace WorldSimulationForm
 {
     [DesignerCategory("")]
-    public class ParametersPanel : FlowLayoutPanel, IParameterSupplier
+    public class ParametersPanel : FlowLayoutPanel, IParameterSupplier //, IParameterBSupplier
     {
         Dictionary<Parameter, CheckBox> _chbByParameter = new Dictionary<Parameter, CheckBox>();
         Dictionary<Parameter, TextBox> _textByParameter = new Dictionary<Parameter, TextBox>();
@@ -23,6 +24,7 @@ namespace WorldSimulationForm
         Random _random = new Random();
 
         public event EventHandler<Parameter> OnParameterUpdate = delegate { };
+        public event EventHandler<ParameterB> OnParameterBUpdate = delegate { };
 
         public ParameterValue GetValue(Parameter parameter)
         {
@@ -142,5 +144,37 @@ namespace WorldSimulationForm
             text.Text = newSeed.ToString();
             OnParameterUpdate?.Invoke(this, parameter);
         }
+
+        //public object GetValue(ParameterB parameter)
+        //{
+        //    object value = parameter.GetType() switch
+        //    {
+        //        Parameter<bool> => _chbByParameter[parameter].Checked
+        //    };
+        //    if (parameter.Type == ParameterType.Bool)
+        //    {
+        //        return new ParameterValue(_chbByParameter[parameter].Checked);
+        //    }
+        //    else if (parameter.IsSeed)
+        //    {
+        //        return new ParameterValue(int.Parse(_textByParameter[parameter].Text));
+        //    }
+        //    else if (parameter.Type == ParameterType.Int)
+        //    {
+        //        return new ParameterValue((int)_numericByParameter[parameter].Value);
+        //    }
+        //    else if (parameter.Type == ParameterType.Double)
+        //    {
+        //        return new ParameterValue((double)_numericByParameter[parameter].Value);
+        //    }
+        //    else if (parameter.Type == ParameterType.String)
+        //    {
+        //        return new ParameterValue((string)_cmbByParameter[parameter].SelectedItem);
+        //    }
+        //    else
+        //    {
+        //        return ParameterValue.Default;
+        //    }
+        //}
     }
 }

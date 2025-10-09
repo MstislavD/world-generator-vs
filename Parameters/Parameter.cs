@@ -10,7 +10,7 @@ namespace Parameters
 
     public class Parameter
     {
-        List<string> _possibleValues;
+        List<string>? _possibleValues;
         
         public string Name { get; }
 
@@ -20,7 +20,7 @@ namespace Parameters
         public ParameterValue Min { get; }
         public ParameterValue Max { get; }
         public ParameterValue Current { get; private set; }
-        public  IEnumerable<string> PossibleValues => _possibleValues;
+        public  IEnumerable<string>? PossibleValues => _possibleValues;
 
         public static implicit operator int(Parameter p) => p.Current.IntValue;
         public static implicit operator double(Parameter p) => p.Current.DoubleValue;
@@ -69,5 +69,60 @@ namespace Parameters
 
         internal void SetValue(ParameterValue value) => Current = value;
 
+    }
+
+    public abstract class ParameterB
+    {
+        public string Name { get; }
+
+        public ParameterB(string name)
+        {
+            Name = name;
+        }
+
+        internal abstract void SetValue(object value);
+    }
+
+    public class Parameter<T> : ParameterB
+    {
+        List<T>? _possibleValues;
+
+        public T Default { get; }        
+        public T Current { get; private set; }
+        public IEnumerable<T>? PossibleValues => _possibleValues;
+
+        public Parameter(string name, T defaultValue) : base(name)
+        {
+            Current = Default = defaultValue;
+        }
+
+        internal void SetValue(T value) => Current = value;
+
+        internal override void SetValue(object value) => Current = (T)value;
+    }
+
+    public class ParameterNumeric<T> : Parameter<T>
+    {
+        public T Min { get; }
+        public T Max { get; }
+        public ParameterNumeric(string name, T defaultValue, T min, T max) : base(name, defaultValue)
+        {
+            Min = min;
+            Max = max;
+        }
+    }
+
+    public class ParameterSeed : ParameterNumeric<int>
+    {
+        public ParameterSeed(string name, int defaultValue) : base(name, defaultValue, int.MinValue, int.MaxValue) { }
+    }
+
+    public class ParameterList<T> : Parameter<T>
+    {
+        List<T>? _possibleValues;
+        public ParameterList(string name, T defaultValue, IEnumerable<T> possibleValues) : base(name, defaultValue)
+        {
+            _possibleValues = possibleValues.ToList();
+        }
     }
 }
