@@ -334,7 +334,7 @@ namespace WorldSimulationForm
 
             if (_multiplier < 2 && !_cmbTexture.SelectedItem.Equals("Color"))
             {
-                RandomExt rnd = new RandomExt(_mountainSeed);
+                RandomExt rnd = new RandomExt(_seed);
 
                 List<Bitmap> mountains_mst = new List<Bitmap>() { mountain };
                 List<Bitmap> mountains_imp =

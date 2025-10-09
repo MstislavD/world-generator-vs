@@ -1,7 +1,4 @@
-﻿using Parameters;
-using System.Collections.Concurrent;
-using System.ComponentModel;
-using System.Data;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
 using WorldSimulation;
@@ -16,7 +13,7 @@ namespace WorldSimulationForm
     {
         float _panelWidth = 0.05f;
         int _margin = 5;
-        int _mountainSeed;
+        int _seed;
 
         bool _trackedEvents = true;
         bool _newHighlight = false;
@@ -62,10 +59,10 @@ namespace WorldSimulationForm
             Controls.Add(panel);
 
             _generator = new WorldGenerator(panel);
-            _generator.LogUpdated += _generator_LogUpdated;
+            _generator.LogUpdated += Generator_LogUpdated;
 
             Button btnStart = _addButton(panel, "Start");
-            btnStart.Click += _start;
+            btnStart.Click += BtnStart_Click;
 
             _cmbGridLevel = _addComboBox(panel, Enumerable.Range(0, _generator.GridLevels + 1), _generator.GridLevels);
             _cmbMapMode = _addComboBox(panel, Enum.GetValues(typeof(MapMode)).Cast<MapMode>(), MapMode.Biomes);
@@ -147,6 +144,19 @@ namespace WorldSimulationForm
             Invalidate();
         }
 
+        private void BtnStart_Click(object? sender, EventArgs e)
+        {
+            _seed = new Random().Next();
+            _logForm.Clear();
+
+            Debug.WriteLine($"Generation seed: {_seed}");
+            _generator.Regenerate(_seed);
+            _paediaForm.InitializeHistory(_generator);
+            _generator.History.EventLogged += History_EventLogged;
+
+            _renderMap(sender, e);
+        }
+
         private void BtnNextEvent_Click(object? sender, EventArgs e)
         {
             var hist = _generator.History;
@@ -181,7 +191,7 @@ namespace WorldSimulationForm
                 _logForm.Hide();
         }
 
-        private void _generator_LogUpdated(object? sender, string entry)
+        private void Generator_LogUpdated(object? sender, string entry)
         {
             if (_printLog && sender is HistorySimulator)
             {
@@ -191,10 +201,14 @@ namespace WorldSimulationForm
 
         private void WorldSimulatorForm_MouseClick(object? sender, MouseEventArgs e)
         {
-            if (_image != null && _mouse.X >= _imageLeft && _mouse.X < _image.Width + _imageLeft && _mouse.Y >= _margin && _mouse.Y < _image.Height + _margin)
+            SubregionGraph graph = _generator.SubregionGraph;
+
+            if (graph != null && _image != null &&
+                _mouse.X >= _imageLeft && _mouse.X < _image.Width + _imageLeft &&
+                _mouse.Y >= _margin && _mouse.Y < _image.Height + _margin)
             {
-                double x = _generator.SubregionGraph.Width * (_mouse.X - _imageLeft) / _image.Width;
-                double y = _generator.SubregionGraph.Height * (_mouse.Y - _margin) / _image.Height;
+                double x = graph.Width * (_mouse.X - _imageLeft) / _image.Width;
+                double y = graph.Height * (_mouse.Y - _margin) / _image.Height;
 
                 if (_multiplier > 0)
                 {
@@ -202,28 +216,20 @@ namespace WorldSimulationForm
                     y = y / Math.Pow(2, _multiplier) + _origin.Y;
                 }
 
-                Subregion subregion = _generator.SubregionGraph.Locator.GetRegion(x, y);
+                Subregion subregion =
+                        graph.Locator.GetRegion(x, y) ??
+                        graph.Locator.GetRegion(x + graph.Width, y) ??
+                        graph.Locator.GetRegion(x - graph.Width, y);
 
-                if (subregion!= null)
+                if (subregion != null)
                 {
-                    //string strVertices = "";
-                    //foreach (Vertex v in subregion.Vertices)
-                    //{
-                    //    Vertex vv = new Vertex(Math.Round(v.X, 5), Math.Round(v.Y, 5)); 
-                    //    strVertices += vv.ToString() + " - ";
-                    //}
-                    //Console.WriteLine($"Subregion vertices:{strVertices}");
-                    //Console.WriteLine($"Cell: {subregion.Cell.GridPositionX}, {subregion.Cell.GridPositionY}");
-
                     WorldSimulation.Region region = _generator.RegionMap.GetRegion(subregion);
-                  
+
                     _paediaForm.OnRegionSelected(region);
                     if (!_paediaForm.Visible)
                         _paediaForm.Show();
                     _paediaForm.Focus();
-                }               
-
-                //Console.WriteLine($"Last trapezoid: {_generator.SubregionGraph.Locator.LastTrapezoid}");
+                }
             }
         }
 
@@ -250,19 +256,19 @@ namespace WorldSimulationForm
                         y = y / Math.Pow(2, _multiplier) + _origin.Y;
                     }
 
-                    Subregion subregion = 
+                    Subregion subregion =
                         graph.Locator.GetRegion(x, y) ??
                         graph.Locator.GetRegion(x + graph.Width, y) ??
                         graph.Locator.GetRegion(x - graph.Width, y);
 
                     // cursor points to a subregion
-                    if (subregion != null && _cmbGridLevel.SelectedItem != null)
+                    if (subregion != null)
                     {
                         WorldSimulation.Region region = _generator.RegionMap.GetRegion(subregion);
 
                         // cursor moved to new subregion
                         if (!region.Equals(_highlightedRegion))
-                            RegionHoverBegin(sender, region);                   
+                            RegionHoverBegin(sender, region);
                     }
                     // cursor doesn't point to a subregion
                     else if (_highlightedRegion != null)
@@ -343,21 +349,8 @@ namespace WorldSimulationForm
             }
             else if (e.KeyCode == Keys.R)
             {
-                _start(sender, e);
+                BtnStart_Click(sender, e);
             }
-        }
-
-        void _start(object? sender, EventArgs e)
-        {
-            _mountainSeed = new Random().Next();
-            _logForm.Clear();
-
-            Console.WriteLine($"Generation seed: {_mountainSeed}");
-            _generator.Regenerate(_mountainSeed);
-            _paediaForm.InitializeHistory(_generator);
-            _generator.History.EventLogged += History_EventLogged;
-
-            _renderMap(sender, e);
         }
 
         private void History_EventLogged(object? sender, HistoricEvent e)
