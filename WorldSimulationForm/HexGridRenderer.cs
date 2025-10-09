@@ -15,6 +15,7 @@ namespace WorldSimulationForm
 
         Bitmap _image;
         RenderObjects _objects;
+        System.Numerics.Vector2 origin;
 
         static public Bitmap Render(HexGrid grid, int maxWidth, int maxHeight, RenderObjects objects)
         {
@@ -38,9 +39,11 @@ namespace WorldSimulationForm
 
             _objects.Scale = scale;
             if (_objects.Origin == null)
-                _objects.Origin = new Vector2(0, 0);
+                origin = new System.Numerics.Vector2(0, 0);
+            else
+                origin = (System.Numerics.Vector2)_objects.Origin;
 
-            Graphics g = Graphics.FromImage(_image);
+                Graphics g = Graphics.FromImage(_image);
 
             foreach (PolygonData polygon in _objects.Polygons)
             {
@@ -111,15 +114,15 @@ namespace WorldSimulationForm
 
         PointF PointFromVertex(Vector2 vertex)
         {
-            float x = (float)((vertex.X - _objects.Origin.X) * _objects.Scale * _objects.Multiplier);
-            float y = (float)((vertex.Y - _objects.Origin.Y) * _objects.Scale * _objects.Multiplier);
+            float x = (float)((vertex.X - origin.X) * _objects.Scale * _objects.Multiplier);
+            float y = (float)((vertex.Y - origin.Y) * _objects.Scale * _objects.Multiplier);
             return new PointF(x, y);
         }            
 
         PointF PointFromVertex(Vector2 vertex, double shift)
         {
-            float x = (float)(((vertex.X - _objects.Origin.X) * _objects.Scale + shift) * _objects.Multiplier);
-            float y = (float)((vertex.Y - _objects.Origin.Y) * _objects.Scale * _objects.Multiplier);
+            float x = (float)(((vertex.X - origin.X) * _objects.Scale + shift) * _objects.Multiplier);
+            float y = (float)((vertex.Y - origin.Y) * _objects.Scale * _objects.Multiplier);
             return new PointF(x, y);
         }
 

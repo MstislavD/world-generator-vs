@@ -29,8 +29,6 @@ namespace WorldSimulationForm
 
         public PaediaForm()
         {
-            InitializeComponent();
-
             _viewModes = new Stack<ViewMode>();
             _viewRaces = new Stack<Race>();
             _viewRegions = new Stack<WorldSimulation.Region>();

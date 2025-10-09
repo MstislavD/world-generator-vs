@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -10,7 +12,7 @@ using System.Windows.Forms;
 namespace WorldSimulationForm
 {
     [DesignerCategory("")]
-    public abstract class ParameterForm : Form, IParameterSupplier
+    public class ParametersPanel : FlowLayoutPanel, IParameterSupplier
     {
         Dictionary<Parameter, CheckBox> _chbByParameter = new Dictionary<Parameter, CheckBox>();
         Dictionary<Parameter, TextBox> _textByParameter = new Dictionary<Parameter, TextBox>();
@@ -20,7 +22,7 @@ namespace WorldSimulationForm
         ToolTip _tooltip = new ToolTip();
         Random _random = new Random();
 
-        public event EventHandler<Parameter> OnParameterUpdate;
+        public event EventHandler<Parameter> OnParameterUpdate = delegate { };
 
         public ParameterValue GetValue(Parameter parameter)
         {
@@ -28,7 +30,7 @@ namespace WorldSimulationForm
             {
                 return new ParameterValue(_chbByParameter[parameter].Checked);
             }
-            else if (IsSeedParameter(parameter))
+            else if (parameter.IsSeed)
             {
                 return new ParameterValue(int.Parse(_textByParameter[parameter].Text));
             }
@@ -50,31 +52,31 @@ namespace WorldSimulationForm
             }
         }
 
-        protected void AddParameterControls(IParameterSet parameters, FlowLayoutPanel panel)
+        public void AddParameterControls(IParameterSet parameters)
         {
             foreach (Parameter parameter in parameters.Parameters)
             {
                 if (parameter.Type == ParameterType.Bool)
                 {
                     CheckBox chb = new CheckBox();
-                    chb.Width = panel.Width - chb.Margin.Left - chb.Margin.Right;
+                    chb.Width = Width - chb.Margin.Left - chb.Margin.Right;
                     chb.Text = parameter.Name;
                     _chbByParameter[parameter] = chb;
                     chb.Checked = parameter;
                     chb.CheckedChanged += (s, e) => OnParameterUpdate?.Invoke(this, parameter);
                     _tooltip.SetToolTip(chb, chb.Text);
-                    panel.Controls.Add(chb);
+                    Controls.Add(chb);
                 }
-                else if (IsSeedParameter(parameter))
+                else if (parameter.IsSeed)
                 {
                     TextBox text = new TextBox();
-                    text.Width = panel.Width - text.Margin.Left - text.Margin.Right;
+                    text.Width = Width - text.Margin.Left - text.Margin.Right;
                     text.Text = parameter.Current.IntValue.ToString();
                     _textByParameter[parameter] = text;
                     text.Click += (s, e) => _newRandomSeed(text, e, parameter);
                     text.ReadOnly = true;
                     _tooltip.SetToolTip(text, parameter.Name);
-                    panel.Controls.Add(text);
+                    Controls.Add(text);
                 }
                 else if (parameter.Type == ParameterType.Int)
                 {
@@ -90,10 +92,10 @@ namespace WorldSimulationForm
 
                     Label lbl = new Label();
                     lbl.Text = parameter.Name;
-                    lbl.Width = panel.Width - lbl.Margin.Left - lbl.Margin.Right;
+                    lbl.Width = Width - lbl.Margin.Left - lbl.Margin.Right;
 
-                    panel.Controls.Add(numeric);
-                    panel.Controls.Add(lbl);
+                    Controls.Add(numeric);
+                    Controls.Add(lbl);
                 }
                 else if (parameter.Type == ParameterType.Double)
                 {
@@ -110,10 +112,10 @@ namespace WorldSimulationForm
 
                     Label lbl = new Label();
                     lbl.Text = parameter.Name;
-                    lbl.Width = panel.Width - lbl.Margin.Left - lbl.Margin.Right;
+                    lbl.Width = Width - lbl.Margin.Left - lbl.Margin.Right;
 
-                    panel.Controls.Add(numeric);
-                    panel.Controls.Add(lbl);
+                    Controls.Add(numeric);
+                    Controls.Add(lbl);
                 }
                 else if (parameter.Type == ParameterType.String)
                 {
@@ -125,11 +127,11 @@ namespace WorldSimulationForm
                     combo.SelectedItem = parameter.Current.StringValue;
                     combo.SelectedIndexChanged += (s, e) => OnParameterUpdate?.Invoke(this, parameter);
                     combo.DropDownStyle = ComboBoxStyle.DropDownList;
-                    combo.Width = panel.Width - combo.Margin.Left * 2;
+                    combo.Width = Width - combo.Margin.Left * 2;
                     _cmbByParameter[parameter] = combo;
                     _tooltip.SetToolTip(combo, parameter.Name);
 
-                    panel.Controls.Add(combo);
+                    Controls.Add(combo);
                 }
             }
         }
@@ -140,7 +142,5 @@ namespace WorldSimulationForm
             text.Text = newSeed.ToString();
             OnParameterUpdate?.Invoke(this, parameter);
         }
-
-        protected abstract bool IsSeedParameter(Parameter parameter);
     }
 }

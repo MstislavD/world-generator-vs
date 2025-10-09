@@ -103,7 +103,7 @@ namespace WorldSimulation
 
         Parameter _addSeedParameter(string name)
         {
-            Parameter seedParameter = new Parameter(name, random.Next());
+            Parameter seedParameter = new Parameter(name, random.Next(), isSeed: true);
             seedParameters.Add(seedParameter);
             return seedParameter;
         }

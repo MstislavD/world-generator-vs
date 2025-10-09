@@ -13,6 +13,8 @@ namespace Parameters
         List<string> _possibleValues;
         
         public string Name { get; }
+
+        public bool IsSeed { get; } = false;
         public ParameterType Type { get; }
         public ParameterValue Default { get; }
         public ParameterValue Min { get; }
@@ -35,7 +37,7 @@ namespace Parameters
             Current = new ParameterValue(defaultValue);
         }
 
-        public Parameter(string name, int defaultValue, int min, int max)
+        public Parameter(string name, int defaultValue, int min, int max, bool isSeed = false)
         {
             Name = name;
             Type = ParameterType.Int;
@@ -43,9 +45,10 @@ namespace Parameters
             Min = new ParameterValue(min);
             Max = new ParameterValue(max);
             Current = new ParameterValue(defaultValue);
+            IsSeed = isSeed;
         }
 
-        public Parameter(string name, int defaultValue) : this(name, defaultValue, int.MinValue, int.MaxValue) { }
+        public Parameter(string name, int defaultValue, bool isSeed = true) : this(name, defaultValue, int.MinValue, int.MaxValue, isSeed: isSeed) { }
 
         public Parameter(string name, bool defaultValue)
         {

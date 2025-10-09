@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Parameters;
 using PointLocation;
+using System.Diagnostics;
 
 namespace WorldSimulation
 {
@@ -51,6 +52,7 @@ namespace WorldSimulation
 
         public void Generate()
         {
+            Debug.WriteLine("Generating");
             random = new RandomExt(_parameters.MainSeed);
             RandomExt subregionRandom = new RandomExt(_parameters.SubregionSeed);
             RandomExt heightRandom = new RandomExt(_parameters.HeightSeed);

@@ -7,7 +7,7 @@ namespace WorldSimulationForm
     class RenderObjects
     {
         public double Multiplier;
-        public Vector2 Origin;
+        public System.Numerics.Vector2? Origin;
         public double Scale;
         public List<ImageData> Images { get; } = new List<ImageData>();
         public List<SegmentData> Segments { get; } = new List<SegmentData>();
