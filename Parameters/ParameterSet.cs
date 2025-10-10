@@ -41,37 +41,33 @@ namespace Parameters
         }
     }
 
-    public abstract class ParameterBSet : IParameterBSet
+    public class ParameterList
     {
         List<ParameterB> _parameters = new List<ParameterB>();
 
-        public event EventHandler OnSetUpdate;
+        IParameterBSupplier? _supplier;
 
         public IEnumerable<ParameterB> Parameters => _parameters;
 
-        protected ParameterBSet(IParameterBSupplier supplier)
+        public void RegisterSupplier(IParameterBSupplier supplier)
         {
-            supplier.OnParameterBUpdate += _updateParameter;
+            _supplier = supplier;
+            foreach (ParameterB parameter in _parameters)
+            {
+                _supplier.RegisterParameter(parameter);
+            }
         }
 
-        protected ParameterBSet() { }
-
-        private void _updateParameter(object sender, ParameterB parameter)
-        {
-            IParameterBSupplier supplier = (IParameterBSupplier)sender;
-            parameter.SetValue(supplier.GetValue(parameter));
-            OnSetUpdate?.Invoke(this, new EventArgs());
-        }
-
-        protected void AddParameter(ParameterB parameter)
+        public void AddParameter(ParameterB parameter)
         {
             _parameters.Add(parameter);
+            parameter.OnUpdate += sender => OnSetUpdate?.Invoke(sender);
+            if(_supplier != null)
+            {
+                _supplier.RegisterParameter(parameter);
+            }
         }
 
-        protected void UpdateParameter(Parameter parameter, ParameterValue value)
-        {
-            parameter.SetValue(value);
-            OnSetUpdate?.Invoke(this, new EventArgs());
-        }
+        public event ParamterUpdateHandler OnSetUpdate = delegate { };
     }
 }

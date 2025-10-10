@@ -11,10 +11,4 @@ namespace Parameters
         IEnumerable<Parameter> Parameters { get; }
         event EventHandler OnSetUpdate;
     }
-
-    public interface IParameterBSet
-    {
-        IEnumerable<ParameterB> Parameters { get; }
-        event EventHandler OnSetUpdate;
-    }
 }

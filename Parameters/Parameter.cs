@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -71,6 +73,8 @@ namespace Parameters
 
     }
 
+    public delegate void ParamterUpdateHandler(object sender);
+
     public abstract class ParameterB
     {
         public string Name { get; }
@@ -80,49 +84,89 @@ namespace Parameters
             Name = name;
         }
 
-        internal abstract void SetValue(object value);
+        public event ParamterUpdateHandler OnUpdate = delegate { };
+
+        public void Update(object sender, object value)
+        {
+            if (SetValue(value))
+                OnUpdate?.Invoke(sender);
+        }
+
+        protected abstract bool SetValue(object value);
     }
 
     public class Parameter<T> : ParameterB
     {
-        List<T>? _possibleValues;
-
-        public T Default { get; }        
+        public T Default { get; }
         public T Current { get; private set; }
-        public IEnumerable<T>? PossibleValues => _possibleValues;
-
         public Parameter(string name, T defaultValue) : base(name)
         {
             Current = Default = defaultValue;
         }
 
-        internal void SetValue(T value) => Current = value;
-
-        internal override void SetValue(object value) => Current = (T)value;
+        protected override bool SetValue(object value)
+        {
+            if (Current != null && Current.Equals((T)value))
+            {
+                return false;
+            }
+            else
+            {
+                Current = (T)value;
+                return true;
+            }
+        }
     }
 
-    public class ParameterNumeric<T> : Parameter<T>
+    public class ParameterRange<T> : Parameter<T>
     {
         public T Min { get; }
         public T Max { get; }
-        public ParameterNumeric(string name, T defaultValue, T min, T max) : base(name, defaultValue)
+        public ParameterRange(string name, T defaultValue, T min, T max) : base(name, defaultValue)
         {
             Min = min;
             Max = max;
         }
     }
 
-    public class ParameterSeed : ParameterNumeric<int>
+    public class ParameterSeed : ParameterRange<int>
     {
         public ParameterSeed(string name, int defaultValue) : base(name, defaultValue, int.MinValue, int.MaxValue) { }
     }
 
-    public class ParameterList<T> : Parameter<T>
+    public interface IParameterArray
     {
-        List<T>? _possibleValues;
-        public ParameterList(string name, T defaultValue, IEnumerable<T> possibleValues) : base(name, defaultValue)
+        IEnumerable<object> PossibleValues { get; }
+        ParameterB Parameter { get; }
+        object? Current { get; }
+    }
+
+    public class ParameterArray<T> : Parameter<T>, IParameterArray
+    {
+        List<T> _possibleValues = [];
+        public ParameterArray(string name, T defaultValue, IEnumerable<T> possibleValues) : base(name, defaultValue)
         {
             _possibleValues = possibleValues.ToList();
         }
+
+        public IEnumerable<T> PossibleValues => _possibleValues;
+
+        public ParameterB Parameter => this;
+
+        IEnumerable<object> IParameterArray.PossibleValues => _possibleValues.Cast<object>();
+
+        object? IParameterArray.Current => Current;
+
+        protected override bool SetValue(object value)
+        {
+            if (!_possibleValues.Contains((T)value)) throw new Exception();
+            return base.SetValue(value);
+        }
+    }
+
+    public class ParameterEnum<T> : ParameterArray<T>
+        where T: Enum
+    {
+        public ParameterEnum(string name, T defaultValue) : base(name, defaultValue, Enum.GetValues(typeof(T)).Cast<T>().ToList()) { }
     }
 }

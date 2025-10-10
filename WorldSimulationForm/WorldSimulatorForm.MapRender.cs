@@ -56,17 +56,13 @@ namespace WorldSimulationForm
 
             e.Graphics.Clear(BackColor);
 
-            if (_generator == null ||
-                !_generator.GenerationIsComplete ||
-                _cmbGridLevel.SelectedItem == null ||
-                _cmbMapMode.SelectedItem == null
-                ) return;
+            if (_generator == null || !_generator.GenerationIsComplete) return;
 
-            int gridLevel = (int)_cmbGridLevel.SelectedItem;
+            int gridLevel = _gridLevel.Current;
 
             HexGrid grid = _generator.GetGrid(gridLevel);
 
-            RenderObjects objects = _cmbMapMode.SelectedItem switch
+            RenderObjects objects = _mapMode.Current switch
             {
                 MapMode.Elevation => _elevationImage(grid),
                 MapMode.Height => _heightImage(grid),
@@ -118,7 +114,7 @@ namespace WorldSimulationForm
 
             RenderObjects objects = new RenderObjects();
             objects.Polygons.AddRange(grid.Cells.Select(c => new PolygonData(c, brushByElevation[_generator.GetData(c).Elevation])));
-            IEnumerable<Edge> edges = _chbRegionBorder.Checked ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
+            IEnumerable<Edge> edges = _regionBorder.Current ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
             objects.Segments.AddRange(edges.Select(e => new SegmentData(e, Pens.Black)));
             objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
 
@@ -182,7 +178,7 @@ namespace WorldSimulationForm
             else
             {
                 objects.Polygons.AddRange(grid.Cells.Select(c => new PolygonData(c, colorByCell[c])));
-                IEnumerable<Edge> edges = _chbRegionBorder.Checked ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
+                IEnumerable<Edge> edges = _regionBorder.Current ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
                 objects.Segments.AddRange(edges.Select(e => new SegmentData(e, Pens.Black)));
                 objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
 
@@ -277,7 +273,7 @@ namespace WorldSimulationForm
         {
             RenderObjects objects = new RenderObjects();
 
-            bool imp_textures = _cmbTexture.SelectedItem.Equals("Texture Imp");
+            bool imp_textures = _texture.Current.Equals("Texture Imp");
 
             Dictionary<Biome, TextureBrush> brushByBiome = new Dictionary<Biome, TextureBrush>();
             Dictionary<Biome, Brush> colorByBiome = new Dictionary<Biome, Brush>();
@@ -326,13 +322,13 @@ namespace WorldSimulationForm
             {
                 Biome biome = _generator.RegionMap.GetRegion(s).Biome;
 
-                if (_cmbTexture.SelectedItem.Equals("Color"))
+                if (_texture.Current.Equals("Color"))
                     objects.Polygons.Add(new PolygonData(s.Vertices, colorByBiome[biome]));
                 else
                     objects.Polygons.Add(new PolygonData(s.Vertices, brushByBiome[biome]));
             }
 
-            if (_multiplier < 2 && !_cmbTexture.SelectedItem.Equals("Color"))
+            if (_multiplier < 2 && !_texture.Current.Equals("Color"))
             {
                 RandomExt rnd = new RandomExt(_seed);
 
@@ -361,7 +357,7 @@ namespace WorldSimulationForm
                 }
             }
 
-            if (_cmbTexture.SelectedItem.Equals("Color"))
+            if (_texture.Current.Equals("Color"))
             {
                 _addRivers(objects, Color.Blue, 3);
             }
@@ -646,11 +642,11 @@ namespace WorldSimulationForm
                 foreach (SubregionEdge sedge in sreg.Edges.Where(sreg.HasNeighbor))
                 {
                     Subregion neighbor = sreg.GetNeighbor(sedge);
-                    if (_chbRegionBorder.Checked && !sreg.SameRegion(neighbor))
+                    if (_regionBorder.Current && !sreg.SameRegion(neighbor))
                         objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, Pens.Black));
                     else if (_generator.IsLand(sreg) && _generator.IsSea(neighbor))
                         objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, Pens.Black));
-                    else if (_chbSubregionBorder.Checked)
+                    else if (_subregionBorder.Current)
                     {
                         objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, subregionPen));
                         if (_multiplier > 1)
@@ -663,7 +659,7 @@ namespace WorldSimulationForm
                     }
                 }
 
-                if (_chbSubregionBorder.Checked && _multiplier > 1)
+                if (_subregionBorder.Current && _multiplier > 1)
                 {
                     objects.Vertices.Add(new VertexData(sreg.Center, subregionBrush));
                 }

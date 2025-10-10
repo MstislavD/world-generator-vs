@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using WorldSimulation;
 using WorldSimulation.HistorySimulation;
+using Parameters;
 
 namespace WorldSimulationForm
 {
@@ -21,9 +22,6 @@ namespace WorldSimulationForm
         WorldGenerator _generator;
 
         Button _btnNextEvent;
-        ComboBox _cmbGridLevel;
-        ComboBox _cmbMapMode, _cmbTexture;
-        CheckBox _chbRegionBorder, _chbSubregionBorder;
         Point _mouse;
         Label _lblInfo;
 
@@ -38,6 +36,12 @@ namespace WorldSimulationForm
         WorldSimulation.Region? _highlightedRegion;
         List<WorldSimulation.Region> _highlightedArea = [];
         HistoricEvent? _currentEvent;
+
+        ParameterArray<int> _gridLevel;
+        ParameterEnum<MapMode> _mapMode = new("Map mode", MapMode.Biomes);
+        Parameter<bool> _regionBorder = new("Region borders", false);
+        Parameter<bool> _subregionBorder = new("SRegion borders", false);
+        ParameterArray<string> _texture = new("Texture", "Texture", ["Color", "Texture", "Texture Imp"]);
 
         public WorldSimulatorForm()
         {
@@ -61,72 +65,43 @@ namespace WorldSimulationForm
             _generator = new WorldGenerator(panel);
             _generator.LogUpdated += Generator_LogUpdated;
 
-            Button btnStart = _addButton(panel, "Start");
+            Button btnStart = panel.AddButton("Start");
             btnStart.Click += BtnStart_Click;
 
-            _cmbGridLevel = _addComboBox(panel, Enumerable.Range(0, _generator.GridLevels + 1), _generator.GridLevels);
-            _cmbMapMode = _addComboBox(panel, Enum.GetValues(typeof(MapMode)).Cast<MapMode>(), MapMode.Biomes);
+            _gridLevel = new ParameterArray<int>("Grid level", _generator.GridLevels, Enumerable.Range(0, _generator.GridLevels + 1));
 
-            _chbRegionBorder = _addCheckBox(panel, "Region Borders");
-            _chbSubregionBorder = _addCheckBox(panel, "SRegion Borders");
-
-            _cmbTexture = _addComboBox(panel, ["Color", "Texture", "Texture Imp"], "Texture");
+            ParameterList parameterList = new();
+            parameterList.AddParameter(_gridLevel);
+            parameterList.AddParameter(_mapMode);
+            parameterList.AddParameter(_regionBorder);
+            parameterList.AddParameter(_subregionBorder);
+            parameterList.AddParameter(_texture);
+            parameterList.RegisterSupplier(panel);
+            parameterList.OnSetUpdate += sender => _renderMap(sender, EventArgs.Empty);
                         
             panel.AddParameterControls(_generator.Parameters);
             panel.OnParameterUpdate += (s, p) => { _generator.Generate(); _renderMap(this, EventArgs.Empty); };
 
-            Button btnLog = _addButton(panel, "Log");
+            Button btnLog = panel.AddButton("Log");
             btnLog.Click += BtnLog_Click;
 
-            Button btnPaedia = _addButton(panel, "Paedia");
+            Button btnPaedia = panel.AddButton("Paedia");
             btnPaedia.Click += BtnPaedia_Click;
 
-            _btnNextEvent = _addButton(panel, "Next Event");
+            _btnNextEvent = panel.AddButton("Next Event");
             _btnNextEvent.Enabled = false;
             _btnNextEvent.Click += BtnNextEvent_Click;
 
-            Button btnLocatorForm = _addButton(panel, "Locator Test");
+            Button btnLocatorForm = panel.AddButton("Locator Test");
             btnLocatorForm.Click += (s, e) => new PointLocationForm.Form1(_generator.SubregionGraph).Visible = true;
 
-            _lblInfo = new Label();
+            _lblInfo = panel.AddLabel("Info");
             _lblInfo.AutoSize = true;
             _lblInfo.MaximumSize = new Size(panel.Width - _lblInfo.Margin.Left * 2, 1000);
-            panel.Controls.Add(_lblInfo);
 
             MouseMove += WorldSimulatorForm_MouseMove;
             MouseClick += WorldSimulatorForm_MouseClick;          
             KeyDown += WorldSimulatorForm_KeyDown;
-        }
-
-        private Button _addButton(FlowLayoutPanel panel, string text)
-        {
-            Button btn = new Button() { Text = text };
-            btn.Size = new Size(panel.ClientSize.Width - btn.Margin.All * 2, panel.ClientSize.Width / 3);
-            panel.Controls.Add(btn);
-            return btn;
-        }
-
-        private CheckBox _addCheckBox(FlowLayoutPanel panel, string name)
-        {
-            CheckBox chb = new CheckBox();
-            chb.CheckedChanged += _renderMap;
-            chb.Text = name;
-            chb.Width = panel.Width - chb.Margin.Left * 2;
-            chb.Height = chb.Width / 3;
-            panel.Controls.Add(chb);
-            return chb;
-        }
-
-        private ComboBox _addComboBox<T>(FlowLayoutPanel panel, IEnumerable<T> items, T item)
-        {
-            ComboBox cmb = new ComboBox();
-            cmb.Items.AddRange(items.Cast<object>().ToArray());
-            cmb.SelectedItem = item;
-            cmb.SelectedValueChanged += _renderMap;
-            cmb.Width = panel.Width - cmb.Margin.Left * 2;
-            cmb.DropDownStyle = ComboBoxStyle.DropDownList;
-            panel.Controls.Add(cmb);
-            return cmb;
         }
 
         private void RegionHoverBegin(object? sender, WorldSimulation.Region? region)
@@ -308,6 +283,8 @@ namespace WorldSimulationForm
 
         private void WorldSimulatorForm_KeyDown(object? sender, KeyEventArgs e)
         {
+            if (_generator.SubregionGraph == null) return;
+
             float xStep = (float)_generator.SubregionGraph.Width / MathF.Pow(2, _multiplier + 2);
             float yStep = (float)_generator.SubregionGraph.Height / MathF.Pow(2, _multiplier + 2);
 

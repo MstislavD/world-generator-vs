@@ -14,7 +14,6 @@ namespace Parameters
 
     public interface IParameterBSupplier
     {
-        object GetValue(ParameterB parameter);
-        event EventHandler<ParameterB> OnParameterBUpdate;
+        void RegisterParameter(ParameterB parameter);
     }
 }
