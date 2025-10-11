@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Parameters;
+using Utilities;
 using PointLocation;
 using System.Diagnostics;
 
 namespace WorldSimulation
 {
-    public enum Elevation { DeepOcean, ShallowOcean, Lowland, Upland, Highland, Mountain}
+    public enum Elevation { DeepOcean, ShallowOcean, Lowland, Upland, Highland, Mountain }
+
     public class WorldGenerator
     {
         int _gridWidth = 10; // 10;
@@ -21,16 +22,16 @@ namespace WorldSimulation
 
         RandomExt random;
 
-        GenerationParameters _parameters;
+        GenerationParameters _parameters = new GenerationParameters();
 
         List<HexGrid> _grids;
 
-        public WorldGenerator(IParameterSupplier supplier)
-        {
-            _parameters = new GenerationParameters(supplier);
-        }
-
         public WorldGenerator() { }
+
+        public void AddParameterProvider(IParameterProvider provider)
+        {
+            _parameters.RegisterProvider(provider);
+        }
 
         public void Regenerate()
         {
@@ -44,15 +45,8 @@ namespace WorldSimulation
             Generate();
         }
 
-        public void Generate(GenerationParameters parameters)
-        {
-            _parameters = parameters;
-            Generate();
-        }
-
         public void Generate()
         {
-            Debug.WriteLine("Generating");
             random = new RandomExt(_parameters.MainSeed);
             RandomExt subregionRandom = new RandomExt(_parameters.SubregionSeed);
             RandomExt heightRandom = new RandomExt(_parameters.HeightSeed);
@@ -66,13 +60,13 @@ namespace WorldSimulation
             _grids.Add(grid);
             _addData(grid);
 
-            if (_parameters.MapScript.Current.StringValue == "Random")
+            if (_parameters.MapScript == MapScript.Random)
                 ElevationGenerator.GenerateRandom(this, grid, random);
-            else if (_parameters.MapScript.Current.StringValue == "One Continent")
+            else if (_parameters.MapScript == MapScript.One_continent)
                 ElevationGenerator.GenerateScriptPangea(this, grid, random);
-            else if (_parameters.MapScript.Current.StringValue == "Two Continents")
+            else if (_parameters.MapScript == MapScript.Two_continents)
                 ElevationGenerator.GenerateScriptTwoContinents(this, grid, random);
-            else if (_parameters.MapScript.Current.StringValue == "Three Continents")
+            else if (_parameters.MapScript == MapScript.Three_continents)
                 ElevationGenerator.GenerateScriptThreeContinents(this, grid, random);
 
             for (int i = 0; i < GridLevels; i++)
@@ -105,7 +99,7 @@ namespace WorldSimulation
 
             if (_parameters.DeformationDetails)
             {
-                double cellSize = SubregionGraph.Width / _parameters.DeformationFrequencyMax.Current.IntValue;
+                double cellSize = SubregionGraph.Width / _parameters.DeformationFrequencyMax.Current;
                 double targetEdgeLength = cellSize / _parameters.DetalizationFactor;
                 EdgeDetailer.Detail(SubregionGraph, targetEdgeLength);
             }
@@ -115,10 +109,10 @@ namespace WorldSimulation
                 Random rndDeformation = new RandomExt(_parameters.DeformationSeed);
 
                 double power = 1.0 / (_parameters.DeformationFrequencies - 1);
-                int frequency = _parameters.DeformationFrequencyMin.Current.IntValue;
-                double strength = _parameters.DeformationStrengthMax.Current.DoubleValue;
-                double frequencyMultiplier = Math.Pow(_parameters.DeformationFrequencyMax.Current.IntValue / frequency, power);
-                double strengthMultiplier = Math.Pow(_parameters.DeformationStrengthMin.Current.DoubleValue / strength, power);
+                int frequency = _parameters.DeformationFrequencyMin;
+                double strength = _parameters.DeformationStrengthMax;
+                double frequencyMultiplier = Math.Pow(_parameters.DeformationFrequencyMax / frequency, power);
+                double strengthMultiplier = Math.Pow(_parameters.DeformationStrengthMin / strength, power);
 
                 for (int i = 0; i < _parameters.DeformationFrequencies; i++)
                 {
@@ -146,11 +140,12 @@ namespace WorldSimulation
             History.Simulate();
 
             GenerationIsComplete = true;
-            GenerationComplete?.Invoke(this, EventArgs.Empty);
+            OnGenerationComplete?.Invoke(this, EventArgs.Empty);
         }
 
-        public event EventHandler GenerationComplete;
+        public event EventHandler OnGenerationComplete;
         public event EventHandler<string> LogUpdated;
+
         public HexGrid GetGrid(int level) => _grids[level];
         public int GridLevels { get; } = 3;
         public SubregionGraph SubregionGraph { get; private set; }
@@ -195,18 +190,18 @@ namespace WorldSimulation
         {
             get
             {
-                string landsize = _parameters.LandSize.Current.StringValue;
-                if (landsize == "Tiny")
+                LandSize landsize = (LandSize)_parameters.LandSize;
+                if (landsize == LandSize.Tiny)
                     return 0.9;
-                else if (landsize == "Small")
+                else if (landsize == LandSize.Small)
                     return 0.8;
-                else if (landsize == "Medium")
+                else if (landsize == LandSize.Medium)
                     return 0.7;
-                else if (landsize == "Large")
+                else if (landsize == LandSize.Large)
                     return 0.6;
-                else if (landsize == "Huge")
+                else if (landsize == LandSize.Huge)
                     return 0.5;
-                else if (landsize == "Colossal")
+                else if (landsize == LandSize.Colossal)
                     return 0.4;
                 else
                     return 0.1;
@@ -266,19 +261,17 @@ namespace WorldSimulation
             }
             else if (elevation == Elevation.ShallowOcean)
             {
-                return (int)(_regionCount * SeaPct * (1 - _parameters.DeepPct.Current.DoubleValue));
+                return (int)(_regionCount * SeaPct * (1 - _parameters.DeepPct));
             }
             else if (elevation == Elevation.DeepOcean)
             {
-                return (int)(_regionCount * SeaPct * _parameters.DeepPct.Current.DoubleValue);
+                return (int)(_regionCount * SeaPct * _parameters.DeepPct);
             }
             else
             {
                 return 0;
             }
         }
-
-        public bool IsSeedParameter(Parameter parameter) => Parameters.IsSeed(parameter);
 
         void _addData(HexGrid grid)
         {

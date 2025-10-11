@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using WorldSimulation;
 using WorldSimulation.HistorySimulation;
-using Parameters;
+using Utilities;
 
 namespace WorldSimulationForm
 {
@@ -37,11 +37,12 @@ namespace WorldSimulationForm
         List<WorldSimulation.Region> _highlightedArea = [];
         HistoricEvent? _currentEvent;
 
-        ParameterArray<int> _gridLevel;
+        ParameterArray _gridLevel;
         ParameterEnum<MapMode> _mapMode = new("Map mode", MapMode.Biomes);
         Parameter<bool> _regionBorder = new("Region borders", false);
         Parameter<bool> _subregionBorder = new("SRegion borders", false);
-        ParameterArray<string> _texture = new("Texture", "Texture", ["Color", "Texture", "Texture Imp"]);
+        ParameterArray _texture = new("Texture", "Texture", ["Color", "Texture", "Texture Imp"]);
+        Parameter<bool> _regenerate = new("New seed", true);
 
         public WorldSimulatorForm()
         {
@@ -55,20 +56,22 @@ namespace WorldSimulationForm
             _paediaForm.RaceHoverBegin += RaceHoverBegin;
             _paediaForm.RegionHoverBegin += RegionHoverBegin;
 
+            _generator = new WorldGenerator();
+            _generator.LogUpdated += Generator_LogUpdated;
+            _generator.OnGenerationComplete += (sender, e) => { _renderMap(this, EventArgs.Empty); };
+
             ParametersPanel panel = new ParametersPanel();
             panel.Location = new Point(_margin);
             panel.Width = (int)(_panelWidth * ClientSize.Width);
             panel.AutoSize = true;
             panel.FlowDirection = FlowDirection.TopDown;
-            Controls.Add(panel);
-
-            _generator = new WorldGenerator(panel);
-            _generator.LogUpdated += Generator_LogUpdated;
+            panel.OnParameterUpdate += (sender, p) => { if (p.Equals(_regenerate)) return; else if (_regenerate) _generator.Regenerate(); else _generator.Generate(); };
+            Controls.Add(panel);            
 
             Button btnStart = panel.AddButton("Start");
             btnStart.Click += BtnStart_Click;
 
-            _gridLevel = new ParameterArray<int>("Grid level", _generator.GridLevels, Enumerable.Range(0, _generator.GridLevels + 1));
+            _gridLevel = new ParameterArray("Grid level", _generator.GridLevels, Enumerable.Range(0, _generator.GridLevels + 1).Cast<object>());
 
             ParameterList parameterList = new();
             parameterList.AddParameter(_gridLevel);
@@ -76,11 +79,12 @@ namespace WorldSimulationForm
             parameterList.AddParameter(_regionBorder);
             parameterList.AddParameter(_subregionBorder);
             parameterList.AddParameter(_texture);
-            parameterList.RegisterSupplier(panel);
             parameterList.OnSetUpdate += sender => _renderMap(sender, EventArgs.Empty);
-                        
-            panel.AddParameterControls(_generator.Parameters);
-            panel.OnParameterUpdate += (s, p) => { _generator.Generate(); _renderMap(this, EventArgs.Empty); };
+            parameterList.RegisterProvider(panel);
+
+            panel.RegisterParameter(_regenerate);
+
+            _generator.Parameters.RegisterProvider(panel);            
 
             Button btnLog = panel.AddButton("Log");
             btnLog.Click += BtnLog_Click;

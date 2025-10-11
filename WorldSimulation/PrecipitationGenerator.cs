@@ -24,19 +24,19 @@ namespace WorldSimulation
                 region.Humidity = Humidity.Seasonal;
 
             int count = dryPool.Count / 3;
-            if (generator.Parameters.Climate != "Balanced")
+            if (generator.Parameters.Climate != Climate.Balanced)
                 count = dryPool.Count / 9;
 
             int drySteps = 1;
-            if (generator.Parameters.Climate == "Dry")
+            if (generator.Parameters.Climate == Climate.Dry)
                 drySteps = 4;
-            else if (generator.Parameters.Climate == "Wet")
+            else if (generator.Parameters.Climate == Climate.Wet)
                 drySteps = 2;
 
             int wetSteps = 1;
-            if (generator.Parameters.Climate == "Wet")
+            if (generator.Parameters.Climate == Climate.Wet)
                 wetSteps = 4;
-            else if (generator.Parameters.Climate == "Dry")
+            else if (generator.Parameters.Climate == Climate.Dry)
                 wetSteps = 2;
 
             while (count > 0 && dryPool.Count > 0 && wetPool.Count > 0)

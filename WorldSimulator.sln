@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RandomExtension", "RandomEx
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "Utilities\Utilities.csproj", "{DB83F720-CBF9-4BFA-BCCD-3095313713A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parameters", "Parameters\Parameters.csproj", "{B01908B2-EB0C-4DCA-838C-4917225D75D5}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topology", "Topology\Topology.csproj", "{7C013094-5D8A-445E-A23B-F363A7E5CE53}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointLocation", "PointLocation\PointLocation.csproj", "{9E688A81-87FF-462F-8BBA-A3EF71473C98}"
@@ -43,10 +41,6 @@ Global
 		{DB83F720-CBF9-4BFA-BCCD-3095313713A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB83F720-CBF9-4BFA-BCCD-3095313713A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB83F720-CBF9-4BFA-BCCD-3095313713A7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B01908B2-EB0C-4DCA-838C-4917225D75D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B01908B2-EB0C-4DCA-838C-4917225D75D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B01908B2-EB0C-4DCA-838C-4917225D75D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B01908B2-EB0C-4DCA-838C-4917225D75D5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7C013094-5D8A-445E-A23B-F363A7E5CE53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7C013094-5D8A-445E-A23B-F363A7E5CE53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C013094-5D8A-445E-A23B-F363A7E5CE53}.Release|Any CPU.ActiveCfg = Release|Any CPU

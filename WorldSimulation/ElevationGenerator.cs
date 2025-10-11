@@ -66,7 +66,7 @@ namespace WorldSimulation
         private static void _createShallowSeas(WorldGenerator generator, Topology.HexGrid grid, RandomExt random)
         {
             List<HexCell> seaCells = grid.Cells.Where(generator.IsSea).ToList();
-            int shallowCount = seaCells.Count - (int)(generator.Parameters.DeepPct.Current.DoubleValue * seaCells.Count);
+            int shallowCount = seaCells.Count - (int)(generator.Parameters.DeepPct.Current * seaCells.Count);
             for (int i = 0; i < shallowCount; i++)
             {
                 HexCell cell = random.NextItemExtract(seaCells);
@@ -214,7 +214,7 @@ namespace WorldSimulation
         static void _riseLand(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             List<HexCell> landCells = grid.Cells.Where(generator.IsLand).ToList();
-            int count = (int)(landCells.Count * generator.Parameters.RisePct.Current.DoubleValue);
+            int count = (int)(landCells.Count * generator.Parameters.RisePct);
 
             while (count > 0 && landCells.Count > 0)
             {
@@ -227,7 +227,7 @@ namespace WorldSimulation
         static void _lowerLand(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             List<HexCell> landCells = grid.Cells.Where(c => generator.GetElevation(c) > Elevation.Lowland).ToList();
-            int count = (int)(landCells.Count * generator.Parameters.LowerPct.Current.DoubleValue);
+            int count = (int)(landCells.Count * generator.Parameters.LowerPct);
 
             while (count > 0 && landCells.Count > 0)
             {
@@ -240,7 +240,7 @@ namespace WorldSimulation
         static void _createRidges(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             List<Edge> edges = grid.Edges.Where(generator.PossibleRidge).ToList();
-            int count = (int)(edges.Count * generator.Parameters.RidgePct.Current.DoubleValue);
+            int count = (int)(edges.Count * generator.Parameters.RidgePct.Current);
             for (int i = 0; i < count; i++)
             {
                 Edge edge = random.NextItemExtract(edges);
@@ -251,7 +251,7 @@ namespace WorldSimulation
         static void _destroyRidges(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
             List<Edge> edges = grid.Edges.Where(generator.HasRidge).ToList();
-            int ridgeCount = (int)(edges.Count * generator.Parameters.RidgeClearPct.Current.DoubleValue);
+            int ridgeCount = (int)(edges.Count * generator.Parameters.RidgeClearPct.Current);
             for (int i = 0; i < ridgeCount; i++)
             {
                 Edge edge = random.NextItemExtract(edges);
@@ -261,7 +261,7 @@ namespace WorldSimulation
 
         static void _createIslands(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
-            int islandCount = (int)(grid.Cells.Count(generator.IsSea) * generator.Parameters.IslandPct.Current.DoubleValue);
+            int islandCount = (int)(grid.Cells.Count(generator.IsSea) * generator.Parameters.IslandPct.Current);
 
             Func<HexCell, bool> noLandAround = c => !c.Neighbors.Any(generator.IsLand);
             Func<HexCell, bool> isShallow = c => generator.GetElevation(c) == Elevation.ShallowOcean;

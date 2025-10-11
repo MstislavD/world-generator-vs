@@ -113,7 +113,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Parameters\Parameters.csproj" />
     <ProjectReference Include="..\PerlinNoise\PerlinNoise.csproj" />
     <ProjectReference Include="..\PointLocationForm\PointLocationForm.csproj" />
     <ProjectReference Include="..\RandomExtension\RandomExtension.csproj" />

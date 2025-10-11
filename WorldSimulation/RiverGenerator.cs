@@ -42,9 +42,9 @@ namespace WorldSimulation
             }
 
             List<Region> riverEnds = map.Regions.Where(r => !r.IsSea).Where(r => r.Drainage.IsSea).ToList();
-            int bigRiverCount = (int)(generator.Parameters.RiverPct.Current.DoubleValue * riverEnds.Count);
+            int bigRiverCount = (int)(generator.Parameters.RiverPct.Current * riverEnds.Count);
             List<Region> bigRiverEnds = riverEnds.OrderByDescending(r => r.Water).Take(bigRiverCount).ToList();
-            double minRiverWater = bigRiverEnds.Last().Water * generator.Parameters.TributaryThreshold;
+            double minRiverWater = bigRiverEnds.Last().Water * generator.Parameters.TributaryThreshold.Current;
 
             foreach (Region region in bigRiverEnds)
             {

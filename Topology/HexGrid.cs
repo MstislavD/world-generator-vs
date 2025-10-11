@@ -22,8 +22,6 @@ namespace Topology
 
         public HexGrid(int _columns, int _rows)
         {
-            System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
-
             _cells = new TCell[_columns, _rows];
 
             foreach (var c in _coords) _createCell(c.x, c.y);
@@ -31,8 +29,6 @@ namespace Topology
             foreach (var c in _coords) _createVertices(c.x, c.y);
             foreach (var c in _coords) _linkVertices(c.x, c.y);
             foreach (var c in _coords) _createEdges(c.x, c.y);
-
-            System.Diagnostics.Debug.WriteLine($"{this} generated in {sw.ElapsedMilliseconds} ms");
         }
 
         public int Columns => _cells.GetLength(0);

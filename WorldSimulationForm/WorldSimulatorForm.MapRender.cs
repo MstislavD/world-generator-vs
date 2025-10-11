@@ -58,7 +58,7 @@ namespace WorldSimulationForm
 
             if (_generator == null || !_generator.GenerationIsComplete) return;
 
-            int gridLevel = _gridLevel.Current;
+            int gridLevel = (int)_gridLevel.Current;
 
             HexGrid grid = _generator.GetGrid(gridLevel);
 

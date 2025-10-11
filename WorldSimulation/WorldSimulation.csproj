@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Parameters\Parameters.csproj" />
     <ProjectReference Include="..\PerlinNoise\PerlinNoise.csproj" />
     <ProjectReference Include="..\PointLocation\PointLocation.csproj" />
     <ProjectReference Include="..\RandomExtension\RandomExtension.csproj" />
