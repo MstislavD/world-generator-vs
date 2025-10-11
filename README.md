@@ -1,7 +1,13 @@
 # WorldGeneratorVS
 
 ### [Topology](Topology/)
-Классы, структуры данных и алгоритмы, применяемые для геометрических и топологических задач, в том числе HexGrid, граф, содержащий информацию о входящих в ее состав шестиугольных клеток и связях между ними.
+Classes, data structures, and algorithms used for geometrical and topological problems, including HexGrid, a graph of interconnected hexagonal cells. 
 
 ### [Utilities](Utilities/)
-Вспомогательные классы
+A collection of classes with utility functions.
+
+### [WorldSimulation](WorldSimulation/)
+Classes providing various algorithms for generating random maps and simulating history.
+
+### [WorldSimulationForm](WorldSimulationForm/)
+UI for handling map generation.
