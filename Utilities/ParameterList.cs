@@ -22,7 +22,7 @@
             }
         }
 
-        public void AddParameter(Parameter parameter)
+        public void Add(Parameter parameter)
         {
             _parameters.Add(parameter);
             parameter.OnUpdate += sender => OnSetUpdate?.Invoke(sender);
@@ -32,7 +32,7 @@
             }
         }
 
-
+        public bool Contains(Parameter parameter) => _parameters.Contains(parameter);
 
         public event ParameterUpdateHandler OnSetUpdate = delegate { };
     }

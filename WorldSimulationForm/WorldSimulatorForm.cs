@@ -4,6 +4,8 @@ using System.Numerics;
 using WorldSimulation;
 using WorldSimulation.HistorySimulation;
 using Utilities;
+using System.Reflection.Metadata.Ecma335;
+using System.CodeDom;
 
 namespace WorldSimulationForm
 {
@@ -44,12 +46,16 @@ namespace WorldSimulationForm
         ParameterArray _texture = new("Texture", "Texture", ["Color", "Texture", "Texture Imp"]);
         Parameter<bool> _regenerate = new("New seed", true);
 
+        ParameterList _mapSettings = new ParameterList();
+        ParameterList _generationSettings = new ParameterList();
+
         public WorldSimulatorForm()
         {
             DoubleBuffered = true;
             Visible = true;
             WindowState = FormWindowState.Maximized;
             KeyPreview = true;
+            Text = "World Simulator";
 
             _logForm = new LogForm();
             _paediaForm = new PaediaForm();
@@ -65,7 +71,7 @@ namespace WorldSimulationForm
             panel.Width = (int)(_panelWidth * ClientSize.Width);
             panel.AutoSize = true;
             panel.FlowDirection = FlowDirection.TopDown;
-            panel.OnParameterUpdate += (sender, p) => { if (p.Equals(_regenerate)) return; else if (_regenerate) _generator.Regenerate(); else _generator.Generate(); };
+            panel.OnParameterUpdate += Panel_OnParameterUpdate;
             Controls.Add(panel);            
 
             Button btnStart = panel.AddButton("Start");
@@ -73,16 +79,15 @@ namespace WorldSimulationForm
 
             _gridLevel = new ParameterArray("Grid level", _generator.GridLevels, Enumerable.Range(0, _generator.GridLevels + 1).Cast<object>());
 
-            ParameterList parameterList = new();
-            parameterList.AddParameter(_gridLevel);
-            parameterList.AddParameter(_mapMode);
-            parameterList.AddParameter(_regionBorder);
-            parameterList.AddParameter(_subregionBorder);
-            parameterList.AddParameter(_texture);
-            parameterList.OnSetUpdate += sender => _renderMap(sender, EventArgs.Empty);
-            parameterList.RegisterProvider(panel);
+            //_mapSettings.Add(_gridLevel);
+            _mapSettings.Add(_mapMode);
+            //_mapSettings.Add(_regionBorder);
+            //_mapSettings.Add(_subregionBorder);
+            //_mapSettings.Add(_texture);
+            _mapSettings.RegisterProvider(panel);
 
-            panel.RegisterParameter(_regenerate);
+            _generationSettings.Add(_regenerate);
+            _generationSettings.RegisterProvider(panel);
 
             _generator.Parameters.RegisterProvider(panel);            
 
@@ -106,6 +111,18 @@ namespace WorldSimulationForm
             MouseMove += WorldSimulatorForm_MouseMove;
             MouseClick += WorldSimulatorForm_MouseClick;          
             KeyDown += WorldSimulatorForm_KeyDown;
+        }
+
+        private void Panel_OnParameterUpdate(object? sender, Parameter parameter)
+        {
+            if (_generationSettings.Contains(parameter))
+                return;
+            else if (_mapSettings.Contains(parameter))
+                _renderMap(sender, EventArgs.Empty);
+            else if (_regenerate) 
+                _generator.Regenerate();
+            else 
+                _generator.Generate();
         }
 
         private void RegionHoverBegin(object? sender, WorldSimulation.Region? region)

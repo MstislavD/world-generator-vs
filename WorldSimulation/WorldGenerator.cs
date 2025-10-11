@@ -28,11 +28,6 @@ namespace WorldSimulation
 
         public WorldGenerator() { }
 
-        public void AddParameterProvider(IParameterProvider provider)
-        {
-            _parameters.RegisterProvider(provider);
-        }
-
         public void Regenerate()
         {
             _parameters.RegenerateSeeds();
@@ -60,14 +55,15 @@ namespace WorldSimulation
             _grids.Add(grid);
             _addData(grid);
 
-            if (_parameters.MapScript == MapScript.Random)
-                ElevationGenerator.GenerateRandom(this, grid, random);
-            else if (_parameters.MapScript == MapScript.One_continent)
-                ElevationGenerator.GenerateScriptPangea(this, grid, random);
-            else if (_parameters.MapScript == MapScript.Two_continents)
-                ElevationGenerator.GenerateScriptTwoContinents(this, grid, random);
-            else if (_parameters.MapScript == MapScript.Three_continents)
-                ElevationGenerator.GenerateScriptThreeContinents(this, grid, random);
+            Action<WorldGenerator, HexGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
+            {
+                MapScript.Random => ElevationGenerator.GenerateRandom,
+                MapScript.One_continent => ElevationGenerator.GenerateScriptPangea,
+                MapScript.Two_continents => ElevationGenerator.GenerateScriptTwoContinents,
+                MapScript.Three_continents => ElevationGenerator.GenerateScriptThreeContinents,
+                _ => throw new Exception()
+            };
+            generateContinents(this, grid, random);
 
             for (int i = 0; i < GridLevels; i++)
             {
@@ -122,9 +118,9 @@ namespace WorldSimulation
                 }
             }
 
-            System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+            Stopwatch sw = Stopwatch.StartNew();
             SubregionGraph.GenerateLocator(heightRandom);
-            Console.WriteLine($"Subregion point locator structure calculated in :{sw.ElapsedMilliseconds} ms");
+            Debug.WriteLine($"Subregion point locator structure calculated in :{sw.ElapsedMilliseconds} ms");
 
 
             HeightGenerator.Generate(this);
@@ -186,27 +182,16 @@ namespace WorldSimulation
         public Language NamingLanguage { get; private set; }
         public HistorySimulation.HistorySimulator History { get; private set; }
 
-        public double SeaPct
+        public double SeaPct => (LandSize)_parameters.LandSize switch
         {
-            get
-            {
-                LandSize landsize = (LandSize)_parameters.LandSize;
-                if (landsize == LandSize.Tiny)
-                    return 0.9;
-                else if (landsize == LandSize.Small)
-                    return 0.8;
-                else if (landsize == LandSize.Medium)
-                    return 0.7;
-                else if (landsize == LandSize.Large)
-                    return 0.6;
-                else if (landsize == LandSize.Huge)
-                    return 0.5;
-                else if (landsize == LandSize.Colossal)
-                    return 0.4;
-                else
-                    return 0.1;
-            }
-        }
+            LandSize.Tiny => 0.9,
+            LandSize.Small => 0.8,
+            LandSize.Medium => 0.7,
+            LandSize.Large => 0.6,
+            LandSize.Huge => 0.5,
+            LandSize.Colossal => 0.4,
+            _ => 0.1
+        };
 
         public Vector2 Center(Region region)
         {

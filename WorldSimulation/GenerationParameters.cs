@@ -60,10 +60,10 @@ namespace WorldSimulation
 
             seedParameters.AddRange([MainSeed, SubregionSeed, DeformationSeed, HeightSeed, PrecipitationSeed]);
 
-            AddParameter(MapScript);
-            AddParameter(LandSize);
-            AddParameter(Hemispheres);
-            AddParameter(Climate);
+            Add(MapScript);
+            Add(LandSize);
+            Add(Hemispheres);
+            Add(Climate);
         }
 
         public void RegenerateSeeds()
