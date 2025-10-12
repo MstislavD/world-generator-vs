@@ -21,7 +21,7 @@ namespace WorldSimulation
             List<HexCell> shoreCells = grid.Cells.Where(generator.IsLand).Where(generator.NearSea).ToList();
             List<Edge> destroyedEdges = new List<Edge>();
 
-            WeightedBag<HexCell> bag = new WeightedBag<HexCell>();
+            WeightedTree<HexCell> bag = new WeightedTree<HexCell>();
 
             foreach (HexCell cell in shoreCells)
             {

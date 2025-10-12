@@ -21,7 +21,7 @@ namespace WorldSimulation
         }
     }
 
-    public class WeightedBag<T>
+    public class WeightedTree<T>
     {
         Dictionary<T, Node<T>> _nodeByItem = new Dictionary<T, Node<T>>();
         Node<T> _root;
