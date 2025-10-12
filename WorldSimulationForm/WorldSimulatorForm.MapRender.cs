@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Linq;
-using RandomExtension;
 using Topology;
 using Utilities;
 using WorldSimulation;
@@ -382,8 +381,8 @@ namespace WorldSimulationForm
             {
                 if (!brushByRace.ContainsKey(race))
                 {
-                    int[] vector = new RandomExt(race.Seed).NextVector(3, 256);
-                    brushByRace[race] = new SolidBrush(Color.FromArgb(vector[0], vector[1], vector[2]));
+                    Color color = Color.FromArgb(new RandomExt(race.Seed).Next());
+                    brushByRace[race] = new SolidBrush(Color.FromArgb(255, color));
                 }
                 return brushByRace[race];
             };

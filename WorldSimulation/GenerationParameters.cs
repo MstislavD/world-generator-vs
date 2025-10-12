@@ -14,7 +14,7 @@ namespace WorldSimulation
     public enum Climate { Balanced, Dry, Wet }
     public class GenerationParameters : ParameterList
     {
-        RandomExtension.RandomExt random = new RandomExtension.RandomExt();
+        RandomExt random = new RandomExt();
 
         List<ParameterSeed> seedParameters = new List<ParameterSeed>();
 
@@ -74,7 +74,7 @@ namespace WorldSimulation
 
         public void RegenerateSeeds(int seed)
         {
-            random = new RandomExtension.RandomExt(seed);
+            random = new RandomExt(seed);
             RegenerateSeeds();
         }
     }

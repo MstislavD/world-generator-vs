@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Topology;
 using PointLocation;
-using RandomExtension;
+using Utilities;
 
 namespace WorldSimulation
 {
@@ -66,7 +66,7 @@ namespace WorldSimulation
         public IEnumerable<Subregion> CellSubregions => _subregions.Where(sr => sr.Type == SubregionType.Cell);
         public IEnumerable<Subregion> EdgeSubregions => _subregions.Where(sr => sr.Type == SubregionType.Edge);
         public Subregion GetSubregion(HexCell cell) => _subregionByCell[cell];
-        public PointLocator<Subregion> Locator { get; private set; }
+        public PointLocator<Subregion>? Locator { get; private set; }
         public IEnumerable<Subregion> GetSubregions(HexCell region) => _subregionsByCellRegion[region];
         public IEnumerable<Subregion> GetSubregions(Edge edge) => _subregionsByEdgeRegion[edge];
 

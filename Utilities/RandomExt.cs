@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RandomExtension
+namespace Utilities
 {
     public class RandomExt : Random
     {
+
         Random _random;
         public RandomExt()
         {
@@ -55,7 +56,7 @@ namespace RandomExtension
                 yield return NextItemExtract(list);
         }
 
- 
+
 
         public override int Next() => _random.Next();
         public override int Next(int maxValue) => _random.Next(maxValue);
@@ -63,4 +64,5 @@ namespace RandomExtension
         public override double NextDouble() => _random.NextDouble();
         public override void NextBytes(byte[] buffer) => _random.NextBytes(buffer);
     }
+
 }

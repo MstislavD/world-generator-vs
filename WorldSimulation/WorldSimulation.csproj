@@ -9,7 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="..\PerlinNoise\PerlinNoise.csproj" />
     <ProjectReference Include="..\PointLocation\PointLocation.csproj" />
-    <ProjectReference Include="..\RandomExtension\RandomExtension.csproj" />
     <ProjectReference Include="..\Topology\Topology.csproj" />
     <ProjectReference Include="..\Utilities\Utilities.csproj" />
   </ItemGroup>

@@ -82,8 +82,8 @@ namespace WorldSimulationForm
             //_mapSettings.Add(_gridLevel);
             _mapSettings.Add(_mapMode);
             //_mapSettings.Add(_regionBorder);
-            //_mapSettings.Add(_subregionBorder);
-            //_mapSettings.Add(_texture);
+            _mapSettings.Add(_subregionBorder);
+            _mapSettings.Add(_texture);
             _mapSettings.RegisterProvider(panel);
 
             _generationSettings.Add(_regenerate);

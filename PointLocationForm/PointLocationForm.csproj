@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PointLocation\PointLocation.csproj" />
-    <ProjectReference Include="..\RandomExtension\RandomExtension.csproj" />
     <ProjectReference Include="..\Topology\Topology.csproj" />
     <ProjectReference Include="..\WorldSimulation\WorldSimulation.csproj" />
   </ItemGroup>

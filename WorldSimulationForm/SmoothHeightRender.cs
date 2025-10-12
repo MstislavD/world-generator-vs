@@ -27,7 +27,7 @@ namespace WorldSimulationForm
             PointF[] septagon = _polygonPoints(7, radius, origin);
             Color[] septagonColors = new Color[] { Color.DarkViolet, Color.Blue, Color.Aqua, Color.LimeGreen, Color.Yellow, Color.Orange, Color.Red };
 
-            RandomExtension.RandomExt random = new RandomExtension.RandomExt();
+            Utilities.RandomExt random = new Utilities.RandomExt();
             int sides = random.Next(3, 9);
             PointF[] polygonPoints = _polygonPoints(sides, radius, origin);
             Color[] colors = Enumerable.Range(0, sides).Select(i => random.NextVector(3, 256)).Select(v => Color.FromArgb(v[0], v[1], v[2])).ToArray();

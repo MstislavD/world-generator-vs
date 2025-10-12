@@ -8,23 +8,8 @@ namespace WorldSimulation
     {
         List<SubregionEdge> _edges = new List<SubregionEdge>();
         Dictionary<SubregionEdge, Subregion> _neighborByEdge = new Dictionary<SubregionEdge, Subregion>();
-        SubregionEdge _firstEdge, _lastEdge;
 
-        public void AddEdge(SubregionEdge sEdge)
-        {
-            if (_firstEdge == null)
-            {
-                _firstEdge = sEdge;
-                _lastEdge = sEdge;
-            }
-
-            sEdge.PrevEdge = _lastEdge;
-            sEdge.NextEdge = _firstEdge;
-            _firstEdge.PrevEdge = sEdge;
-            _lastEdge.NextEdge = sEdge;
-            _lastEdge = sEdge;
-            _edges.Add(sEdge);
-        }
+        public void AddEdge(SubregionEdge sEdge) => _edges.Add(sEdge);
 
         public SubregionType Type { get; set; }
         public Edge Edge { get; set; }
@@ -36,7 +21,6 @@ namespace WorldSimulation
         public void AddNeighbor(Subregion neighbor, SubregionEdge sEdge) => _neighborByEdge[sEdge] = neighbor;
         public IEnumerable<Vector2> Vertices => _edges.SelectMany(e => e.Vertices).Distinct();
         public IEnumerable<SubregionEdge> Edges => _edges;
-        public IEnumerable<Edge> BaseEdges => _edges.SelectMany(e => e.Edges);
         public Subregion GetNeighbor(SubregionEdge edge) => _neighborByEdge[edge];
         public bool HasNeighbor(SubregionEdge edge) => GetNeighbor(edge) != null;
         public SubregionEdge GetEdge(Subregion neighbor) => _edges.First(e => GetNeighbor(e) == neighbor);
