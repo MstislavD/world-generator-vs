@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Topology;
-using PointLocation;
 using Utilities;
+using PointLocation;
 
 namespace WorldSimulation
 {

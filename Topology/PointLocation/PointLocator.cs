@@ -6,10 +6,20 @@ using System.Linq;
 
 namespace PointLocation
 {
+    public interface IRegionPartition<TRegion>
+    {
+        IEnumerable<TRegion> Regions { get; }
+        IEnumerable<LineSegment> Edges(TRegion region);
+        double Top { get; }
+        double Bottom { get; }
+        double Left { get; }
+        double Right { get; }
+        double Epsilon { get; }
+    }
 
     public class PointLocator<TRegion>
     {
-        Node _root;
+        PLNode _root;
         Dictionary<LineSegment, TRegion> _regionByEdge;
         HashSet<Trapezoid> _trapezoids;
 
@@ -19,7 +29,7 @@ namespace PointLocation
         {
             _regionByEdge = new Dictionary<LineSegment, TRegion>();
             _trapezoids = new HashSet<Trapezoid>();
-            _root = new Node();
+            _root = new PLNode();
             LastTrapezoid = null;
 
             List<LineSegment> edges = _findAllEdges(partition);
@@ -84,7 +94,7 @@ namespace PointLocation
 
         Trapezoid _getTrapezoid(double x, double y)
         {
-            Node node = _root;
+            PLNode node = _root;
             Vector2 vertex = new Vector2(x, y);
 
             while (node.Trapezoid == null)
@@ -118,7 +128,7 @@ namespace PointLocation
 
         public TRegion GetRegion(double x, double y)
         {
-            Node node = _root;
+            PLNode node = _root;
             Vector2 vertex = new Vector2(x, y);
 
             while (node.Trapezoid == null)
@@ -164,7 +174,7 @@ namespace PointLocation
         {
             List<Trapezoid> trapezoids = new List<Trapezoid>();
 
-            Node node = _root;
+            PLNode node = _root;
 
             Vector2 leftVertex = edge.Left;
             Vector2 rightVertex = edge.Right;
@@ -258,14 +268,14 @@ namespace PointLocation
             Trapezoid trC = new Trapezoid();
             Trapezoid trD = new Trapezoid();       
 
-            Node nodeA = new Node();
-            Node nodeB = new Node() { Trapezoid = trB };
-            Node nodeC = new Node() { Trapezoid = trC };
-            Node nodeD = new Node();
-            Node nodeS = new Node() { Edge = edge, Left = nodeB, Right = nodeC };
-            Node nodeQ = new Node() { Vertex = rightVertex, Left = nodeS, Right = nodeD };
+            PLNode nodeA = new PLNode();
+            PLNode nodeB = new PLNode() { Trapezoid = trB };
+            PLNode nodeC = new PLNode() { Trapezoid = trC };
+            PLNode nodeD = new PLNode();
+            PLNode nodeS = new PLNode() { Edge = edge, Left = nodeB, Right = nodeC };
+            PLNode nodeQ = new PLNode() { Vertex = rightVertex, Left = nodeS, Right = nodeD };
 
-            Node node = tr0.Node;
+            PLNode node = tr0.Node;
             bool nodeContraction = false;
 
             node.Trapezoid = null;
