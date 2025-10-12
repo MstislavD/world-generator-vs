@@ -102,7 +102,7 @@ namespace WorldSimulationForm
             _btnNextEvent.Click += BtnNextEvent_Click;
 
             Button btnLocatorForm = panel.AddButton("Locator Test");
-            btnLocatorForm.Click += (s, e) => new PointLocationForm.Form1(_generator.SubregionGraph).Visible = true;
+            btnLocatorForm.Click += (s, e) => new PointLocationForm.PointLocationForm(_generator.SubregionGraph).Visible = true;
 
             _lblInfo = panel.AddLabel("Info");
             _lblInfo.AutoSize = true;

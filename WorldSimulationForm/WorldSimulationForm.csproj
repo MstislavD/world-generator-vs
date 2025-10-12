@@ -114,7 +114,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PerlinNoise\PerlinNoise.csproj" />
-    <ProjectReference Include="..\PointLocationForm\PointLocationForm.csproj" />
     <ProjectReference Include="..\Topology\Topology.csproj" />
     <ProjectReference Include="..\Utilities\Utilities.csproj" />
     <ProjectReference Include="..\WorldSimulation\WorldSimulation.csproj" />

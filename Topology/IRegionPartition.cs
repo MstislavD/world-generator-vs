@@ -6,7 +6,7 @@ namespace PointLocation
     public interface IRegionPartition<TRegion>
     {
         IEnumerable<TRegion> Regions { get; }
-        IEnumerable<Edge> Edges(TRegion region);
+        IEnumerable<LineSegment> Edges(TRegion region);
         double Top { get; }
         double Bottom { get; }
         double Left { get; }

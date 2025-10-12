@@ -10,23 +10,23 @@ namespace PointLocation
     public class PointLocator<TRegion>
     {
         Node _root;
-        Dictionary<Edge, TRegion> _regionByEdge;
+        Dictionary<LineSegment, TRegion> _regionByEdge;
         HashSet<Trapezoid> _trapezoids;
 
         public PointLocator(IRegionPartition<TRegion> partition) : this(partition, new RandomExt()) { }
 
         public PointLocator(IRegionPartition<TRegion> partition, RandomExt random)
         {
-            _regionByEdge = new Dictionary<Edge, TRegion>();
+            _regionByEdge = new Dictionary<LineSegment, TRegion>();
             _trapezoids = new HashSet<Trapezoid>();
             _root = new Node();
             LastTrapezoid = null;
 
-            List<Edge> edges = _findAllEdges(partition);
+            List<LineSegment> edges = _findAllEdges(partition);
 
             while (edges.Count > 0)
             {
-                Edge edge = random.NextItemExtract(edges);
+                LineSegment edge = random.NextItemExtract(edges);
                 if (edge.Vertex1.X != edge.Vertex2.X)
                 {
                     _insertEdge(edge, partition.Epsilon);
@@ -36,11 +36,11 @@ namespace PointLocation
 
         public PointLocator(IRegionPartition<TRegion> partition, RandomExt random, int count)
         {
-            List<Edge> edges = _findAllEdges(partition);
+            List<LineSegment> edges = _findAllEdges(partition);
 
             for (int i = 0; i < count && edges.Count > 0; i++)
             {
-                Edge edge = random.NextItemExtract(edges);
+                LineSegment edge = random.NextItemExtract(edges);
                 if (edge.Vertex1.X != edge.Vertex2.X)
                 {
                     bool result = _insertEdge(edge, partition.Epsilon);
@@ -55,19 +55,19 @@ namespace PointLocation
             }
         }
 
-        private List<Edge> _findAllEdges(IRegionPartition<TRegion> partition)
+        private List<LineSegment> _findAllEdges(IRegionPartition<TRegion> partition)
         {
             _root.Trapezoid = new Trapezoid();
             _root.Trapezoid.Left = new Vector2(partition.Left, partition.Top);
             _root.Trapezoid.Right = new Vector2(partition.Right, partition.Bottom);
-            _root.Trapezoid.Bottom = new Edge() { Vertex1 = new Vector2(partition.Left, partition.Bottom), Vertex2 = _root.Trapezoid.Right };
-            _root.Trapezoid.Top = new Edge() { Vertex1 = _root.Trapezoid.Left, Vertex2 = new Vector2(partition.Right, partition.Top) };
+            _root.Trapezoid.Bottom = new LineSegment() { Vertex1 = new Vector2(partition.Left, partition.Bottom), Vertex2 = _root.Trapezoid.Right };
+            _root.Trapezoid.Top = new LineSegment() { Vertex1 = _root.Trapezoid.Left, Vertex2 = new Vector2(partition.Right, partition.Top) };
             _root.Trapezoid.Node = _root;
 
-            List<Edge> edges = new List<Edge>();
+            List<LineSegment> edges = new List<LineSegment>();
             foreach (TRegion region in partition.Regions)
             {
-                foreach (Edge edge in partition.Edges(region))
+                foreach (LineSegment edge in partition.Edges(region))
                 {
                     edges.Add(edge);
                     if (edge.Right == edge.Vertex1)
@@ -160,7 +160,7 @@ namespace PointLocation
         public Trapezoid? LastTrapezoid { get; private set; }
       
 
-        bool _insertEdge(Edge edge, double epsilon)
+        bool _insertEdge(LineSegment edge, double epsilon)
         {
             List<Trapezoid> trapezoids = new List<Trapezoid>();
 
@@ -248,7 +248,7 @@ namespace PointLocation
             return trapezoids.Count > 0;
         }
 
-        private List<Trapezoid> _partitionTrapezoid(Trapezoid tr0, Edge edge, List<Trapezoid> previousTrapezoids = null)
+        private List<Trapezoid> _partitionTrapezoid(Trapezoid tr0, LineSegment edge, List<Trapezoid> previousTrapezoids = null)
         {
             Vector2 leftVertex = edge.Vertex1.X < edge.Vertex2.X ? edge.Vertex1 : edge.Vertex2;
             Vector2 rightVertex = edge.Vertex1.X < edge.Vertex2.X ? edge.Vertex2 : edge.Vertex1;
@@ -457,7 +457,7 @@ namespace PointLocation
             return new List<Trapezoid>() { trB, trC };
         }
 
-        private void _partitionTrapezoids(List<Trapezoid> trapezoids, Edge edge)
+        private void _partitionTrapezoids(List<Trapezoid> trapezoids, LineSegment edge)
         {
             List<Trapezoid> lastPartition = _partitionTrapezoid(trapezoids[0], edge);
 
@@ -470,12 +470,12 @@ namespace PointLocation
             }
         }
 
-        bool _vertexIsAbove(Vector2 v, Edge e, double epsilon)
+        bool _vertexIsAbove(Vector2 v, LineSegment s, double epsilon)
         {
-            double x1 = v.X - e.Left.X;
-            double y1 = v.Y - e.Left.Y;
-            double x2 = e.Right.X - e.Left.X;
-            double y2 = e.Right.Y - e.Left.Y;
+            double x1 = v.X - s.Left.X;
+            double y1 = v.Y - s.Left.Y;
+            double x2 = s.Right.X - s.Left.X;
+            double y2 = s.Right.Y - s.Left.Y;
 
             return x1 * y2 - y1 * x2 < 0;
         }
@@ -504,7 +504,7 @@ namespace PointLocation
             }
         }
 
-        bool _equals(Edge e1, Edge e2)
+        bool _equals(LineSegment e1, LineSegment e2)
         {
             return e1.Right.X == e2.Right.X && e1.Right.Y == e2.Right.Y && e1.Left.X == e2.Left.X && e1.Left.Y == e2.Left.Y;
         } 

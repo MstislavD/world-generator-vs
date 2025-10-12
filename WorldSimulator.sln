@@ -11,10 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "Utilities\Util
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topology", "Topology\Topology.csproj", "{7C013094-5D8A-445E-A23B-F363A7E5CE53}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointLocation", "PointLocation\PointLocation.csproj", "{9E688A81-87FF-462F-8BBA-A3EF71473C98}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointLocationForm", "PointLocationForm\PointLocationForm.csproj", "{3E4169A0-50A2-4E71-8149-62FCB782375C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerlinNoise", "PerlinNoise\PerlinNoise.csproj", "{4DA84842-E80E-031D-A9B4-4A2BFFB78B3D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
@@ -44,14 +40,6 @@ Global
 		{7C013094-5D8A-445E-A23B-F363A7E5CE53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C013094-5D8A-445E-A23B-F363A7E5CE53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C013094-5D8A-445E-A23B-F363A7E5CE53}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9E688A81-87FF-462F-8BBA-A3EF71473C98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9E688A81-87FF-462F-8BBA-A3EF71473C98}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9E688A81-87FF-462F-8BBA-A3EF71473C98}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9E688A81-87FF-462F-8BBA-A3EF71473C98}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3E4169A0-50A2-4E71-8149-62FCB782375C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3E4169A0-50A2-4E71-8149-62FCB782375C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3E4169A0-50A2-4E71-8149-62FCB782375C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3E4169A0-50A2-4E71-8149-62FCB782375C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4DA84842-E80E-031D-A9B4-4A2BFFB78B3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4DA84842-E80E-031D-A9B4-4A2BFFB78B3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DA84842-E80E-031D-A9B4-4A2BFFB78B3D}.Release|Any CPU.ActiveCfg = Release|Any CPU

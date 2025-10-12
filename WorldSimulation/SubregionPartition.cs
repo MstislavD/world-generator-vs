@@ -33,7 +33,7 @@ namespace WorldSimulation
 
         public double Epsilon => 0;
 
-        public IEnumerable<Edge> Edges(Subregion region)
+        public IEnumerable<LineSegment> Edges(Subregion region)
         {
             List<Vector2> vertices = region.Vertices.ToList();
             for (int i = 1; i < vertices.Count; i++)

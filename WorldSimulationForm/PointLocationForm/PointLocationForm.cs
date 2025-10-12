@@ -14,7 +14,8 @@ using WorldSimulation;
 
 namespace PointLocationForm
 {
-    public partial class Form1 : Form
+    [DesignerCategory("")]
+    public partial class PointLocationForm : Form
     {
         int _imageLeft;
         int _seed;
@@ -36,16 +37,14 @@ namespace PointLocationForm
 
         Point _mouse;
 
-        public Form1(SubregionGraph graph) : this()
+        public PointLocationForm(SubregionGraph graph) : this()
         {
             _graph = graph;
             _seed = new Random().Next();
         }
 
-        public Form1()
+        public PointLocationForm()
         {
-            InitializeComponent();
-
             Button btnStart = new Button();
             btnStart.Text = "Start";
             btnStart.Location = new Point(5, 5);

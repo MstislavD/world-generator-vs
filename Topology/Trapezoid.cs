@@ -9,8 +9,8 @@ namespace PointLocation
 {
     public class Trapezoid
     {
-        public Edge Top { get; set; }
-        public Edge Bottom { get; set; }
+        public LineSegment Top { get; set; }
+        public LineSegment Bottom { get; set; }
         public Vector2 Left { get; set; }
         public Vector2 Right { get; set; }
         public Trapezoid UpperLeft { get; set; }

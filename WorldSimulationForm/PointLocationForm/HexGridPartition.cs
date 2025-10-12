@@ -31,9 +31,9 @@ namespace PointLocationForm
 
         IEnumerable<HexCell> IRegionPartition<HexCell>.Regions => _grid.Cells;
 
-        public IEnumerable<Edge> Edges(HexCell region) => region.Edges.Select(_rounded);
+        public IEnumerable<LineSegment> Edges(HexCell region) => region.Edges.Select(_rounded);
 
-        Edge _rounded(Edge edge)
+        LineSegment _rounded(LineSegment edge)
         {
             int precision = 1;
             double x1 = Math.Round(edge.Vertex1.X, precision);

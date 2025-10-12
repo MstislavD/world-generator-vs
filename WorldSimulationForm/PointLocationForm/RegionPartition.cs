@@ -34,12 +34,7 @@ namespace PointLocationForm
 
         public double Epsilon => 0;
 
-        //public IEnumerable<Edge> Edges(Region region)
-        //{
-        //    return region.Edges;
-        //}
-
-        public IEnumerable<Edge> Edges(Region region)
+        public IEnumerable<LineSegment> Edges(Region region)
         {
             List<Vector2> vertices = region.Vertices.ToList();
             for (int i = 1; i < vertices.Count; i++)
