@@ -9,12 +9,13 @@ namespace WorldSimulation
     class Node<T>
     {
         public T Item { get; set; }
-        public Node<T> Left { get; set; }
-        public Node<T> Right { get; set; }
-        public Node<T> Parent { get; set; }
+        public Node<T>? Left { get; set; }
+        public Node<T>? Right { get; set; }
+        public Node<T>? Parent { get; set; }
         public double TotalWeight { get; set; }
         public double ItemWeight { get; set; }
         public int SubtreeCount { get; set; }
+        public Node(T item) { Item = item; }
         public override string ToString()
         {
             return $"Node: {Item}, Weight: {ItemWeight}, Total weight: {TotalWeight}";
@@ -22,9 +23,10 @@ namespace WorldSimulation
     }
 
     public class WeightedTree<T>
+        where T : notnull
     {
         Dictionary<T, Node<T>> _nodeByItem = new Dictionary<T, Node<T>>();
-        Node<T> _root;
+        Node<T>? _root;
 
         public void Add(T item, double weight)
         {
@@ -32,14 +34,11 @@ namespace WorldSimulation
             {
                 Node<T> node = _add(_root, null, item, weight);
                 _nodeByItem[item] = node;
-                if (_root == null)
-                {
-                    _root = node;
-                }
+                _root = _root ?? node;
             }
             else
             {
-                Node<T> node = _nodeByItem[item];
+                Node<T>? node = _nodeByItem[item];
                 double weightDelta = weight - node.ItemWeight;
                 node.ItemWeight = weight;
                 while (node != null)
@@ -57,6 +56,9 @@ namespace WorldSimulation
 
         public T Extract(double randomDouble)
         {
+            if (_root == null)
+                throw new Exception();
+
             if (randomDouble<0 || randomDouble > 1)
             {
                 throw new Exception("Random double parameter must be in [0,1] interval.");
@@ -85,13 +87,12 @@ namespace WorldSimulation
         public bool Contains(T item) => _nodeByItem.ContainsKey(item);
         public double GetWeight(T item) => _nodeByItem[item].ItemWeight;
 
-        Node<T> _add(Node<T> node, Node<T> parentNode, T item, double weight)
+        Node<T> _add(Node<T>? node, Node<T>? parentNode, T item, double weight)
         {
             Node<T> newNode;
             if (node == null)
             {
-                newNode = new Node<T>();
-                newNode.Item = item;
+                newNode = new Node<T>(item);
                 newNode.ItemWeight = weight;
                 newNode.TotalWeight = weight;
                 newNode.Parent = parentNode;
