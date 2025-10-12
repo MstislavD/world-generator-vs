@@ -17,6 +17,11 @@ namespace PointLocation
 
         public PointLocator(IRegionPartition<TRegion> partition, RandomExt random)
         {
+            _regionByEdge = new Dictionary<Edge, TRegion>();
+            _trapezoids = new HashSet<Trapezoid>();
+            _root = new Node();
+            LastTrapezoid = null;
+
             List<Edge> edges = _findAllEdges(partition);
 
             while (edges.Count > 0)
@@ -52,18 +57,12 @@ namespace PointLocation
 
         private List<Edge> _findAllEdges(IRegionPartition<TRegion> partition)
         {
-            _regionByEdge = new Dictionary<Edge, TRegion>();
-            _trapezoids = new HashSet<Trapezoid>();
-
-            _root = new Node();
-
             _root.Trapezoid = new Trapezoid();
             _root.Trapezoid.Left = new Vector2(partition.Left, partition.Top);
             _root.Trapezoid.Right = new Vector2(partition.Right, partition.Bottom);
             _root.Trapezoid.Bottom = new Edge() { Vertex1 = new Vector2(partition.Left, partition.Bottom), Vertex2 = _root.Trapezoid.Right };
             _root.Trapezoid.Top = new Edge() { Vertex1 = _root.Trapezoid.Left, Vertex2 = new Vector2(partition.Right, partition.Top) };
             _root.Trapezoid.Node = _root;
-
 
             List<Edge> edges = new List<Edge>();
             foreach (TRegion region in partition.Regions)
@@ -155,10 +154,10 @@ namespace PointLocation
                 return _regionByEdge[node.Trapezoid.Top];
             }
 
-            return default(TRegion);
+            return default;
         }
 
-        public Trapezoid LastTrapezoid { get; private set; }
+        public Trapezoid? LastTrapezoid { get; private set; }
       
 
         bool _insertEdge(Edge edge, double epsilon)
@@ -470,8 +469,6 @@ namespace PointLocation
                 }
             }
         }
-
-
 
         bool _vertexIsAbove(Vector2 v, Edge e, double epsilon)
         {
