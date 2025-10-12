@@ -17,9 +17,9 @@ namespace WorldSimulation
             foreach (Region region in generator.RegionMap.Regions)
             {
                 double distanceFromPole = 1 - Math.Abs(region.Center.Y - equator) / equator;
-                if (generator.Parameters.Hemispheres.Equals(Hemispheres.North_hemisphere))
+                if (generator.Parameters.Hemispheres == Hemispheres.North_hemisphere)
                     distanceFromPole = region.Center.Y / height;
-                else if (generator.Parameters.Equals(Hemispheres.South_hemisphere))
+                else if (generator.Parameters.Hemispheres == Hemispheres.South_hemisphere)
                     distanceFromPole = 1 - region.Center.Y / height;
                 
                 region.Temperature = distanceFromPole;
