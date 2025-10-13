@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using Topology;
@@ -21,7 +22,7 @@ namespace Topology
     /// </summary>
     /// <typeparam name="TCell"></typeparam>
     /// <typeparam name="TEdge"></typeparam>
-    public class HexCell<TCell, TEdge> : INeighbors<TCell>
+    public class HexCell<TCell, TEdge> : INeighbors<TCell>, IPolygon
     {
         Vector2[] _vertices = new Vector2[6];
         // To decrease memory consumption it is possible to remove neighbor list and infere neighbours via edges.
@@ -38,6 +39,7 @@ namespace Topology
         public IEnumerable<Vector2> Vertices => _vertices;
         public IEnumerable<TCell> Neighbors => _neighbors.Where(n => n != null);
         public IEnumerable<TEdge> Edges => _edges;
+        public int VertexCount => 6;
         public TEdge GetEdgeByNeighbor(TCell neighbor) => _edges[Array.IndexOf(_neighbors, neighbor)];
         public int GetDirection(TEdge edge) => _edges.ToList().IndexOf(edge);
     }
