@@ -40,6 +40,9 @@ namespace Topology
         public IEnumerable<TCell> Neighbors => _neighbors.Where(n => n != null);
         public IEnumerable<TEdge> Edges => _edges;
         public int VertexCount => 6;
+
+        public BoundingBox? _bbox { get; set; } = null;
+
         public TEdge GetEdgeByNeighbor(TCell neighbor) => _edges[Array.IndexOf(_neighbors, neighbor)];
         public int GetDirection(TEdge edge) => _edges.ToList().IndexOf(edge);
     }

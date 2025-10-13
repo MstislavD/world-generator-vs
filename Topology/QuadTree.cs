@@ -11,8 +11,9 @@ namespace Topology
     /// </summary>
     public interface IPolygon
     {
+        BoundingBox? _bbox { get; set; }
         public IEnumerable<Vector2> Vertices { get; }
-        public BoundingBox Bounds { get => Bounds ?? CalculateBoundingBox(); private set => Bounds = value; }
+        public BoundingBox Bounds { get => _bbox ?? CalculateBoundingBox(); private set => _bbox = value; }
         public int VertexCount { get; }
 
         private BoundingBox CalculateBoundingBox()
@@ -40,7 +41,11 @@ namespace Topology
             return Bounds;
         }
 
-        // Ray casting algorithm for point-in-polygon test
+        /// <summary>
+        /// Ray casting algorithm for point-in-polygon test
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
         public bool ContainsPoint(Vector2 point)
         {
             if (!Bounds.Contains(point))

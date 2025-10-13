@@ -27,7 +27,7 @@ namespace WorldSimulationForm
         Point _mouse;
         Label _lblInfo;
 
-        Bitmap? _image;
+        Bitmap? _image, _testImage;
 
         float _multiplier = 0;
         Vector2 _origin = new(0, 0);
@@ -72,7 +72,7 @@ namespace WorldSimulationForm
             panel.AutoSize = true;
             panel.FlowDirection = FlowDirection.TopDown;
             panel.OnParameterUpdate += Panel_OnParameterUpdate;
-            Controls.Add(panel);            
+            Controls.Add(panel);
 
             Button btnStart = panel.AddButton("Start");
             btnStart.Click += BtnStart_Click;
@@ -89,7 +89,7 @@ namespace WorldSimulationForm
             _generationSettings.Add(_regenerate);
             _generationSettings.RegisterProvider(panel);
 
-            _generator.Parameters.RegisterProvider(panel);            
+            _generator.Parameters.RegisterProvider(panel);
 
             Button btnLog = panel.AddButton("Log");
             btnLog.Click += BtnLog_Click;
@@ -101,8 +101,10 @@ namespace WorldSimulationForm
             _btnNextEvent.Enabled = false;
             _btnNextEvent.Click += BtnNextEvent_Click;
 
-            Button btnLocatorForm = panel.AddButton("Locator Test");
-            btnLocatorForm.Click += (s, e) => new PointLocationForm.PointLocationForm(_generator.SubregionGraph).Visible = true;
+            Button btnTest = panel.AddButton("Test");
+            //btnTest.Click += (s, e) => new PointLocationForm.PointLocationForm(_generator.SubregionGraph).Visible = true;
+            btnTest.Click += (s, e) => { _testImage = RaycastTest.GetImage((int)(ClientSize.Height * 0.5f)); Invalidate(); };
+
 
             _lblInfo = panel.AddLabel("Info");
             _lblInfo.AutoSize = true;

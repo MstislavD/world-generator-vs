@@ -55,6 +55,13 @@ namespace WorldSimulationForm
 
             e.Graphics.Clear(BackColor);
 
+            if (_testImage != null)
+            {
+                e.Graphics.DrawImage(_testImage, _imageLeft, _margin);
+                _testImage = null;
+                return;
+            }
+
             if (_generator == null || !_generator.GenerationIsComplete) return;
 
             int gridLevel = (int)_gridLevel.Current;
