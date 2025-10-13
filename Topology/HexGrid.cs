@@ -20,9 +20,9 @@ namespace Topology
         static double _hexWidth = _hexSide * Math.Sqrt(3);
         static double _hexHalfSide = _hexSide / 2;
 
-        public HexGrid(int _columns, int _rows)
+        public HexGrid(int columns, int rows)
         {
-            _cells = new TCell[_columns, _rows];
+            _cells = new TCell[columns, rows];
 
             foreach (var c in _coords) _createCell(c.x, c.y);
             foreach (var c in _coords) _linkToNeighbors(c.x, c.y);
