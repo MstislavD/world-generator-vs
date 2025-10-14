@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using Topology;
 using Utilities;
@@ -569,7 +570,7 @@ namespace WorldSimulationForm
             Parallel.For(0, horRes, doColumn);
             //for (int i = 0; i < horRes; i++) doColumn(i);
 
-            Console.WriteLine($"Cell map of size {horRes} x {verRes} built in {sw.ElapsedMilliseconds} ms");
+            Debug.WriteLine($"Cell map of size {horRes} x {verRes} built in {sw.ElapsedMilliseconds} ms");
 
             return objects;
         }
@@ -648,11 +649,11 @@ namespace WorldSimulationForm
                 foreach (SubregionEdge sedge in sreg.Edges.Where(sreg.HasNeighbor))
                 {
                     Subregion neighbor = sreg.GetNeighbor(sedge);
-                    if (_regionBorder.Current && !sreg.SameRegion(neighbor))
+                    if (_regionBorder && !sreg.SameRegion(neighbor))
                         objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, Pens.Black));
                     else if (_generator.IsLand(sreg) && _generator.IsSea(neighbor))
                         objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, Pens.Black));
-                    else if (_subregionBorder.Current)
+                    else if (_subregionBorder)
                     {
                         objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, subregionPen));
                         if (_multiplier > 1)
@@ -665,7 +666,7 @@ namespace WorldSimulationForm
                     }
                 }
 
-                if (_subregionBorder.Current && _multiplier > 1)
+                if (_subregionBorder && _multiplier > 1)
                 {
                     objects.Vertices.Add(new VertexData(sreg.Center, subregionBrush));
                 }
@@ -723,6 +724,13 @@ namespace WorldSimulationForm
             }
 
             return objects;
+        }
+
+        internal Size imageMaxSize()
+        {
+            int width = (int)(ClientSize.Width * (1 - _panelWidth) - _margin * 3);
+            int height = ClientSize.Height - _margin * 2;
+            return new Size(width, height);
         }
     }
 }

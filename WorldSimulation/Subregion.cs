@@ -4,7 +4,7 @@ using Topology;
 
 namespace WorldSimulation
 {
-    public class Subregion : INeighbors<Subregion>
+    public class Subregion : PolygonBase, INeighbors<Subregion>
     {
         List<SubregionEdge> _edges = new List<SubregionEdge>();
         Dictionary<SubregionEdge, Subregion> _neighborByEdge = new Dictionary<SubregionEdge, Subregion>();
@@ -19,7 +19,9 @@ namespace WorldSimulation
         public HexCell ParentCell { get; set; }
         public Vector2 Center { get; set; }
         public void AddNeighbor(Subregion neighbor, SubregionEdge sEdge) => _neighborByEdge[sEdge] = neighbor;
-        public IEnumerable<Vector2> Vertices => _edges.SelectMany(e => e.Vertices).Distinct();
+        public override IEnumerable<Vector2> Vertices => _edges.SelectMany(e => e.Vertices).Distinct();
+
+        public override int VertexCount => Vertices.Count();
         public IEnumerable<SubregionEdge> Edges => _edges;
         public Subregion GetNeighbor(SubregionEdge edge) => _neighborByEdge[edge];
         public bool HasNeighbor(SubregionEdge edge) => GetNeighbor(edge) != null;
