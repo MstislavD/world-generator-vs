@@ -84,7 +84,7 @@ namespace Topology
         private void Query(Vector2 point, List<TPolygon> candidates)
         {
             if (!Bounds.Contains(point))
-                return;
+                return;            
 
             if (IsDivided)
             {

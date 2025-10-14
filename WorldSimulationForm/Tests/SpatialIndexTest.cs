@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
 using System.Drawing.Printing;
 using System.Linq;
 using System.Reflection.Emit;
@@ -49,29 +50,22 @@ namespace WorldSimulationForm.Tests
                 for (int j = 0; j < rows; j++)
                 {
                     Vector2 center = new Vector2((i + 0.5) * side, (j + 0.5) * side);
-                    Subregion? sr = index.FindPolygonContainingPoint(center);
 
-                    if (sr == null)
-                    {
-                        Vector2 lCenter = new Vector2(center.X - graph.Width, center.Y);
-                        sr = index.FindPolygonContainingPoint(lCenter);
-                    }
-                    if (sr == null)
-                    {
-                        Vector2 rCenter = new Vector2(center.X + graph.Width, center.Y);
-                        sr = index.FindPolygonContainingPoint(rCenter);
-                    }
+                    Subregion? subregion =
+                        index.FindPolygonContainingPoint(center) ??
+                        index.FindPolygonContainingPoint(new Vector2(center.X - graph.Width, center.Y)) ??
+                        index.FindPolygonContainingPoint(new Vector2(center.X + graph.Width, center.Y));
 
-                    if (sr != null)
+                    if (subregion != null)
                         lock (pointsBySubregion)
-                            pointsBySubregion[sr].Add(center);
+                            pointsBySubregion[subregion].Add(center);
                 }
             };
 
             Parallel.For(0, columns, doColumn);
 
             double msPerIndex = Math.Round((double)sw.ElapsedMilliseconds / (columns * rows), 4);
-            Debug.WriteLine($"columns: {columns}, rows: {rows}, total: {columns * rows}, indexed in {sw.ElapsedMilliseconds} ms ({msPerIndex} ms per index)");
+            Debug.WriteLine($"{columns} x {rows} ({columns * rows}) points indexed in {sw.ElapsedMilliseconds} ms ({msPerIndex} ms per point)");
             sw.Restart();
 
             Bitmap overlay = HexGridRenderer.Render(grid, maxSize.Width, maxSize.Height, objects);
@@ -95,6 +89,7 @@ namespace WorldSimulationForm.Tests
             int rectSide = overlay.Width / columns;
             int rh = rectSide / 2;
             double scale = overlay.Width / graph.Width;
+            GraphicsPath path = new GraphicsPath();
             foreach (var s in pointsBySubregion)
             {                             
                 Rectangle[] rects = s.Value.Select(p => new Rectangle((int)(p.X * scale - rh), (int)(p.Y * scale - rh), rectSide, rectSide)).ToArray();
@@ -102,7 +97,7 @@ namespace WorldSimulationForm.Tests
                 {
                     g.FillRectangles(brushBySubregion[s.Key], rects);
                     g.DrawRectangles(penBySubregion[s.Key], rects);
-                }                  
+                }
             }
 
             g.DrawImage(overlay, 0, 0);

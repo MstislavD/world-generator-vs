@@ -69,24 +69,29 @@ namespace WorldSimulationForm
 
             HexGrid grid = _generator.GetGrid(gridLevel);
 
-            RenderObjects objects = _mapMode.Current switch
+            RenderObjects? objects = null;
+            if (_image == null)
             {
-                MapMode.Elevation => _elevationImage(grid),
-                MapMode.Height => _heightImage(grid),
-                MapMode.Temperature => _temperatureImage(),
-                MapMode.Precipitation => _precipitationImage(),
-                MapMode.Biomes => _biomesImage(),
-                MapMode.Pops => _popImage(),
-                MapMode.Cells => _cellsImage(),
-                MapMode.Landmasses => _landmassImage(),
-                _ => throw new Exception()
-            };            
+                objects = _mapMode.Current switch
+                {
+                    MapMode.Elevation => _elevationImage(grid),
+                    MapMode.Height => _heightImage(grid),
+                    MapMode.Temperature => _temperatureImage(),
+                    MapMode.Precipitation => _precipitationImage(),
+                    MapMode.Biomes => _biomesImage(),
+                    MapMode.Pops => _popImage(),
+                    MapMode.Cells => _cellsImage(),
+                    MapMode.Landmasses => _landmassImage(),
+                    _ => throw new Exception()
+                };
 
-            if (_multiplier != 0)
-            {
-                objects.Multiplier = Math.Pow(2, _multiplier);
-                objects.Origin = _origin;
+                if (_multiplier != 0)
+                {
+                    objects.Multiplier = Math.Pow(2, _multiplier);
+                    objects.Origin = _origin;
+                }
             }
+           
 
             int imageMaxWidth = (int)(ClientSize.Width * (1 - _panelWidth) - _margin * 3);
             int imageMaxHeight = ClientSize.Height - _margin * 2;
@@ -533,18 +538,19 @@ namespace WorldSimulationForm
             double cellSize = graph.Width / horRes;
             int verRes = (int)(graph.Height / cellSize);
 
-            System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+            Stopwatch sw = Stopwatch.StartNew();
 
             Action<int> doColumn = i =>
             {
                 for (int j = 0; j < verRes; j++)
                 {
-                    Vector2[] v = new Vector2[4];
-                    v[0] = new Vector2(cellSize * i, cellSize * j);
-                    v[1] = new Vector2(cellSize * (i + 1), cellSize * j);
-                    v[2] = new Vector2(cellSize * (i + 1), cellSize * (j + 1));
-                    v[3] = new Vector2(cellSize * i, cellSize * (j + 1));
-
+                    Vector2[] v =
+                    [
+                        new Vector2(cellSize * i, cellSize * j),
+                        new Vector2(cellSize * (i + 1), cellSize * j),
+                        new Vector2(cellSize * (i + 1), cellSize * (j + 1)),
+                        new Vector2(cellSize * i, cellSize * (j + 1)),
+                    ];
                     Vector2 c = new Vector2(cellSize * (i + 0.5), cellSize * (j + 0.5));
                     Subregion subregion = graph.Locator.GetRegion(c.X, c.Y);
 
@@ -568,7 +574,6 @@ namespace WorldSimulationForm
             };
 
             Parallel.For(0, horRes, doColumn);
-            //for (int i = 0; i < horRes; i++) doColumn(i);
 
             Debug.WriteLine($"Cell map of size {horRes} x {verRes} built in {sw.ElapsedMilliseconds} ms");
 
