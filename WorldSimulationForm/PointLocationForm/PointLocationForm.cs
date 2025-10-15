@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Utilities;
 using WorldSimulation;
-using PointLocation;
+using TrapezoidSpatialIndex;
 
 namespace PointLocationForm
 {
@@ -23,11 +23,11 @@ namespace PointLocationForm
         List<Region> _regions;
         HexGrid _grid;
         RegionPartition _partition;
-        PointLocator<Region> _locator;
+        TrapezoidSpatialIndex<Region> _locator;
         Dictionary<Region, SolidBrush> _colorByRegion;
         bool _highlight;
         bool _initiated;
-        Region _highlightedRegion;
+        Region? _highlightedRegion;
 
         float _geometrySize = 7.0f;
         int _imageSize = 800;
@@ -87,7 +87,7 @@ namespace PointLocationForm
                     double x = _geometrySize * (_mouse.X - _imageLeft + 0.5) / _imageSize;
                     double y = _geometrySize * (_mouse.Y - _margin + 0.5) / _imageSize;
 
-                    _highlightedRegion = _locator.GetRegion(x, y);
+                    _highlightedRegion = _locator.FindPolygonContainingPoint(x, y);
 
                     _drawImage();
                 }
@@ -170,7 +170,7 @@ namespace PointLocationForm
             double right = _graph == null ? 7.1 : 2 * _graph.Width;
             double left = _graph == null ? -0.1 : -_graph.Width;
             _partition = new RegionPartition(_regions, top, bottom, left, right);
-            _locator = new PointLocator<Region>(_partition, _graph == null ? random : new RandomExt(_seed));
+            _locator = new TrapezoidSpatialIndex<Region>(_partition, _graph == null ? random : new RandomExt(_seed));
 
             _drawImage();
         }
@@ -214,7 +214,7 @@ namespace PointLocationForm
             else if (_step == -1)
             {
                 HexGridPartition partition = new HexGridPartition(_grid);
-                PointLocator<HexCell> locator = new PointLocator<HexCell>(partition);
+                TrapezoidSpatialIndex<HexCell> locator = new TrapezoidSpatialIndex<HexCell>(partition);
                 PointF[] points = new PointF[4];
                 int count = 0;
 
@@ -242,7 +242,7 @@ namespace PointLocationForm
             {
                 RandomExt random = new RandomExt(_seed);
                 HexGridPartition partition = new HexGridPartition(_grid);
-                PointLocator<HexCell> locator = new PointLocator<HexCell>(partition, random, _step);
+                TrapezoidSpatialIndex<HexCell> locator = new TrapezoidSpatialIndex<HexCell>(partition, random, _step);
                 PointF[] points = new PointF[4];
                 int count = 0;
 
@@ -312,7 +312,7 @@ namespace PointLocationForm
             else if (_step == -1)
             {
                 //_locator = new PointLocator<Region>(_partition, _graph == null ? new RandomExt() : new RandomExt(_seed));
-                PointLocator<Region> locator = new PointLocator<Region>(_partition, _graph == null ? new RandomExt() : new RandomExt(_seed));
+                TrapezoidSpatialIndex<Region> locator = new TrapezoidSpatialIndex<Region>(_partition, _graph == null ? new RandomExt() : new RandomExt(_seed));
 
                 PointF[] points = new PointF[4];
                 foreach (Trapezoid trapezoid in locator.GetTrapezoids)
@@ -341,7 +341,7 @@ namespace PointLocationForm
             {
                 RandomExt random = new RandomExt(_seed);
 
-                PointLocator<Region> locator = new PointLocator<Region>(_partition, random, _step);
+                TrapezoidSpatialIndex<Region> locator = new TrapezoidSpatialIndex<Region>(_partition, random, _step);
                 PointF[] points = new PointF[4];
                 int count = 0;
 

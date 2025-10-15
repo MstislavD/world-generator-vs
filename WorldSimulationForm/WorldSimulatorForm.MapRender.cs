@@ -552,13 +552,13 @@ namespace WorldSimulationForm
                         new Vector2(cellSize * i, cellSize * (j + 1)),
                     ];
                     Vector2 c = new Vector2(cellSize * (i + 0.5), cellSize * (j + 0.5));
-                    Subregion subregion = graph.Locator.GetRegion(c.X, c.Y);
+                    Subregion? subregion = graph.SpatialIndex.FindPolygonContainingPoint(c.X, c.Y);
 
                     if (subregion == null)
-                        subregion = graph.Locator.GetRegion(c.X + graph.Width, c.Y);
+                        subregion = graph.SpatialIndex.FindPolygonContainingPoint(c.X + graph.Width, c.Y);
 
                     if (subregion == null)
-                        subregion = graph.Locator.GetRegion(c.X - graph.Width, c.Y);
+                        subregion = graph.SpatialIndex.FindPolygonContainingPoint(c.X - graph.Width, c.Y);
 
                     if (subregion != null)
                     {

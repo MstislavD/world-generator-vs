@@ -5,7 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Topology;
 using Utilities;
-using PointLocation;
+using TrapezoidSpatialIndex;
+using System.Diagnostics;
 
 namespace WorldSimulation
 {
@@ -66,7 +67,7 @@ namespace WorldSimulation
         public IEnumerable<Subregion> CellSubregions => _subregions.Where(sr => sr.Type == SubregionType.Cell);
         public IEnumerable<Subregion> EdgeSubregions => _subregions.Where(sr => sr.Type == SubregionType.Edge);
         public Subregion GetSubregion(HexCell cell) => _subregionByCell[cell];
-        public PointLocator<Subregion>? Locator { get; private set; }
+        public ISpatialIndex<Subregion>? SpatialIndex { get; private set; }
         public IEnumerable<Subregion> GetSubregions(HexCell region) => _subregionsByCellRegion[region];
         public IEnumerable<Subregion> GetSubregions(Edge edge) => _subregionsByEdgeRegion[edge];
 
@@ -153,7 +154,27 @@ namespace WorldSimulation
             subregion.Center = cell.Center;
         }
 
-        public void GenerateLocator(RandomExt random) => Locator = new PointLocator<Subregion>(new SubregionPartition(this), random);
+        public void GenerateSpatialIndex(RandomExt random)
+        {
+            //SpatialIndex = new TrapezoidSpatialIndex<Subregion>(new SubregionPartition(this), random);
+
+            BoundingBox bbox = new BoundingBox(-Width * 0.25, -Height * 0.25, Width * 1.25, Height * 1.25);
+            int capacity = 4;
+
+            while (true)
+            {
+                try
+                {
+                    SpatialIndex = new QuadTreeSpatialIndex<Subregion>(Subregions, bbox, capacity);
+                    break;
+                }
+                catch
+                {
+                    capacity += 1;
+                    Debug.WriteLine($"Increasing spatial index capacity to {capacity}");
+                }
+            }                  
+        }
 
         private Vector2[] _cellRegionVertices(WorldGenerator generator, HexCell cell, int direction)
         {

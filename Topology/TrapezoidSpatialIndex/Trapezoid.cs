@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Topology;
 
-namespace PointLocation
+namespace TrapezoidSpatialIndex
 {
     public class PLNode
     {

@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PointLocation
+namespace TrapezoidSpatialIndex
 {
     public interface IRegionPartition<TRegion>
     {
@@ -17,15 +17,15 @@ namespace PointLocation
         double Epsilon { get; }
     }
 
-    public class PointLocator<TRegion>
+    public class TrapezoidSpatialIndex<TRegion> : ISpatialIndex<TRegion>
     {
         PLNode _root;
         Dictionary<LineSegment, TRegion> _regionByEdge;
         HashSet<Trapezoid> _trapezoids;
 
-        public PointLocator(IRegionPartition<TRegion> partition) : this(partition, new RandomExt()) { }
+        public TrapezoidSpatialIndex(IRegionPartition<TRegion> partition) : this(partition, new RandomExt()) { }
 
-        public PointLocator(IRegionPartition<TRegion> partition, RandomExt random)
+        public TrapezoidSpatialIndex(IRegionPartition<TRegion> partition, RandomExt random)
         {
             _regionByEdge = new Dictionary<LineSegment, TRegion>();
             _trapezoids = new HashSet<Trapezoid>();
@@ -44,7 +44,7 @@ namespace PointLocation
             }
         }
 
-        public PointLocator(IRegionPartition<TRegion> partition, RandomExt random, int count)
+        public TrapezoidSpatialIndex(IRegionPartition<TRegion> partition, RandomExt random, int count)
         {
             List<LineSegment> edges = _findAllEdges(partition);
 
@@ -126,7 +126,7 @@ namespace PointLocation
             return node.Trapezoid;
         }
 
-        public TRegion GetRegion(double x, double y)
+        public TRegion? FindPolygonContainingPoint(double x, double y)
         {
             PLNode node = _root;
             Vector2 vertex = new Vector2(x, y);
@@ -517,6 +517,6 @@ namespace PointLocation
         bool _equals(LineSegment e1, LineSegment e2)
         {
             return e1.Right.X == e2.Right.X && e1.Right.Y == e2.Right.Y && e1.Left.X == e2.Left.X && e1.Left.Y == e2.Left.Y;
-        } 
+        }
     }
 }

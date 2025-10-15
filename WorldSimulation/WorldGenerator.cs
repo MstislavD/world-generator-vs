@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Utilities;
-using PointLocation;
+using TrapezoidSpatialIndex;
 using System.Diagnostics;
 
 namespace WorldSimulation
@@ -118,7 +118,7 @@ namespace WorldSimulation
             }
 
             Stopwatch sw = Stopwatch.StartNew();
-            SubregionGraph.GenerateLocator(heightRandom);
+            SubregionGraph.GenerateSpatialIndex(heightRandom);
             Debug.WriteLine($"Subregion point locator structure calculated in :{sw.ElapsedMilliseconds} ms");
 
 

@@ -34,7 +34,7 @@ namespace WorldSimulationForm.Tests
 
             Stopwatch sw = Stopwatch.StartNew();
 
-            PolygonSpatialIndex<Subregion> index = new PolygonSpatialIndex<Subregion>(graph.Subregions, bbox, 5);
+            QuadTreeSpatialIndex<Subregion> index = new QuadTreeSpatialIndex<Subregion>(graph.Subregions, bbox, 5);
 
             Debug.WriteLine($"Spatial index calculated in {sw.ElapsedMilliseconds} ms");
             sw.Restart();
@@ -47,22 +47,25 @@ namespace WorldSimulationForm.Tests
 
             Action<int> doColumn = i =>
             {
+                double x = (i + 0.5) * side;
+
                 for (int j = 0; j < rows; j++)
-                {
-                    Vector2 center = new Vector2((i + 0.5) * side, (j + 0.5) * side);
+                {                  
+                    double y = (j + 0.5) * side;
 
                     Subregion? subregion =
-                        index.FindPolygonContainingPoint(center) ??
-                        index.FindPolygonContainingPoint(new Vector2(center.X - graph.Width, center.Y)) ??
-                        index.FindPolygonContainingPoint(new Vector2(center.X + graph.Width, center.Y));
+                        index.FindPolygonContainingPoint(x, y) ??
+                        index.FindPolygonContainingPoint(x - graph.Width, y) ??
+                        index.FindPolygonContainingPoint(x + graph.Width, y);
 
                     if (subregion != null)
                         lock (pointsBySubregion)
-                            pointsBySubregion[subregion].Add(center);
+                            pointsBySubregion[subregion].Add(new Vector2(x, y));
                 }
             };
 
-            Parallel.For(0, columns, doColumn);
+            ParallelOptions parallelOptions = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
+            Parallel.For(0, columns, parallelOptions, doColumn);
 
             double msPerIndex = Math.Round((double)sw.ElapsedMilliseconds / (columns * rows), 4);
             Debug.WriteLine($"{columns} x {rows} ({columns * rows}) points indexed in {sw.ElapsedMilliseconds} ms ({msPerIndex} ms per point)");

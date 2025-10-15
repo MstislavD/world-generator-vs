@@ -216,10 +216,10 @@ namespace WorldSimulationForm
                     y = y / Math.Pow(2, _multiplier) + _origin.Y;
                 }
 
-                Subregion subregion =
-                        graph.Locator.GetRegion(x, y) ??
-                        graph.Locator.GetRegion(x + graph.Width, y) ??
-                        graph.Locator.GetRegion(x - graph.Width, y);
+                Subregion? subregion =
+                        graph.SpatialIndex.FindPolygonContainingPoint(x, y) ??
+                        graph.SpatialIndex.FindPolygonContainingPoint(x + graph.Width, y) ??
+                        graph.SpatialIndex.FindPolygonContainingPoint(x - graph.Width, y);
 
                 if (subregion != null)
                 {
@@ -256,10 +256,10 @@ namespace WorldSimulationForm
                         y = y / Math.Pow(2, _multiplier) + _origin.Y;
                     }
 
-                    Subregion subregion =
-                        graph.Locator.GetRegion(x, y) ??
-                        graph.Locator.GetRegion(x + graph.Width, y) ??
-                        graph.Locator.GetRegion(x - graph.Width, y);
+                    Subregion? subregion =
+                        graph.SpatialIndex.FindPolygonContainingPoint(x, y) ??
+                        graph.SpatialIndex.FindPolygonContainingPoint(x + graph.Width, y) ??
+                        graph.SpatialIndex.FindPolygonContainingPoint(x - graph.Width, y);
 
                     // cursor points to a subregion
                     if (subregion != null)
