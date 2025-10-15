@@ -1,10 +1,12 @@
-﻿using Topology;
-using Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
+using Topology;
+using Utilities;
+using WorldSimulation;
 
 namespace WorldSimulation
 {
@@ -30,7 +32,7 @@ namespace WorldSimulation
         public static void GenerateFromParent<TGen, TGrid, TCell, TEdge>(TGen generator, IContainer<TGrid, TCell> expandedGrid)
             where TGen : IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
             where TGrid : IGrid<TCell>, IEdges<TEdge>
-            where TCell: HexCell<TCell, TEdge>
+            where TCell : HexCell<TCell, TEdge>
             where TEdge : Edge<TCell>
         {
             TGrid grid = expandedGrid.Grid;
@@ -60,7 +62,7 @@ namespace WorldSimulation
 
         public static void GenerateModify(WorldGenerator generator, HexGrid grid, RandomExt random)
         {
-            _createIslands(generator, grid, random);
+            _createIslands<WorldGenerator, HexGrid, HexCell>(generator, grid, random);
             _riseLand(generator, grid, random);
             _lowerLand(generator, grid, random);
             _destroyRidges(generator, grid, random);
@@ -68,7 +70,7 @@ namespace WorldSimulation
         }
 
         private static void _createShallowSeas<TGen, TCell>(TGen generator, IGrid<TCell> grid, RandomExt random)
-            where TGen: IGenerator, IGeneratorCell<TCell>
+            where TGen : IGenerator, IGeneratorCell<TCell>
         {
             List<TCell> seaCells = grid.Cells.Where(generator.IsSea).ToList();
             int shallowCount = seaCells.Count - (int)(generator.Parameters.DeepPct.Current * seaCells.Count);
@@ -190,7 +192,7 @@ namespace WorldSimulation
             {
                 while (generator.IsLand(newCell) && cellPool.Count > 0)
                     newCell = random.NextItemExtract(cellPool);
-                 
+
 
                 generator.CellData[newCell].Elevation = Elevation.Lowland;
                 continentCellsTmp.Add(newCell);
@@ -266,22 +268,25 @@ namespace WorldSimulation
             };
         }
 
-        static void _createIslands(WorldGenerator generator, HexGrid grid, RandomExt random)
+        static void _createIslands<TGen, TGrid, TCell>(TGen generator, TGrid grid, RandomExt random)
+            where TGen : IGenerator, IGeneratorCell<TCell>
+            where TGrid : IGrid<TCell>
+            where TCell : INeighbors<TCell>
         {
             int islandCount = (int)(grid.Cells.Count(generator.IsSea) * generator.Parameters.IslandPct.Current);
 
-            Func<HexCell, bool> noLandAround = c => !c.Neighbors.Any(generator.IsLand);
-            Func<HexCell, bool> isShallow = c => generator.GetElevation(c) == Elevation.ShallowOcean;
-            Func<HexCell, bool> isNotLandConnection = c => !Geometry.IsConnection(c, generator.IsLand);
+            Func<TCell, bool> noLandAround = c => !c.Neighbors.Any(generator.IsLand);
+            Func<TCell, bool> isShallow = c => generator.GetElevation(c) == Elevation.ShallowOcean;
+            Func<TCell, bool> isNotLandConnection = c => !Geometry.IsConnection(c, generator.IsLand);
 
-            List<HexCell> shallowSeas = grid.Cells.Where(isShallow).Where(noLandAround).ToList();
+            List<TCell> shallowSeas = grid.Cells.Where(isShallow).Where(noLandAround).ToList();
 
             while (islandCount > 0 && shallowSeas.Count > 0)
             {
-                HexCell cell = random.NextItemExtract(shallowSeas);
+                TCell cell = random.NextItemExtract(shallowSeas);
                 if (noLandAround(cell))
                 {
-                    generator.CellData[cell].Elevation = Elevation.Lowland;
+                    generator.SetElevation(cell, Elevation.Lowland);
                     islandCount -= 1;
                 }
             }
@@ -289,54 +294,18 @@ namespace WorldSimulation
             int targetLandCount = grid.CellCount - (int)(generator.SeaPct * grid.CellCount);
             int currentLandCount = grid.Cells.Where(generator.IsLand).Count();
 
-            List<HexCell> cells = grid.Cells.Where(generator.IsLand).Where(generator.NearSea).Where(isNotLandConnection).ToList();
+            List<TCell> cells = grid.Cells.Where(generator.IsLand).Where(generator.NearSea).Where(isNotLandConnection).ToList();
 
             while (targetLandCount < currentLandCount)
             {
-                HexCell cell = random.NextItemExtract(cells);
+                TCell cell = random.NextItemExtract(cells);
                 if (isNotLandConnection(cell))
                 {
                     currentLandCount -= 1;
-                    generator.CellData[cell].Elevation = Elevation.ShallowOcean;
+                    generator.SetElevation(cell, Elevation.ShallowOcean);
                 }
             }
         }
-
-        //void _createIslands(HexGrid.Grid grid)
-        //{
-        //    int islandCount = (int)(grid.Cells.Count(IsSea) * _islandPct);
-
-        //    Func<HexCell, bool> noLandAround = c => !c.Neighbors.Any(IsLand);
-        //    Func<HexCell, bool> isShallow = c => GetElevation(c) == Elevation.ShallowOcean;
-        //    Func<HexCell, bool> isNotLandConnection = c => !IsConnection(c, IsLand);
-
-        //    List<HexCell> shallowSeas = grid.Cells.Where(isShallow).Where(noLandAround).ToList();
-
-        //    while (islandCount > 0 && shallowSeas.Count > 0)
-        //    {
-        //        HexCell cell = random.NextItemExtract(shallowSeas);
-        //        if (noLandAround(cell))
-        //        {
-        //            _cData[cell].Elevation = Elevation.Lowland;
-        //            islandCount -= 1;
-        //        }
-        //    }
-
-        //    int targetLandCount = grid.CellCount - (int)(SeaPct * grid.CellCount);
-        //    int currentLandCount = grid.Cells.Where(IsLand).Count();
-
-        //    List<HexCell> cells = grid.Cells.Where(IsLand).Where(NearSea).Where(isNotLandConnection).ToList();
-
-        //    while (targetLandCount < currentLandCount)
-        //    {
-        //        HexCell cell = random.NextItemExtract(cells);
-        //        if (isNotLandConnection(cell))
-        //        {
-        //            currentLandCount -= 1;
-        //            _cData[cell].Elevation = Elevation.ShallowOcean;
-        //        }
-        //    }
-        //}
 
         static void _createMountainRegions(WorldGenerator generator, HexGrid grid, RandomExt random)
         {

@@ -27,6 +27,7 @@ namespace WorldSimulation
         public void IncreaseElevation(TCell cell);
         public bool IsSea(TCell cell);
         public bool IsLand(TCell cell);
+        public bool NearSea(TCell cell);
         public TCell GetCellParent(TCell cell);
     }
     public interface IGeneratorEdge<TEdge>
