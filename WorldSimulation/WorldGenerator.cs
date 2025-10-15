@@ -10,9 +10,40 @@ using System.Diagnostics;
 
 namespace WorldSimulation
 {
+    public class WorldCell : LayerHexCell<WorldCell, WorldEdge> { }
+    public class WorldEdge : Edge<WorldCell> { }
+    public class WorldGrid : HexGrid<WorldCell, WorldEdge>
+    {
+        public WorldGrid(int columns, int rows) : base(columns, rows) { }
+    }
+    public interface IGeneratorCell<TCell>
+    {
+        public double SeaPct { get; }
+        public Elevation GetElevation(TCell cell);
+        public int GetHeight(TCell cell);
+        public void SetElevation(TCell cell, Elevation elevation);
+        public void SetHeight(TCell cell, int height);
+        public void SetParent(TCell cell, TCell parent);
+        public void IncreaseElevation(TCell cell);
+        public bool IsSea(TCell cell);
+        public bool IsLand(TCell cell);
+        public TCell GetCellParent(TCell cell);
+    }
+    public interface IGeneratorEdge<TEdge>
+    {
+        public bool GetRidge(TEdge edge);
+        public void SetParent(TEdge edge, TEdge parent);
+        public void SetRidge(TEdge edge, bool r);
+        public bool PossibleRidge(TEdge e);
+    }
+
+    public interface IGenerator
+    {
+        public GenerationParameters Parameters { get; }
+    }
     public enum Elevation { DeepOcean, ShallowOcean, Lowland, Upland, Highland, Mountain }
 
-    public class WorldGenerator
+    public class WorldGenerator : IGenerator, IGeneratorCell<HexCell>, IGeneratorEdge<Edge>
     {
         int _gridWidth = 10; // 10;
         int _gridHeight = 7; // 7;
@@ -56,7 +87,7 @@ namespace WorldSimulation
 
             Action<WorldGenerator, HexGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
             {
-                MapScript.Random => ElevationGenerator.GenerateRandom,
+                MapScript.Random => ElevationGenerator.GenerateRandom<WorldGenerator, HexGrid, HexCell, Edge>,
                 MapScript.One_continent => ElevationGenerator.GenerateScriptPangea,
                 MapScript.Two_continents => ElevationGenerator.GenerateScriptTwoContinents,
                 MapScript.Three_continents => ElevationGenerator.GenerateScriptThreeContinents,
@@ -73,7 +104,7 @@ namespace WorldSimulation
                 _grids.Add(grid);
                 _addData(grid);
 
-                ElevationGenerator.GenerateFromParent(this, expandedGrid);
+                ElevationGenerator.GenerateFromParent<WorldGenerator, HexGrid, HexCell, Edge>(this, expandedGrid);
 
                 if (i < GridLevels - 1)
                 {
@@ -268,5 +299,19 @@ namespace WorldSimulation
                 EdgeData[edge] = new EdgeData();
             }
         }
+
+        public void SetElevation(HexCell cell, Elevation elevation) => CellData[cell].Elevation = elevation;
+
+        public void IncreaseElevation(HexCell cell) => CellData[cell].Elevation += 1;
+
+        public void SetRidge(Edge edge, bool r) => EdgeData[edge].Ridge = r;
+
+        public void SetParent(HexCell cell, HexCell parent) => CellData[cell].Parent = parent;
+
+        public void SetHeight(HexCell cell, int height) => CellData[cell].Height = height;
+
+        public void SetParent(Edge edge, Edge parent) => EdgeData[edge].Parent = parent;
+
+        public bool GetRidge(Edge edge) => EdgeData[edge].Ridge;
     }
 }

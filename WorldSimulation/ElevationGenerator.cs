@@ -10,14 +10,16 @@ namespace WorldSimulation
 {
     class ElevationGenerator
     {
-        public static void GenerateRandom(WorldGenerator generator, HexGrid grid, RandomExt random)
+        public static void GenerateRandom<TGen, TGrid, TCell, TEdge>(TGen generator, TGrid grid, RandomExt random)
+            where TGen : IGenerator, IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
+            where TGrid : IGrid<TCell>, IEdges<TEdge>
         {
-            List<HexCell> cells = grid.Cells.ToList();
+            List<TCell> cells = grid.Cells.ToList();
             int landCount = grid.CellCount - (int)(generator.SeaPct * grid.CellCount);
             for (int i = 0; i < landCount; i++)
             {
-                HexCell cell = random.NextItemExtract(cells);
-                generator.CellData[cell].Elevation = Elevation.Lowland;
+                TCell cell = random.NextItemExtract(cells);
+                generator.SetElevation(cell, Elevation.Lowland);
             };
 
             _createShallowSeas(generator, grid, random);
@@ -25,30 +27,32 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        public static void GenerateFromParent(WorldGenerator generator, ExpandedHexGrid expandedGrid)
+        public static void GenerateFromParent<TGen, TGrid, TCell, TEdge>(TGen generator, IContainer<TGrid, TCell> expandedGrid)
+            where TGen : IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
+            where TGrid : IGrid<TCell>, IEdges<TEdge>
+            where TCell: HexCell<TCell, TEdge>
+            where TEdge : Edge<TCell>
         {
-            HexGrid grid = expandedGrid.Grid;
-            Dictionary<HexCell, CellData> cData = generator.CellData;
-            Dictionary<Edge, EdgeData> eData = generator.EdgeData;
+            TGrid grid = expandedGrid.Grid;
 
-            foreach (HexCell cell in grid.Cells)
+            foreach (TCell cell in grid.Cells)
             {
-                HexCell parent = expandedGrid.ParentByCell[cell];
-                cData[cell].Parent = parent;
-                cData[cell].Elevation = generator.GetElevation(parent);
-                cData[cell].Height = generator.GetHeight(parent);
+                TCell parent = expandedGrid.Getparent(cell);
+                generator.SetParent(cell, parent);
+                generator.SetElevation(cell, generator.GetElevation(parent));
+                generator.SetHeight(cell, generator.GetHeight(parent));
             }
-            foreach (Edge edge in grid.Edges)
+            foreach (TEdge edge in grid.Edges)
             {
                 if (edge.Cell2 != null)
                 {
-                    HexCell p1 = generator.GetCellParent(edge.Cell1);
-                    HexCell p2 = generator.GetCellParent(edge.Cell2);
+                    TCell p1 = generator.GetCellParent(edge.Cell1);
+                    TCell p2 = generator.GetCellParent(edge.Cell2);
                     if (!p1.Equals(p2))
                     {
-                        Edge parent = p1.GetEdgeByNeighbor(p2);
-                        eData[edge].Parent = parent;
-                        eData[edge].Ridge = generator.HasRidge(parent);
+                        TEdge parent = p1.GetEdgeByNeighbor(p2);
+                        generator.SetParent(edge, parent);
+                        generator.SetRidge(edge, generator.GetRidge(parent));
                     }
                 }
             }
@@ -63,15 +67,16 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        private static void _createShallowSeas(WorldGenerator generator, Topology.HexGrid grid, RandomExt random)
+        private static void _createShallowSeas<TGen, TCell>(TGen generator, IGrid<TCell> grid, RandomExt random)
+            where TGen: IGenerator, IGeneratorCell<TCell>
         {
-            List<HexCell> seaCells = grid.Cells.Where(generator.IsSea).ToList();
+            List<TCell> seaCells = grid.Cells.Where(generator.IsSea).ToList();
             int shallowCount = seaCells.Count - (int)(generator.Parameters.DeepPct.Current * seaCells.Count);
             for (int i = 0; i < shallowCount; i++)
             {
-                HexCell cell = random.NextItemExtract(seaCells);
-                generator.CellData[cell].Elevation = Elevation.ShallowOcean;
-            };
+                TCell cell = random.NextItemExtract(seaCells);
+                generator.SetElevation(cell, Elevation.ShallowOcean);
+            }
         }
 
         public static void GenerateScriptPangea(WorldGenerator generator, Topology.HexGrid grid, RandomExt random)
@@ -211,15 +216,16 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        static void _riseLand(WorldGenerator generator, HexGrid grid, RandomExt random)
+        static void _riseLand<TGen, TCell>(TGen generator, IGrid<TCell> grid, RandomExt random)
+            where TGen : IGenerator, IGeneratorCell<TCell>
         {
-            List<HexCell> landCells = grid.Cells.Where(generator.IsLand).ToList();
+            List<TCell> landCells = grid.Cells.Where(generator.IsLand).ToList();
             int count = (int)(landCells.Count * generator.Parameters.RisePct);
 
             while (count > 0 && landCells.Count > 0)
             {
-                HexCell cell = random.NextItemExtract(landCells);
-                generator.CellData[cell].Elevation += 1;
+                TCell cell = random.NextItemExtract(landCells);
+                generator.IncreaseElevation(cell);
                 count -= 1;
             }
         }
@@ -237,14 +243,15 @@ namespace WorldSimulation
             }
         }
 
-        static void _createRidges(WorldGenerator generator, HexGrid grid, RandomExt random)
+        static void _createRidges<TGen, TEdge>(TGen generator, IEdges<TEdge> grid, RandomExt random)
+            where TGen : IGenerator, IGeneratorEdge<TEdge>
         {
-            List<Edge> edges = grid.Edges.Where(generator.PossibleRidge).ToList();
+            List<TEdge> edges = grid.Edges.Where(generator.PossibleRidge).ToList();
             int count = (int)(edges.Count * generator.Parameters.RidgePct.Current);
             for (int i = 0; i < count; i++)
             {
-                Edge edge = random.NextItemExtract(edges);
-                generator.EdgeData[edge].Ridge = true;
+                TEdge edge = random.NextItemExtract(edges);
+                generator.SetRidge(edge, true);
             };
         }
 

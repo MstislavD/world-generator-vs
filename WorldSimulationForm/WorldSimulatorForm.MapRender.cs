@@ -573,7 +573,8 @@ namespace WorldSimulationForm
                 }
             };
 
-            Parallel.For(0, horRes, doColumn);
+            ParallelOptions options = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
+            Parallel.For(0, horRes, options, doColumn);
 
             Debug.WriteLine($"Cell map of size {horRes} x {verRes} built in {sw.ElapsedMilliseconds} ms");
 

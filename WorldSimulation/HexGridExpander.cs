@@ -7,19 +7,39 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WorldSimulation
-{
-    public class ExpandedHexGrid
+{ 
+    public interface IContainer<TGrid, TCell>
+    {
+        TGrid Grid { get; }
+
+        TCell Getparent(TCell cell);
+    }
+
+    public class ExpandedHexGrid : HexGrid<WorldCell, WorldEdge>, IContainer<HexGrid, HexCell>
     {
         public HexGrid ParentGrid;
-        public HexGrid Grid;
+        public HexGrid Grid { get; set; }
         public Dictionary<HexCell, HexCell> ParentByCell;
         public Dictionary<HexCell, List<HexCell>> ChildrenByCell;
+
+        public ExpandedHexGrid(int columns, int rows) : base(columns, rows) { }
+
+        public ExpandedHexGrid() : base(0, 0) { }
+
         public IEnumerable<HexCell> Regions => ParentGrid.Cells;
         public IEnumerable<Edge> ChildrenByEdge(Edge edge) => ChildrenByCell[edge.Cell1].SelectMany(c => c.Edges).Where(e => e.Cells.Any(c => ParentByCell[c] == edge.Cell2));
+
+        public HexCell Getparent(HexCell cell) => ParentByCell[cell];
     }
 
     public class HexGridExpander
     {
+        /// <summary>
+        /// The exact children of parent cells of the first and last row, also lie in these rows
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <param name="random"></param>
+        /// <returns></returns>
         static public ExpandedHexGrid ExpandBroad(HexGrid grid, RandomExt random)
         {
             HexGrid expandedGrid = new HexGrid(grid.Columns * 2, grid.Rows * 2 + 1);
@@ -58,9 +78,15 @@ namespace WorldSimulation
             return new ExpandedHexGrid() {Grid = expandedGrid, ParentGrid = grid, ParentByCell = parentByCell, ChildrenByCell = childrenByCell };
         }
 
-        static public ExpandedHexGrid Expand(Topology.HexGrid grid, RandomExt random)
+        /// <summary>
+        /// The exact children of parent cells of the first and last row, lie in the second row from the top and from the bottom.
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <param name="random"></param>
+        /// <returns></returns>
+        static public ExpandedHexGrid Expand(HexGrid grid, RandomExt random)
         {
-            Topology.HexGrid expandedGrid = new Topology.HexGrid(grid.Columns * 2, grid.Rows * 2 - 1);
+            Topology.HexGrid expandedGrid = new HexGrid(grid.Columns * 2, grid.Rows * 2 - 1);
             Dictionary<HexCell, HexCell> parentByCellTmp = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, HexCell> parentByCell = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, List<HexCell>> childrenByCell = new Dictionary<HexCell, List<HexCell>>();
@@ -96,9 +122,16 @@ namespace WorldSimulation
             return new ExpandedHexGrid() { Grid = expandedGrid, ParentGrid = grid, ParentByCell = parentByCell, ChildrenByCell = childrenByCell };
         }
 
-        static public ExpandedHexGrid Expand(Topology.HexGrid grid, RandomExt random, int sizeVariance)
+        /// <summary>
+        /// This algoritm makes parent regions more uniform in size.
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <param name="random"></param>
+        /// <param name="sizeVariance"></param>
+        /// <returns></returns>
+        static public ExpandedHexGrid Expand(HexGrid grid, RandomExt random, int sizeVariance)
         {
-            Topology.HexGrid expandedGrid = new Topology.HexGrid(grid.Columns * 2, grid.Rows * 2 - 1);
+            HexGrid expandedGrid = new HexGrid(grid.Columns * 2, grid.Rows * 2 - 1);
             Dictionary<HexCell, HexCell> parentByCellTmp = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, HexCell> parentByCell = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, int> sizeByParentCell = new Dictionary<HexCell, int>();

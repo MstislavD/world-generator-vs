@@ -4,12 +4,26 @@ using static System.Linq.Enumerable;
 
 namespace Topology
 {
+    public interface IGrid<TCell>
+    {
+        public int Columns { get; }
+        public int Rows { get; }
+        public TCell GetCell(int x, int y);
+        public IEnumerable<TCell> Cells { get; }
+        public int CellCount { get; }
+    }
+
+    public interface IEdges<TEdge>
+    {
+        public IEnumerable<TEdge> Edges { get; }
+    }
+
     /// <summary>
     /// Representation of a grid of hexagons. Gives access to contained hexagons and edges.
     /// </summary>
     /// <typeparam name="TCell">Hexagon class.</typeparam>
     /// <typeparam name="TEdge">Edge class.</typeparam>
-    public class HexGrid<TCell, TEdge>
+    public class HexGrid<TCell, TEdge> : IGrid<TCell>, IEdges<TEdge>
         where TCell : HexCell<TCell, TEdge>, new()
         where TEdge : Edge<TCell>, new()
     {
