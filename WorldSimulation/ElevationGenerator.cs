@@ -227,20 +227,21 @@ namespace WorldSimulation
             while (count > 0 && landCells.Count > 0)
             {
                 TCell cell = random.NextItemExtract(landCells);
-                generator.IncreaseElevation(cell);
+                generator.ChangeElevationLevel(cell, 1);
                 count -= 1;
             }
         }
 
-        static void _lowerLand(WorldGenerator generator, HexGrid grid, RandomExt random)
+        static void _lowerLand<TGen, TCell>(TGen generator, IGrid<TCell> grid, RandomExt random)
+            where TGen : IGenerator, IGeneratorCell<TCell>
         {
-            List<HexCell> landCells = grid.Cells.Where(c => generator.GetElevation(c) > Elevation.Lowland).ToList();
+            List<TCell> landCells = grid.Cells.Where(c => generator.GetElevation(c) > Elevation.Lowland).ToList();
             int count = (int)(landCells.Count * generator.Parameters.LowerPct);
 
             while (count > 0 && landCells.Count > 0)
             {
-                HexCell cell = random.NextItemExtract(landCells);
-                generator.CellData[cell].Elevation -= 1;
+                TCell cell = random.NextItemExtract(landCells);
+                generator.ChangeElevationLevel(cell, -1);
                 count -= 1;
             }
         }
@@ -257,20 +258,20 @@ namespace WorldSimulation
             };
         }
 
-        static void _destroyRidges(WorldGenerator generator, HexGrid grid, RandomExt random)
+        static void _destroyRidges<TGen, TEdge>(TGen generator, IEdges<TEdge> grid, RandomExt random)
+            where TGen : IGenerator, IGeneratorEdge<TEdge>
         {
-            List<Edge> edges = grid.Edges.Where(generator.HasRidge).ToList();
+            List<TEdge> edges = grid.Edges.Where(generator.HasRidge).ToList();
             int ridgeCount = (int)(edges.Count * generator.Parameters.RidgeClearPct.Current);
             for (int i = 0; i < ridgeCount; i++)
             {
-                Edge edge = random.NextItemExtract(edges);
-                generator.EdgeData[edge].Ridge = false;
+                TEdge edge = random.NextItemExtract(edges);
+                generator.SetRidge(edge, false);
             };
         }
 
-        static void _createIslands<TGen, TGrid, TCell>(TGen generator, TGrid grid, RandomExt random)
+        static void _createIslands<TGen, TGrid, TCell>(TGen generator, IGrid<TCell> grid, RandomExt random)
             where TGen : IGenerator, IGeneratorCell<TCell>
-            where TGrid : IGrid<TCell>
             where TCell : INeighbors<TCell>
         {
             int islandCount = (int)(grid.Cells.Count(generator.IsSea) * generator.Parameters.IslandPct.Current);

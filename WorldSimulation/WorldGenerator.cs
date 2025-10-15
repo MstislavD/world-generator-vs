@@ -24,7 +24,7 @@ namespace WorldSimulation
         public void SetElevation(TCell cell, Elevation elevation);
         public void SetHeight(TCell cell, int height);
         public void SetParent(TCell cell, TCell parent);
-        public void IncreaseElevation(TCell cell);
+        public void ChangeElevationLevel(TCell cell, int delta);
         public bool IsSea(TCell cell);
         public bool IsLand(TCell cell);
         public bool NearSea(TCell cell);
@@ -32,6 +32,7 @@ namespace WorldSimulation
     }
     public interface IGeneratorEdge<TEdge>
     {
+        public bool HasRidge(TEdge edge);
         public bool GetRidge(TEdge edge);
         public void SetParent(TEdge edge, TEdge parent);
         public void SetRidge(TEdge edge, bool r);
@@ -303,7 +304,7 @@ namespace WorldSimulation
 
         public void SetElevation(HexCell cell, Elevation elevation) => CellData[cell].Elevation = elevation;
 
-        public void IncreaseElevation(HexCell cell) => CellData[cell].Elevation += 1;
+        public void ChangeElevationLevel(HexCell cell, int delta) => CellData[cell].Elevation += delta;
 
         public void SetRidge(Edge edge, bool r) => EdgeData[edge].Ridge = r;
 
