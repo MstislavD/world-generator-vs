@@ -8,6 +8,7 @@ using Utilities;
 using TrapezoidSpatialIndex;
 using System.Diagnostics;
 
+
 namespace WorldSimulation
 {
     public class WorldCell : LayerHexCell<WorldCell, WorldEdge> { }
@@ -87,12 +88,13 @@ namespace WorldSimulation
             _grids.Add(grid);
             _addData(grid);
 
-            Action<WorldGenerator, HexGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
+
+            Action <WorldGenerator, HexGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
             {
-                MapScript.Random => ElevationGenerator.GenerateRandom<WorldGenerator, HexGrid, HexCell, Edge>,
-                MapScript.One_continent => ElevationGenerator.GenerateScriptPangea<WorldGenerator, HexGrid, HexCell, Edge>,
-                MapScript.Two_continents => ElevationGenerator.GenerateScriptTwoContinents<WorldGenerator, HexGrid, HexCell, Edge>,
-                MapScript.Three_continents => ElevationGenerator.GenerateScriptThreeContinents<WorldGenerator, HexGrid, HexCell, Edge>,
+                MapScript.Random => ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateRandom,
+                MapScript.One_continent => ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateScriptPangea,
+                MapScript.Two_continents => ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateScriptTwoContinents,
+                MapScript.Three_continents => ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateScriptThreeContinents,
                 _ => throw new Exception()
             };
             generateContinents(this, grid, random);
@@ -106,11 +108,11 @@ namespace WorldSimulation
                 _grids.Add(grid);
                 _addData(grid);
 
-                ElevationGenerator.GenerateFromParent<WorldGenerator, HexGrid, HexCell, Edge>(this, expandedGrid);
+                ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateFromParent(this, expandedGrid);
 
                 if (i < GridLevels - 1)
                 {
-                    ElevationGenerator.GenerateModify<WorldGenerator, HexGrid, HexCell, Edge>(this, grid, random);
+                    ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateModify(this, grid, random);
                 }
 
                 if (i == GridLevels - 2)
