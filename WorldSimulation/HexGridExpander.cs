@@ -11,7 +11,6 @@ namespace WorldSimulation
     public interface IContainer<TGrid, TCell>
     {
         TGrid Grid { get; }
-
         TCell Getparent(TCell cell);
     }
 

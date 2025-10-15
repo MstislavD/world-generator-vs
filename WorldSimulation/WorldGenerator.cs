@@ -91,8 +91,8 @@ namespace WorldSimulation
             {
                 MapScript.Random => ElevationGenerator.GenerateRandom<WorldGenerator, HexGrid, HexCell, Edge>,
                 MapScript.One_continent => ElevationGenerator.GenerateScriptPangea<WorldGenerator, HexGrid, HexCell, Edge>,
-                MapScript.Two_continents => ElevationGenerator.GenerateScriptTwoContinents,
-                MapScript.Three_continents => ElevationGenerator.GenerateScriptThreeContinents,
+                MapScript.Two_continents => ElevationGenerator.GenerateScriptTwoContinents<WorldGenerator, HexGrid, HexCell, Edge>,
+                MapScript.Three_continents => ElevationGenerator.GenerateScriptThreeContinents<WorldGenerator, HexGrid, HexCell, Edge>,
                 _ => throw new Exception()
             };
             generateContinents(this, grid, random);

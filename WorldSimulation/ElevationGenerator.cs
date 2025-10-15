@@ -120,9 +120,13 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        public static void GenerateScriptTwoContinents(WorldGenerator generator, Topology.HexGrid grid, RandomExt random)
+        public static void GenerateScriptTwoContinents<TGen, TGrid, TCell, TEdge>(TGen generator, TGrid grid, RandomExt random)
+            where TGen : IGenerator, IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
+            where TGrid : IGrid<TCell>, IEdges<TEdge>
+            where TCell : HexCell<TCell, TEdge>
+            where TEdge : Edge<TCell>
         {
-            HashSet<HexCell> continentCells = new HashSet<HexCell>();
+            HashSet<TCell> continentCells = [];
 
             int landCount = grid.CellCount - (int)(generator.SeaPct * grid.CellCount);
             double variation = random.NextDouble() * 0.2;
@@ -131,30 +135,30 @@ namespace WorldSimulation
 
             Console.WriteLine($"Continent 1: {c1}, Continent 2: {c2}");
 
-            HexCell newCell = random.NextItemExtract(grid.Cells.ToList());
-            List<HexCell> cellPool = new List<HexCell>() { newCell };
+            TCell newCell = random.NextItemExtract(grid.Cells.ToList());
+            List<TCell> cellPool = [newCell];
 
             for (int i = 0; i < c1; i++)
             {
                 while (generator.IsLand(newCell))
                     newCell = random.NextItemExtract(cellPool);
 
-                generator.CellData[newCell].Elevation = Elevation.Lowland;
+                generator.SetElevation(newCell, Elevation.Lowland);
                 continentCells.Add(newCell);
                 cellPool.AddRange(newCell.Neighbors.Where(generator.IsSea));
             }
 
-            Func<HexCell, bool> validCell = c => generator.IsSea(c) && c.Neighbors.All(n => !continentCells.Contains(n));
+            Func<TCell, bool> validCell = c => generator.IsSea(c) && c.Neighbors.All(n => !continentCells.Contains(n));
 
             newCell = random.NextItemExtract(grid.Cells.Where(validCell).ToList());
-            cellPool = new List<HexCell>() { newCell };
+            cellPool = [newCell];
 
             for (int i = 0; i < c2; i++)
             {
                 while (generator.IsLand(newCell) && cellPool.Count > 0)
                     newCell = random.NextItemExtract(cellPool);
 
-                generator.CellData[newCell].Elevation = Elevation.Lowland;
+                generator.SetElevation(newCell, Elevation.Lowland);
                 cellPool.AddRange(newCell.Neighbors.Where(validCell));
             }
 
@@ -163,10 +167,14 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        public static void GenerateScriptThreeContinents(WorldGenerator generator, Topology.HexGrid grid, RandomExt random)
+        public static void GenerateScriptThreeContinents<TGen, TGrid, TCell, TEdge>(TGen generator, TGrid grid, RandomExt random)
+            where TGen : IGenerator, IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
+            where TGrid : IGrid<TCell>, IEdges<TEdge>
+            where TCell : HexCell<TCell, TEdge>
+            where TEdge : Edge<TCell>
         {
-            HashSet<HexCell> continentCells = new HashSet<HexCell>();
-            HashSet<HexCell> continentCellsTmp = new HashSet<HexCell>();
+            HashSet<TCell> continentCells = [];
+            HashSet<TCell> continentCellsTmp = [];
 
             int landCount = grid.CellCount - (int)(generator.SeaPct * grid.CellCount);
             double variation = random.NextDouble() * 0.1;
@@ -177,31 +185,30 @@ namespace WorldSimulation
 
             Console.WriteLine($"Continent 1: {c1}, Continent 2: {c2}, Continent 3: {c3}");
 
-            HexCell newCell = random.NextItemExtract(grid.Cells.ToList());
-            List<HexCell> cellPool = new List<HexCell>() { newCell };
+            TCell newCell = random.NextItemExtract(grid.Cells.ToList());
+            List<TCell> cellPool = [ newCell ];
 
             for (int i = 0; i < c1; i++)
             {
                 while (generator.IsLand(newCell) && cellPool.Count > 0)
                     newCell = random.NextItemExtract(cellPool);
 
-                generator.CellData[newCell].Elevation = Elevation.Lowland;
+                generator.SetElevation(newCell, Elevation.Lowland);
                 continentCells.Add(newCell);
                 cellPool.AddRange(newCell.Neighbors.Where(generator.IsSea));
             }
 
-            Func<HexCell, bool> validCell = c => generator.IsSea(c) && c.Neighbors.All(n => !continentCells.Contains(n));
+            Func<TCell, bool> validCell = c => generator.IsSea(c) && c.Neighbors.All(n => !continentCells.Contains(n));
 
             newCell = random.NextItemExtract(grid.Cells.Where(validCell).ToList());
-            cellPool = new List<HexCell>() { newCell };
+            cellPool = [newCell];
 
             for (int i = 0; i < c2; i++)
             {
                 while (generator.IsLand(newCell) && cellPool.Count > 0)
                     newCell = random.NextItemExtract(cellPool);
 
-
-                generator.CellData[newCell].Elevation = Elevation.Lowland;
+                generator.SetElevation(newCell, Elevation.Lowland);
                 continentCellsTmp.Add(newCell);
                 cellPool.AddRange(newCell.Neighbors.Where(validCell));
             }
@@ -209,14 +216,14 @@ namespace WorldSimulation
             continentCells.UnionWith(continentCellsTmp);
 
             newCell = random.NextItemExtract(grid.Cells.Where(validCell).ToList());
-            cellPool = new List<HexCell>() { newCell };
+            cellPool = [newCell];
 
             for (int i = 0; i < c3; i++)
             {
                 while (generator.IsLand(newCell) && cellPool.Count > 0)
                     newCell = random.NextItemExtract(cellPool);
 
-                generator.CellData[newCell].Elevation = Elevation.Lowland;
+                generator.SetElevation(newCell, Elevation.Lowland);
                 cellPool.AddRange(newCell.Neighbors.Where(validCell));
             }
 
