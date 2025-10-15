@@ -103,7 +103,7 @@ namespace WorldSimulation
             {
                 bool expandSmoothely = i == GridLevels - 1 && _parameters.UniformRegionSize;
                 RandomExt rndLastGrid = i == GridLevels - 1 ? subregionRandom : random;
-                ExpandedHexGrid expandedGrid = expandSmoothely ? HexGridExpander.Expand(grid, rndLastGrid, 0) : HexGridExpander.Expand(grid, rndLastGrid);
+                IContainer<HexGrid, HexCell> expandedGrid = expandSmoothely ? HexGridExpander.Expand(grid, rndLastGrid, 0) : HexGridExpander.Expand(grid, rndLastGrid);
                 grid = expandedGrid.Grid;
                 _grids.Add(grid);
                 _addData(grid);

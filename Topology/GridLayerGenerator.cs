@@ -37,21 +37,21 @@ namespace Topology
         /// <summary>
         /// The exact children of parent cells of the first and last row also lie in these rows
         /// </summary>
-        /// <param name="grid"></param>
+        /// <param name="parentGrid"></param>
         /// <param name="factory"></param>
         /// <param name="random"></param>
         /// <returns></returns>
-        static public TGrid ExpandBroad<TGrid, TCell>(TGrid grid, IFactoryHexGrid<TGrid> factory, RandomExt random)
+        static public TGrid CreateLayerGrid<TGrid, TCell>(TGrid parentGrid, IFactoryHexGrid<TGrid> factory, RandomExt random)
             where TGrid : IGrid<TCell>
             where TCell : ILayerCell<TCell>, INeighbors<TCell>
         {
-            TGrid childGrid = factory.CreateGrid(grid.Columns * 2, grid.Rows * 2 + 1);
+            TGrid childGrid = factory.CreateGrid(parentGrid.Columns * 2, parentGrid.Rows * 2 + 1);
 
-            for (int x = 0; x < grid.Columns; x++)
+            for (int x = 0; x < parentGrid.Columns; x++)
             {
-                for (int y = 0; y < grid.Rows; y++)
+                for (int y = 0; y < parentGrid.Rows; y++)
                 {
-                    TCell parentCell = grid.GetCell(x, y);
+                    TCell parentCell = parentGrid.GetCell(x, y);
                     int childX = x * 2 + y % 2;
                     int childY = y * 2 + 1;
                     TCell childCell = childGrid.GetCell(childX, childY);

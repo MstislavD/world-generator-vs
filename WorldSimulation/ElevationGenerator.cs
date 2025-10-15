@@ -12,9 +12,9 @@ namespace WorldSimulation
 {
     class ElevationGenerator<TGen, TGrid, TCell, TEdge>
         where TGen : IGenerator, IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
-            where TGrid : IGrid<TCell>, IEdges<TEdge>
-            where TCell : HexCell<TCell, TEdge>
-            where TEdge : Edge<TCell>
+        where TGrid : IGrid<TCell>, IEdges<TEdge>
+        where TCell : HexCell<TCell, TEdge>
+        where TEdge : Edge<TCell>
     {
         public static void GenerateRandom(TGen generator, TGrid grid, RandomExt random)
         {
@@ -25,7 +25,6 @@ namespace WorldSimulation
                 TCell cell = random.NextItemExtract(cells);
                 generator.SetElevation(cell, Elevation.Lowland);
             }
-            ;
 
             _createShallowSeas(generator, grid, random);
             _riseLand(generator, grid, random);
@@ -298,19 +297,6 @@ namespace WorldSimulation
                 {
                     currentLandCount -= 1;
                     generator.SetElevation(cell, Elevation.ShallowOcean);
-                }
-            }
-        }
-
-        static void _createMountainRegions(WorldGenerator generator, HexGrid grid, RandomExt random)
-        {
-            foreach (Edge edge in grid.Edges.Where(generator.HasRidge))
-            {
-                List<HexCell> pool = edge.Cells.Where(generator.IsLand).ToList();
-                if (pool.Count > 0 && !pool.Any(c => generator.GetElevation(c) == Elevation.Mountain))
-                {
-                    HexCell mnt = random.NextItemExtract(pool);
-                    generator.CellData[mnt].Elevation = Elevation.Mountain;
                 }
             }
         }
