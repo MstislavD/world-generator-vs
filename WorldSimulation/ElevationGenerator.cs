@@ -60,9 +60,12 @@ namespace WorldSimulation
             }
         }
 
-        public static void GenerateModify(WorldGenerator generator, HexGrid grid, RandomExt random)
+        public static void GenerateModify<TGen, TGrid, TCell, TEdge>(TGen generator, TGrid grid, RandomExt random)
+            where TGen : IGenerator, IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
+            where TGrid : IGrid<TCell>, IEdges<TEdge>
+            where TCell : INeighbors<TCell>
         {
-            _createIslands<WorldGenerator, HexGrid, HexCell>(generator, grid, random);
+            _createIslands(generator, grid, random);
             _riseLand(generator, grid, random);
             _lowerLand(generator, grid, random);
             _destroyRidges(generator, grid, random);
@@ -81,31 +84,35 @@ namespace WorldSimulation
             }
         }
 
-        public static void GenerateScriptPangea(WorldGenerator generator, Topology.HexGrid grid, RandomExt random)
+        public static void GenerateScriptPangea<TGen, TGrid, TCell, TEdge>(TGen generator, TGrid grid, RandomExt random)
+            where TGen : IGenerator, IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
+            where TGrid : IGrid<TCell>, IEdges<TEdge>
+            where TCell : HexCell<TCell, TEdge>
+            where TEdge : Edge<TCell>
         {
             int center = grid.Columns / 2;
             int landCount = grid.CellCount - (int)(generator.SeaPct * grid.CellCount);
             int smallLands = random.Next((int)(landCount * 0.2));
             int pangeaCells = landCount - smallLands;
 
-            HexCell newCell = grid.GetCell(center, random.Next(grid.Rows));
+            TCell newCell = grid.GetCell(center, random.Next(grid.Rows));
 
-            List<HexCell> cellPool = new List<HexCell>() { newCell };
+            List<TCell> cellPool = [newCell];
 
             for (int i = 0; i < pangeaCells; i++)
             {
                 while (generator.IsLand(newCell))
                     newCell = random.NextItemExtract(cellPool);
 
-                generator.CellData[newCell].Elevation = Elevation.Lowland;
+                generator.SetElevation(newCell , Elevation.Lowland);
                 cellPool.AddRange(newCell.Neighbors.Where(generator.IsSea));
             }
 
-            List<HexCell> cells = grid.Cells.Where(generator.IsSea).ToList();
+            List<TCell> cells = grid.Cells.Where(generator.IsSea).ToList();
             for (int i = 0; i < smallLands; i++)
             {
-                HexCell cell = random.NextItemExtract(cells);
-                generator.CellData[cell].Elevation = Elevation.Lowland;
+                TCell cell = random.NextItemExtract(cells);
+                generator.SetElevation(cell, Elevation.Lowland);
             };
 
             _createShallowSeas(generator, grid, random);
@@ -270,7 +277,7 @@ namespace WorldSimulation
             };
         }
 
-        static void _createIslands<TGen, TGrid, TCell>(TGen generator, IGrid<TCell> grid, RandomExt random)
+        static void _createIslands<TGen, TCell>(TGen generator, IGrid<TCell> grid, RandomExt random)
             where TGen : IGenerator, IGeneratorCell<TCell>
             where TCell : INeighbors<TCell>
         {

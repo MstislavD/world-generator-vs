@@ -90,7 +90,7 @@ namespace WorldSimulation
             Action<WorldGenerator, HexGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
             {
                 MapScript.Random => ElevationGenerator.GenerateRandom<WorldGenerator, HexGrid, HexCell, Edge>,
-                MapScript.One_continent => ElevationGenerator.GenerateScriptPangea,
+                MapScript.One_continent => ElevationGenerator.GenerateScriptPangea<WorldGenerator, HexGrid, HexCell, Edge>,
                 MapScript.Two_continents => ElevationGenerator.GenerateScriptTwoContinents,
                 MapScript.Three_continents => ElevationGenerator.GenerateScriptThreeContinents,
                 _ => throw new Exception()
@@ -110,7 +110,7 @@ namespace WorldSimulation
 
                 if (i < GridLevels - 1)
                 {
-                    ElevationGenerator.GenerateModify(this, grid, random);
+                    ElevationGenerator.GenerateModify<WorldGenerator, HexGrid, HexCell, Edge>(this, grid, random);
                 }
 
                 if (i == GridLevels - 2)
