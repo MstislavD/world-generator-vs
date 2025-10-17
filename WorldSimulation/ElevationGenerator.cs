@@ -37,7 +37,7 @@ namespace WorldSimulation
 
             foreach (TCell cell in grid.Cells)
             {
-                TCell parent = expandedGrid.Getparent(cell);
+                TCell parent = expandedGrid.GetParent(cell);
                 generator.SetParent(cell, parent);
                 generator.SetElevation(cell, generator.GetElevation(parent));
                 generator.SetHeight(cell, generator.GetHeight(parent));

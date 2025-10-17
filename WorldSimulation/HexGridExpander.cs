@@ -11,7 +11,7 @@ namespace WorldSimulation
     public interface IContainer<TGrid, TCell>
     {
         TGrid Grid { get; }
-        TCell Getparent(TCell cell);
+        TCell GetParent(TCell cell);
     }
 
     public class ExpandedHexGrid : HexGrid<WorldCell, WorldEdge>, IContainer<HexGrid, HexCell>
@@ -28,7 +28,7 @@ namespace WorldSimulation
         public IEnumerable<HexCell> Regions => ParentGrid.Cells;
         public IEnumerable<Edge> ChildrenByEdge(Edge edge) => ChildrenByCell[edge.Cell1].SelectMany(c => c.Edges).Where(e => e.Cells.Any(c => ParentByCell[c] == edge.Cell2));
 
-        public HexCell Getparent(HexCell cell) => ParentByCell[cell];
+        public HexCell GetParent(HexCell cell) => ParentByCell[cell];
     }
 
     public class HexGridExpander
