@@ -1,7 +1,7 @@
 # WorldGeneratorVS
 
 ### [Topology](Topology/)
-Classes, data structures, and algorithms used for geometrical and topological problems, including HexGrid, a graph of interconnected hexagonal cells. 
+Classes, data structures, and algorithms used for geometrical and topological problems, including hexagonal grid, a graph of interconnected hexagonal cells. 
 
 ### [Utilities](Utilities/)
 A collection of classes with utility functions.
