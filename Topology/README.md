@@ -8,6 +8,6 @@
 
 ### HexCell<TCell, TEdge>
 
-### HexEdge<TCell>
+### HexEdge <TCell>
 
 ### HexGrid<TCell, TEdge>
