@@ -1,4 +1,4 @@
-HexCell
+### <font color="blue"> HexCell </font>
 
 HexEdge
 
