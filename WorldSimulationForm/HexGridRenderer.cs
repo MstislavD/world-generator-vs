@@ -17,12 +17,12 @@ namespace WorldSimulationForm
         RenderObjects _objects;
         System.Numerics.Vector2 origin;
 
-        static public Bitmap Render(HexGrid grid, int maxWidth, int maxHeight, RenderObjects objects)
+        static public Bitmap Render(IHexGrid grid, int maxWidth, int maxHeight, RenderObjects objects)
         {
             return new HexGridRenderer(grid, maxWidth, maxHeight, objects)._image;
         }
 
-        HexGridRenderer(HexGrid grid, int maxWidth, int maxHeight, RenderObjects objects)
+        HexGridRenderer(IHexGrid grid, int maxWidth, int maxHeight, RenderObjects objects)
         {
             double xScale = (maxWidth - 1) / grid.Width;
             double yScale = (maxHeight - 1) / grid.Height;
@@ -91,7 +91,7 @@ namespace WorldSimulationForm
             }
         }
 
-        private void _drawSegments(HexGrid grid, int imageWidth, Graphics g, SegmentData segment)
+        private void _drawSegments(IHexGrid grid, int imageWidth, Graphics g, SegmentData segment)
         {
             if (segment.Pen.Width == 0)
                 segment.Pen.Width = (int)(grid.HexSide * ridgeMultiplier * _objects.Scale);

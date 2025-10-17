@@ -13,8 +13,8 @@ namespace WorldSimulation
     class ElevationGenerator<TGen, TGrid, TCell, TEdge>
         where TGen : IGenerator, IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
         where TGrid : IGrid<TCell>, IEdges<TEdge>
-        where TCell : HexCell<TCell, TEdge>
-        where TEdge : Edge<TCell>
+        where TCell : INeighbors<TCell>, ICell<TCell, TEdge>
+        where TEdge : IEdge<TCell>
     {
         public static void GenerateRandom(TGen generator, TGrid grid, RandomExt random)
         {

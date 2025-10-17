@@ -17,12 +17,19 @@ namespace Topology
         IEnumerable<T> Neighbors { get; }
     }
 
+    public interface ICell<TCell, TEdge>
+    {
+        public Vector2 Center { get; }
+        public TEdge GetEdgeByNeighbor(TCell neighbor);
+    }
+
+
     /// <summary>
     /// Representaion of a hexagonal tile in a hexagonal grid. Each tile has six vertices and is connected to its neighbors through edges.
     /// </summary>
     /// <typeparam name="TCell"></typeparam>
     /// <typeparam name="TEdge"></typeparam>
-    public class HexCell<TCell, TEdge> : PolygonBase, INeighbors<TCell>
+    public class HexCell<TCell, TEdge> : PolygonBase, INeighbors<TCell>, ICell<TCell, TEdge>
     {
         Vector2[] _vertices = new Vector2[6];
         // To decrease memory consumption it is possible to remove neighbor list and infere neighbours via edges.

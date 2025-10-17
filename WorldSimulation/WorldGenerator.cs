@@ -8,27 +8,32 @@ using Utilities;
 using TrapezoidSpatialIndex;
 using System.Diagnostics;
 
+//using HexGrid = WorldSimulation.WorldGrid;
+//using HexCell = WorldSimulation.WorldCell;
+//using Edge = WorldSimulation.WorldEdge;
+
 
 namespace WorldSimulation
 {
     public class WorldCell : LayerHexCell<WorldCell, WorldEdge> { }
-    public class WorldEdge : Edge<WorldCell> { }
+    public class WorldEdge : LayerEdge<WorldCell, WorldEdge> { }
     public class WorldGrid : HexGrid<WorldCell, WorldEdge>
     {
         public WorldGrid(int columns, int rows) : base(columns, rows) { }
     }
     public interface IGeneratorCell<TCell>
     {
-        public double SeaPct { get; }
+        public TCell GetParent(TCell cell);
         public Elevation GetElevation(TCell cell);
-        public int GetHeight(TCell cell);
         public void SetElevation(TCell cell, Elevation elevation);
+        public int GetHeight(TCell cell);
         public void SetHeight(TCell cell, int height);
         public void SetParent(TCell cell, TCell parent);
         public void ChangeElevationLevel(TCell cell, int delta);
         public bool IsSea(TCell cell);
         public bool IsLand(TCell cell);
         public bool NearSea(TCell cell);
+        public bool NearLand(TCell cell);
         public TCell GetCellParent(TCell cell);
     }
     public interface IGeneratorEdge<TEdge>
@@ -42,6 +47,7 @@ namespace WorldSimulation
 
     public interface IGenerator
     {
+        public double SeaPct { get; }
         public GenerationParameters Parameters { get; }
     }
     public enum Elevation { DeepOcean, ShallowOcean, Lowland, Upland, Highland, Mountain }
@@ -117,12 +123,12 @@ namespace WorldSimulation
 
                 if (i == GridLevels - 2)
                 {
-                    HeightGenerator.Generate(this, grid, heightRandom);
+                    HeightGenerator.Generate<WorldGenerator, HexGrid, HexCell, Edge>(this, grid, heightRandom);
                 }
             }
 
             if (_parameters.RegionSmoothing)
-                RegionSmoother.Smooth(this, grid);
+                RegionSmoother<WorldGenerator, HexGrid, HexCell, Edge>.Smooth(this, grid);
 
             SubregionGraph = new SubregionGraph(grid, this);
             RegionMap = new RegionMap(this);
@@ -317,5 +323,7 @@ namespace WorldSimulation
         public void SetParent(Edge edge, Edge parent) => EdgeData[edge].Parent = parent;
 
         public bool GetRidge(Edge edge) => EdgeData[edge].Ridge;
+
+        public HexCell GetParent(HexCell cell) => CellData[cell].Parent;
     }
 }

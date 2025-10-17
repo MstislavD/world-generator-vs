@@ -4,6 +4,15 @@ using static System.Linq.Enumerable;
 
 namespace Topology
 {
+    public interface IHexGrid
+    {
+        public int Columns { get; }
+        public int Rows { get; }
+        public double Width { get; }
+        public double Height { get; }
+        public double HexSide { get; }
+    }
+
     public interface IGrid<TCell>
     {
         public int Columns { get; }
@@ -11,6 +20,7 @@ namespace Topology
         public TCell GetCell(int x, int y);
         public IEnumerable<TCell> Cells { get; }
         public int CellCount { get; }
+        public void UpdateVertices(Func<Vector2, TCell, TCell, TCell, Vector2> formula);
     }
 
     public interface IEdges<TEdge>
@@ -23,7 +33,7 @@ namespace Topology
     /// </summary>
     /// <typeparam name="TCell">Hexagon class.</typeparam>
     /// <typeparam name="TEdge">Edge class.</typeparam>
-    public class HexGrid<TCell, TEdge> : IGrid<TCell>, IEdges<TEdge>
+    public class HexGrid<TCell, TEdge> : IHexGrid, IGrid<TCell>, IEdges<TEdge>
         where TCell : HexCell<TCell, TEdge>, new()
         where TEdge : Edge<TCell>, new()
     {

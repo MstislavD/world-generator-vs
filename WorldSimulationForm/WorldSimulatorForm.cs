@@ -105,7 +105,8 @@ namespace WorldSimulationForm
             Button btnTest = panel.AddButton("Test");
             //btnTest.Click += (s, e) => new PointLocationForm.PointLocationForm(_generator.SubregionGraph).Visible = true;
             //btnTest.Click += (s, e) => { _testImage = RaycastTest.GetImage((int)(ClientSize.Height * 0.5f)); Invalidate(); };
-            btnTest.Click += (s, e) => { _testImage = SpatialIndexTest.GetImage(_generator, imageMaxSize()); Invalidate(); };
+            //btnTest.Click += (s, e) => { _testImage = SpatialIndexTest.GetImage(_generator, imageMaxSize()); Invalidate(); };
+            btnTest.Click += (s, e) => { _testImage = LayerGridTest.GetImage(imageMaxSize()); Invalidate(); };
 
 
             _lblInfo = panel.AddLabel("Info");

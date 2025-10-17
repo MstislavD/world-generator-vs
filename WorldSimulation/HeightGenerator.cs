@@ -14,16 +14,19 @@ namespace WorldSimulation
         const double _heightFactor = 10;
         const double _noRidgeDelta = 2;
 
-        public static void Generate(WorldGenerator generator, HexGrid grid, RandomExt random)
+        public static void Generate<TGen, TGrid, TCell, TEdge>(TGen generator, TGrid grid, RandomExt random)
+            where TGen:IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
+            where TGrid:IGrid<TCell>
+            where TCell: INeighbors<TCell>, ICell<TCell, TEdge>
         {
-            Func<HexCell, HexCell, bool> _ridgeBetween = (c1, c2) => generator.HasRidge(c1.GetEdgeByNeighbor(c2));
+            Func<TCell, TCell, bool> _ridgeBetween = (c1, c2) => generator.HasRidge(c1.GetEdgeByNeighbor(c2));
 
-            List<HexCell> shoreCells = grid.Cells.Where(generator.IsLand).Where(generator.NearSea).ToList();
-            List<Edge> destroyedEdges = new List<Edge>();
+            List<TCell> shoreCells = grid.Cells.Where(generator.IsLand).Where(generator.NearSea).ToList();
+            List<TEdge> destroyedEdges = new List<TEdge>();
 
-            WeightedTree<HexCell> bag = new WeightedTree<HexCell>();
+            WeightedTree<TCell> bag = new WeightedTree<TCell>();
 
-            foreach (HexCell cell in shoreCells)
+            foreach (TCell cell in shoreCells)
             {
                 double w1 = cell.Neighbors.Where(generator.IsSea).All(n => _ridgeBetween(cell, n)) ? _noRidgeDelta : 0;
                 double weight = Math.Pow(_heightFactor, Elevation.Lowland - generator.GetElevation(cell) - w1);
@@ -34,19 +37,19 @@ namespace WorldSimulation
             while (bag.Count > 0)
             {
                 height += 1;
-                HexCell cell = bag.Extract(random);
-                generator.CellData[cell].Height = height;
+                TCell cell = bag.Extract(random);
+                generator.SetHeight(cell, height);
 
-                IEnumerable<HexCell> lowerNeighbors = cell.Neighbors.Where(n => generator.IsSea(n) || generator.GetHeight(n) > 0);
+                IEnumerable<TCell> lowerNeighbors = cell.Neighbors.Where(n => generator.IsSea(n) || generator.GetHeight(n) > 0);
                 if (lowerNeighbors.All(n => _ridgeBetween(n, cell)))
                 {
-                    List<Edge> edges = lowerNeighbors.Select(n => cell.GetEdgeByNeighbor(n)).ToList();
-                    Edge ridgeDestroyed = random.NextItemExtract(edges);
-                    generator.EdgeData[ridgeDestroyed].Ridge = false;
+                    List<TEdge> edges = lowerNeighbors.Select(cell.GetEdgeByNeighbor).ToList();
+                    TEdge ridgeDestroyed = random.NextItemExtract(edges);
+                    generator.SetRidge(ridgeDestroyed, false);
                     destroyedEdges.Add(ridgeDestroyed);
                 }
 
-                foreach (HexCell neighbor in cell.Neighbors.Where(generator.IsLand).Where(n => generator.GetHeight(n) == 0))
+                foreach (TCell neighbor in cell.Neighbors.Where(generator.IsLand).Where(n => generator.GetHeight(n) == 0))
                 {
                     double w1 = _ridgeBetween(cell, neighbor) ? _noRidgeDelta : 0;
                     double weight = Math.Pow(_heightFactor, Elevation.Lowland - generator.GetElevation(neighbor) - w1);
@@ -59,7 +62,7 @@ namespace WorldSimulation
 
             shoreCells = grid.Cells.Where(generator.IsSea).Where(generator.NearLand).ToList();
 
-            foreach (HexCell cell in shoreCells)
+            foreach (TCell cell in shoreCells)
             {
                 double weight = Math.Pow(_heightFactor, (double)generator.GetElevation(cell));
                 bag.Add(cell, weight);
@@ -69,10 +72,10 @@ namespace WorldSimulation
             while (bag.Count > 0)
             {
                 height -= 1;
-                HexCell cell = bag.Extract(random);
-                generator.CellData[cell].Height = height;
+                TCell cell = bag.Extract(random);
+                generator.SetHeight(cell, height);
 
-                foreach (HexCell neighbor in cell.Neighbors.Where(generator.IsSea).Where(n => generator.GetHeight(n) == 0).Where(n => !bag.Contains(n)))
+                foreach (TCell neighbor in cell.Neighbors.Where(generator.IsSea).Where(n => generator.GetHeight(n) == 0).Where(n => !bag.Contains(n)))
                 {
                     double weight = Math.Pow(_heightFactor, (double)generator.GetElevation(cell));
                     bag.Add(neighbor, weight);

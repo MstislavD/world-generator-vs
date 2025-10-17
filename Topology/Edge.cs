@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace Topology
 {
+    public interface IEdge<TCell>
+    {
+        public TCell? Cell1 { get; set; }
+        public TCell? Cell2 { get; set; }
+        public IEnumerable<TCell?> Cells { get; }
+    }
+
     /// <summary>
     /// Line segment.
     /// </summary>
@@ -28,7 +35,7 @@ namespace Topology
     /// Representaion of an edge between two tiles of a grid.
     /// </summary>
     /// <typeparam name="TCell">Node of a graph.</typeparam>
-    public class Edge<TCell> : LineSegment
+    public class Edge<TCell> : LineSegment, IEdge<TCell>
     {
         public TCell? Cell1 { get; set; }
         public TCell? Cell2 { get; set; }
