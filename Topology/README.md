@@ -1,5 +1,13 @@
-### HexCell
+### Bounding Box
 
-### HexEdge
+### Line Segment
 
-### HexGrid
+### PolygonBase
+
+### Polygon
+
+### HexCell<TCell, TEdge>
+
+### HexEdge<TCell>
+
+### HexGrid<TCell, TEdge>
