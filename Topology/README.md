@@ -1,5 +1,5 @@
-### <font color="green"> HexCell </font>
+### +HexCell+
 
-HexEdge
+### HexEdge
 
-HexGrid
+### HexGrid
