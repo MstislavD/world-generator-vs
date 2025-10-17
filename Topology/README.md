@@ -1,4 +1,4 @@
-### +HexCell+
+### HexCell
 
 ### HexEdge
 
