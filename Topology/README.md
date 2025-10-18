@@ -1,8 +1,14 @@
+### INeighbors\<TCell>
+
+### ICell\<TCell, TEdge>
+
 ### IEdge\<TCell>
+
+### Geometry
 
 ### Bounding Box
 
-### Line Segment
+### LineSegment
 
 ### PolygonBase
 
