@@ -1,4 +1,4 @@
-### IEdge<TCell>
+### IEdge\<TCell>
 
 ### Bounding Box
 
@@ -10,6 +10,6 @@
 
 ### HexCell<TCell, TEdge>
 
-### HexEdge\<TCell>
+### Edge\<TCell>
 
 ### HexGrid<TCell, TEdge>
