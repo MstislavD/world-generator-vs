@@ -1,4 +1,5 @@
 ### INeighbors\<TCell>
+rename
 
 ### ICell\<TCell, TEdge>
 
@@ -46,13 +47,13 @@
 <br>
 
 ### IRegionPartition\<TRegion>
-to remove
+remove
 
 ### PLNode
-to remove
+-> private
 
 ### Trapezoid
-to remove
+-> private
 
 ### TrapezoidSpatialIndex\<TRegion>
 TRegion -> TPolygon
