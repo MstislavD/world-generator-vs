@@ -4,7 +4,7 @@
 
 ### IEdge\<TCell>
 
-### ILayer<T>
+### ILayer\<T>
 
 ### IPolygon
 
