@@ -6,6 +6,10 @@
 
 ### IPolygon
 
+### IHexGrid
+
+### IGrid\<TCell>
+
 ### Geometry
 
 ### Bounding Box
