@@ -43,8 +43,7 @@
 ### ChildGridGenerator
 
 ### QuadTreeSpatialIndex<TPolygon>
-
-
+  
 ### IRegionPartition\<TRegion>
 
 ### PLNode
