@@ -45,9 +45,13 @@
 ### QuadTreeSpatialIndex<TPolygon>
   
 ### IRegionPartition\<TRegion>
+  
 
 ### PLNode
+to remove
 
 ### Trapezoid
+to remove
 
 ### TrapezoidSpatialIndex\<TRegion>
+TRegion -> TPolygon
