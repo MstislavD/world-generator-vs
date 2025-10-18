@@ -14,9 +14,9 @@
 
 ### IEdges\<TEdge>
 
-### IFactoryHexGrid<TGrid>
+### IFactoryHexGrid\<TGrid>
 
-### ISpatialIndex<TPolygon>
+### ISpatialIndex\<TPolygon>
 
 ### Geometry
 
@@ -30,11 +30,11 @@
 
 ### Polygon
 
-### HexCell<TCell, TEdge>
+### HexCell\<TCell, TEdge>
 
 ### Edge\<TCell>
 
-### HexGrid<TCell, TEdge>
+### HexGrid\<TCell, TEdge>
 
 ### LayerHexCell\<TCell, TEdge>
 
@@ -42,7 +42,7 @@
 
 ### ChildGridGenerator
 
-### QuadTreeSpatialIndex<TPolygon>
+### QuadTreeSpatialIndex\<TPolygon>
 <br>
 
 ### IRegionPartition\<TRegion>
