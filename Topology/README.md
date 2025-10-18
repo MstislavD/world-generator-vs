@@ -43,9 +43,10 @@
 ### ChildGridGenerator
 
 ### QuadTreeSpatialIndex<TPolygon>
-  
+<br>
+
 ### IRegionPartition\<TRegion>
-  
+to remove
 
 ### PLNode
 to remove
