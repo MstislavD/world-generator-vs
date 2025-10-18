@@ -16,6 +16,8 @@
 
 ### Bounding Box
 
+### Vector2
+
 ### LineSegment
 
 ### PolygonBase
