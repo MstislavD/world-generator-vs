@@ -45,10 +45,10 @@
 ### QuadTreeSpatialIndex<TPolygon>
 
 
-### IRegionPartition<TRegion>
+### IRegionPartition\<TRegion>
 
 ### PLNode
 
 ### Trapezoid
 
-### TrapezoidSpatialIndex<TRegion>
+### TrapezoidSpatialIndex\<TRegion>
