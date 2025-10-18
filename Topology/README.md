@@ -1,3 +1,5 @@
+### IEdge<TCell>
+
 ### Bounding Box
 
 ### Line Segment
