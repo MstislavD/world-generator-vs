@@ -4,6 +4,8 @@
 
 ### IEdge\<TCell>
 
+### IPolygon
+
 ### Geometry
 
 ### Bounding Box
