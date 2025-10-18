@@ -4,6 +4,8 @@
 
 ### IEdge\<TCell>
 
+### ILayer<T>
+
 ### IPolygon
 
 ### IHexGrid
@@ -11,6 +13,10 @@
 ### IGrid\<TCell>
 
 ### IEdges\<TEdge>
+
+### IFactoryHexGrid<TGrid>
+
+### ISpatialIndex<TPolygon>
 
 ### Geometry
 
@@ -29,3 +35,20 @@
 ### Edge\<TCell>
 
 ### HexGrid<TCell, TEdge>
+
+### LayerHexCell\<TCell, TEdge>
+
+### LayerEdge\<TCell, TEdge>
+
+### ChildGridGenerator
+
+### QuadTreeSpatialIndex<TPolygon>
+
+
+### IRegionPartition<TRegion>
+
+### PLNode
+
+### Trapezoid
+
+### TrapezoidSpatialIndex<TRegion>
