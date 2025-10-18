@@ -10,6 +10,8 @@
 
 ### IGrid\<TCell>
 
+### IEdges\<TEdge>
+
 ### Geometry
 
 ### Bounding Box
