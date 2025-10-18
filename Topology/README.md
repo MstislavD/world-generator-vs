@@ -2,6 +2,7 @@
 rename
 
 ### ICell\<TCell, TEdge>
+rename
 
 ### IEdge\<TCell>
 
@@ -21,7 +22,7 @@ rename
 
 ### Geometry
 
-### Bounding Box
+### BoundingBox
 
 ### Vector2
 
