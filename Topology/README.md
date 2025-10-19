@@ -7,6 +7,7 @@ rename
 ### IEdge\<TCell>
 
 ### ILayer\<T>
+rename
 
 ### IPolygon
 
