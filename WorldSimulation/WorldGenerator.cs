@@ -40,6 +40,7 @@ namespace WorldSimulation
     {
         public bool HasRidge(TEdge edge);
         public bool GetRidge(TEdge edge);
+        public TEdge GetEdgeParent(TEdge edge);
         public void SetParent(TEdge edge, TEdge parent);
         public void SetRidge(TEdge edge, bool r);
         public bool PossibleRidge(TEdge e);

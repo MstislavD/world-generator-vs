@@ -10,70 +10,83 @@ using System.Diagnostics;
 
 namespace WorldSimulation
 {
+    public class Subregion : SubregionS<Subregion, HexCell, Edge> { }
+
+    public class SubregionGraph : SubregionGraphS<WorldGenerator, Subregion, HexGrid, HexCell, Edge>
+    {
+        public SubregionGraph(HexGrid grid, WorldGenerator generator) : base(grid, generator) { }
+    }
+
     public enum SubregionType { Cell, Edge }
 
-    public class SubregionGraph
+    public class SubregionGraphS<TGen, TSubregion, TGrid, TCell, TEdge>
+        where TGen : IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
+        where TSubregion : SubregionS<TSubregion, TCell , TEdge>, new()
+        where TGrid : IHexGrid, IGrid<TCell>, IEdges<TEdge>
+        where TCell : HexCell<TCell, TEdge>, IPolygon
+        where TEdge : LineSegment, IEdge<TCell>, new()
     {
-        List<Subregion> _subregions = new List<Subregion>();
-        Dictionary<Edge, Subregion> _subregionByEdge = new Dictionary<Edge, Subregion>();
-        Dictionary<HexCell, Subregion> _subregionByCell = new Dictionary<HexCell, Subregion>();
-        Dictionary<HexCell, List<Subregion>> _subregionsByCellRegion = new Dictionary<HexCell, List<Subregion>>();
-        Dictionary<Edge, List<Subregion>> _subregionsByEdgeRegion = new Dictionary<Edge, List<Subregion>>();
+        List<TSubregion> _subregions = new List<TSubregion>();
+        Dictionary<TEdge, TSubregion> _subregionByEdge = new Dictionary<TEdge, TSubregion>();
+        Dictionary<TCell, TSubregion> _subregionByCell = new Dictionary<TCell, TSubregion>();
+        Dictionary<TCell, List<TSubregion>> _subregionsByCellRegion = new Dictionary<TCell, List<TSubregion>>();
+        Dictionary<TEdge, List<TSubregion>> _subregionsByEdgeRegion = new Dictionary<TEdge, List<TSubregion>>();
 
         double _delta = 0.5;
         const bool _useRidgeSmoothing = true;
 
-        public SubregionGraph(HexGrid grid, WorldGenerator generator)
+        public SubregionGraphS(TGrid grid, TGen generator)
         {
             Width = grid.Width;
             Height = grid.Height;
 
-            foreach (Edge edge in grid.Edges.Where(generator.HasRidge))
+            foreach (TEdge edge in grid.Edges.Where(generator.HasRidge))
             {
                _createEdgeSubregion(edge, _subregionByEdge, generator);
             }
 
-            foreach (HexCell cell in grid.Cells)
+            foreach (TCell cell in grid.Cells)
             {
                 _createCellSubregion(cell, _subregionByCell, generator);
             }
 
-            foreach (Subregion subregion in _subregions.Where(sr => sr.Type == SubregionType.Edge))
+            foreach (TSubregion subregion in _subregions.Where(sr => sr.Type == SubregionType.Edge))
             {
                 _calculateGeometryRidge(subregion, generator);
 
                 if (!_subregionsByEdgeRegion.ContainsKey(subregion.ParentEdge))
                 {
-                    _subregionsByEdgeRegion[subregion.ParentEdge] = new List<Subregion>();
+                    _subregionsByEdgeRegion[subregion.ParentEdge] = new List<TSubregion>();
                 }
                 _subregionsByEdgeRegion[subregion.ParentEdge].Add(subregion);
             }
 
-            foreach (Subregion subregion in _subregions.Where(sr => sr.Type == SubregionType.Cell))
+            foreach (TSubregion subregion in _subregions.Where(sr => sr.Type == SubregionType.Cell))
             {
                 _calculateGeometryCell(subregion, generator);
 
                 if (!_subregionsByCellRegion.ContainsKey(subregion.ParentCell))
                 {
-                    _subregionsByCellRegion[subregion.ParentCell] = new List<Subregion>();
+                    _subregionsByCellRegion[subregion.ParentCell] = new List<TSubregion>();
                 }
                 _subregionsByCellRegion[subregion.ParentCell].Add(subregion);
             }
         }
 
-        public IEnumerable<Subregion> Subregions => _subregions;
+        public IEnumerable<TSubregion> Subregions => _subregions;
         public double Width { get; }
         public double Height { get; }
-        public IEnumerable<Subregion> CellSubregions => _subregions.Where(sr => sr.Type == SubregionType.Cell);
-        public IEnumerable<Subregion> EdgeSubregions => _subregions.Where(sr => sr.Type == SubregionType.Edge);
-        public Subregion GetSubregion(HexCell cell) => _subregionByCell[cell];
-        public ISpatialIndex<Subregion>? SpatialIndex { get; private set; }
-        public IEnumerable<Subregion> GetSubregions(HexCell region) => _subregionsByCellRegion[region];
-        public IEnumerable<Subregion> GetSubregions(Edge edge) => _subregionsByEdgeRegion[edge];
+        public IEnumerable<TSubregion> CellSubregions => _subregions.Where(sr => sr.Type == SubregionType.Cell);
+        public IEnumerable<TSubregion> EdgeSubregions => _subregions.Where(sr => sr.Type == SubregionType.Edge);
+        public TSubregion GetSubregion(TCell cell) => _subregionByCell[cell];
+        public ISpatialIndex<TSubregion>? SpatialIndex { get; private set; }
+        public IEnumerable<TSubregion> GetSubregions(TCell region) => _subregionsByCellRegion[region];
+        public IEnumerable<TSubregion> GetSubregions(TEdge edge) => _subregionsByEdgeRegion[edge];
 
-        private void _calculateGeometryCell(Subregion subregion, WorldGenerator generator)
+        // This method assumes concrete implementation of HexCell
+        private void _calculateGeometryCell(TSubregion subregion, TGen generator)
         {
-            HexCell cell = subregion.Cell;
+            TCell cell = subregion.Cell;
             List<Vector2> subregionVertices = new List<Vector2>();
 
             for (int direction = 0; direction < 7; direction++)
@@ -85,8 +98,8 @@ namespace WorldSimulation
             for (int direction = 0; direction < 6; direction++)
             {
                 SubregionEdge sedge = new SubregionEdge();
-                HexCell neighborCell = cell.GetNeighbor(direction);
-                Edge neighborEdge = cell.GetEdge(direction);
+                TCell neighborCell = cell.GetNeighbor(direction);
+                TEdge neighborEdge = cell.GetEdge(direction);
                 subregion.AddEdge(sedge);
 
                 //IEnumerable<Vertex> vertices =
@@ -166,7 +179,7 @@ namespace WorldSimulation
             {
                 try
                 {
-                    SpatialIndex = new QuadTreeSpatialIndex<Subregion>(Subregions, bbox, capacity);
+                    SpatialIndex = new QuadTreeSpatialIndex<TSubregion>(Subregions, bbox, capacity);
                     break;
                 }
                 catch
@@ -177,11 +190,11 @@ namespace WorldSimulation
             }
         }
 
-        private Vector2[] _cellRegionVertices(WorldGenerator generator, HexCell cell, int direction)
+        private Vector2[] _cellRegionVertices(TGen generator, TCell cell, int direction)
         {
             Vector2[] vertices = new Vector2[5];
-            HexCell cellRight = cell.GetNeighbor(direction);
-            HexCell cellLeft = cell.GetNeighbor(direction + 5);
+            TCell cellRight = cell.GetNeighbor(direction);
+            TCell cellLeft = cell.GetNeighbor(direction + 5);
             Vector2 vertex = cell.GetVertex(direction);
             bool ridgeLeft = generator.HasRidge(cell.GetEdge(direction + 5));
             bool ridgeRight = generator.HasRidge(cell.GetEdge(direction));
@@ -231,7 +244,7 @@ namespace WorldSimulation
             return vertices;
         }
 
-        private void _calculateGeometryRidge(Subregion subregion, WorldGenerator generator)
+        private void _calculateGeometryRidge(TSubregion subregion, TGen generator)
         {
             Vector2[] vertices = _ridgeSubregionVertices(subregion.Edge, generator);
             _createRidgeSubregionEdges(subregion, generator, vertices);
@@ -239,19 +252,19 @@ namespace WorldSimulation
             subregion.Center = Vector2.Lerp(subregion.Edge.Vertex1, subregion.Edge.Vertex2, 0.5);
         }
 
-        private Vector2[] _ridgeSubregionVertices(Edge edge, WorldGenerator generator)
+        private Vector2[] _ridgeSubregionVertices(TEdge edge, TGen generator)
         {
-            HexCell c1 = edge.Cell1;
-            HexCell c2 = edge.Cell2;
+            TCell c1 = edge.Cell1;
+            TCell c2 = edge.Cell2;
             int dir = c1.GetDirection(edge);
 
-            Edge edgeL = c1.GetEdge(dir + 5);
-            Edge edgeR = c1.GetEdge(dir + 1);
-            Edge edgeR1 = c2?.GetEdge(dir + 4);
-            Edge edgeL1 = c2?.GetEdge(dir + 2);
+            TEdge edgeL = c1.GetEdge(dir + 5);
+            TEdge edgeR = c1.GetEdge(dir + 1);
+            TEdge edgeR1 = c2?.GetEdge(dir + 4);
+            TEdge edgeL1 = c2?.GetEdge(dir + 2);
 
-            HexCell cellL = c1.GetNeighbor(dir + 5);
-            HexCell cellR = c1.GetNeighbor(dir + 1);
+            TCell cellL = c1.GetNeighbor(dir + 5);
+            TCell cellR = c1.GetNeighbor(dir + 1);
 
             Vector2[] vertices = new Vector2[10];
 
@@ -319,17 +332,17 @@ namespace WorldSimulation
             return vertices;
         }
 
-        private void _createRidgeSubregionEdges(Subregion subregion, WorldGenerator generator, Vector2[] vp)
+        private void _createRidgeSubregionEdges(TSubregion subregion, TGen generator, Vector2[] vp)
         {
-            Edge edge = subregion.Edge;
-            HexCell cell1 = edge.Cell1;
-            HexCell cell2 = edge.Cell2;
+            TEdge edge = subregion.Edge;
+            TCell cell1 = edge.Cell1;
+            TCell cell2 = edge.Cell2;
             int dir = cell1.GetDirection(edge);
 
-            Action<int, Edge, Edge, HexCell> addEdgeBetweenRidgeAndCell = (index, leftEdge, rightEdge, cell) =>
+            Action<int, TEdge, TEdge, TCell> addEdgeBetweenRidgeAndCell = (index, leftEdge, rightEdge, cell) =>
             {
                 SubregionEdge sEdge = new SubregionEdge();
-                HexCell otherCell = cell == cell1 ? cell2 : cell1;
+                TCell otherCell = cell == cell1 ? cell2 : cell1;
                 int direction = cell == cell1 ? dir : dir + 3;
                 
                 if (vp[(index + 1) % 10] != null && otherCell != null && !generator.HasRidge(otherCell.GetEdge(direction + 2)))
@@ -353,7 +366,7 @@ namespace WorldSimulation
                 subregion.AddNeighbor(_subregionByCell[cell], sEdge);
             };
 
-            Action<bool, int, Edge> addEdgeBetweenRidges = (isLeft, index, neighborEdge) =>
+            Action<bool, int, TEdge> addEdgeBetweenRidges = (isLeft, index, neighborEdge) =>
             {
                 if (generator.HasRidge(neighborEdge))
                 {
@@ -369,25 +382,25 @@ namespace WorldSimulation
                 }                
             };
 
-            Edge edgeRight1 = cell1.GetEdge(dir + 1);
-            Edge edgeLeft1 = cell1.GetEdge(dir + 5);
+            TEdge edgeRight1 = cell1.GetEdge(dir + 1);
+            TEdge edgeLeft1 = cell1.GetEdge(dir + 5);
             addEdgeBetweenRidges(false, 0, edgeRight1);
             addEdgeBetweenRidgeAndCell(0, edgeLeft1, edgeRight1, cell1);
             addEdgeBetweenRidges(true, 3, edgeLeft1);
 
             if (cell2 != null)
             {
-                Edge edgeRight2 = cell2.GetEdge(dir + 4);
-                Edge edgeLeft2 = cell2.GetEdge(dir + 2);
+                TEdge edgeRight2 = cell2.GetEdge(dir + 4);
+                TEdge edgeLeft2 = cell2.GetEdge(dir + 2);
                 addEdgeBetweenRidges(false, 5, edgeRight2);
                 addEdgeBetweenRidgeAndCell(5, edgeLeft2, edgeRight2, cell2);
                 addEdgeBetweenRidges(true, 8, edgeLeft2);
             }                   
         }       
 
-        private void _createCellSubregion(HexCell cell, Dictionary<HexCell, Subregion> subregionByCell, WorldGenerator generator)
+        private void _createCellSubregion(TCell cell, Dictionary<TCell, TSubregion> subregionByCell, TGen generator)
         {
-            Subregion subregion = new Subregion();
+            TSubregion subregion = new TSubregion();
             subregion.Type = SubregionType.Cell;
             subregion.Cell = cell;
             subregion.ParentCell = generator.GetCellParent(cell);
@@ -395,9 +408,9 @@ namespace WorldSimulation
             _subregions.Add(subregion);
         }
 
-        private void _createEdgeSubregion(Edge edge, Dictionary<Edge, Subregion> subregionByEdge, WorldGenerator generator)
+        private void _createEdgeSubregion(TEdge edge, Dictionary<TEdge, TSubregion> subregionByEdge, IGeneratorEdge<TEdge> generator)
         {
-            Subregion subregion = new Subregion();
+            TSubregion subregion = new TSubregion();
             subregion.Type = SubregionType.Edge;
             subregion.Edge = edge;
             subregion.ParentEdge = generator.GetEdgeParent(edge);
@@ -405,12 +418,12 @@ namespace WorldSimulation
             _subregions.Add(subregion);
         }
 
-        Vector2 _smoothingVertexLeft(HexCell cell, int direction)
+        Vector2 _smoothingVertexLeft(TCell cell, int direction)
         {
             if (cell == null)
                 return null;
 
-            HexCell cellL = cell.GetNeighbor(direction + 5);
+            TCell cellL = cell.GetNeighbor(direction + 5);
 
             if (cellL == null)
                 return null;
@@ -426,12 +439,12 @@ namespace WorldSimulation
             return LineSegment.FindLineIntersection(vertex, vertexO, vertexI, vertexL);
         }
 
-        Vector2 _smoothingVertexRight(HexCell cell, int direction)
+        Vector2 _smoothingVertexRight(TCell cell, int direction)
         {
             if (cell == null)
                 return null;
 
-            HexCell cellR = cell.GetNeighbor(direction);
+            TCell cellR = cell.GetNeighbor(direction);
 
             if (cellR == null)
                 return null;
