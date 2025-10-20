@@ -10,14 +10,14 @@ namespace WorldSimulation
 {
     public class PerlinDeformer
     {
-        static public void Deform(SubregionGraph graph, int frequency, double strength, Random random)
+        static public void Deform(WorldSubregionGraph graph, int frequency, double strength, Random random)
         {
             PerlinNoise.Settings settings = new PerlinNoise.Settings();
             settings.XWrapped = true;
             PerlinNoise perlinX = new PerlinNoise(frequency, frequency, settings, random);
             PerlinNoise perlinY = new PerlinNoise(frequency, frequency, settings, random);
             
-            foreach (Subregion subregion in graph.Subregions)
+            foreach (WorldSubregion subregion in graph.Subregions)
             {
                 foreach (SubregionEdge edge in subregion.Edges)
                 {
@@ -32,7 +32,7 @@ namespace WorldSimulation
             }
         }
 
-        private static Vector2 _deformVertex(SubregionGraph graph, double strength, PerlinNoise perlinX, PerlinNoise perlinY, Vector2 vertex)
+        private static Vector2 _deformVertex(WorldSubregionGraph graph, double strength, PerlinNoise perlinX, PerlinNoise perlinY, Vector2 vertex)
         {
             double threshold = strength;
 

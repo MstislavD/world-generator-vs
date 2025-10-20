@@ -202,7 +202,7 @@ namespace WorldSimulationForm
 
         private void WorldSimulatorForm_MouseClick(object? sender, MouseEventArgs e)
         {
-            SubregionGraph graph = _generator.SubregionGraph;
+            WorldSubregionGraph graph = _generator.SubregionGraph;
 
             if (graph != null && _image != null &&
                 _mouse.X >= _imageLeft && _mouse.X < _image.Width + _imageLeft &&
@@ -217,7 +217,7 @@ namespace WorldSimulationForm
                     y = y / Math.Pow(2, _multiplier) + _origin.Y;
                 }
 
-                Subregion? subregion =
+                WorldSubregion? subregion =
                         graph.SpatialIndex.FindPolygonContainingPoint(x, y) ??
                         graph.SpatialIndex.FindPolygonContainingPoint(x + graph.Width, y) ??
                         graph.SpatialIndex.FindPolygonContainingPoint(x - graph.Width, y);
@@ -241,7 +241,7 @@ namespace WorldSimulationForm
                 _mouse = e.Location;
                 _lblInfo.Text = "";
 
-                SubregionGraph graph = _generator.SubregionGraph;
+                WorldSubregionGraph graph = _generator.SubregionGraph;
 
                 // cursor is inside the map image
                 if (graph != null && _image != null &&
@@ -257,7 +257,7 @@ namespace WorldSimulationForm
                         y = y / Math.Pow(2, _multiplier) + _origin.Y;
                     }
 
-                    Subregion? subregion =
+                    WorldSubregion? subregion =
                         graph.SpatialIndex.FindPolygonContainingPoint(x, y) ??
                         graph.SpatialIndex.FindPolygonContainingPoint(x + graph.Width, y) ??
                         graph.SpatialIndex.FindPolygonContainingPoint(x - graph.Width, y);

@@ -61,18 +61,18 @@ namespace WorldSimulation
 
         public static void GenerateForSubregions(WorldGenerator generator, RandomExt random)
         {
-            SubregionGraph graph = generator.SubregionGraph;
+            WorldSubregionGraph graph = generator.SubregionGraph;
             RegionMap map = generator.RegionMap;
 
-            List<Subregion> candidates;
-            List<Subregion> flooded;
-            Dictionary<Subregion, int> heightBySubregion;
+            List<WorldSubregion> candidates;
+            List<WorldSubregion> flooded;
+            Dictionary<WorldSubregion, int> heightBySubregion;
 
             foreach (Region region in map.Regions.Where(r => r.River))
             {
                 Region drainageRegion = region.Drainage;
                 candidates = region.Subregions.Where(s => s.Neighbors.Any(n => n.Region == drainageRegion)).ToList();
-                Subregion lowestSubregion = random.NextItem(candidates);
+                WorldSubregion lowestSubregion = random.NextItem(candidates);
 
                 candidates = lowestSubregion.Neighbors.Where(n => n.Region == drainageRegion).ToList();
                 lowestSubregion.Drainage = random.NextItem(candidates);
@@ -82,7 +82,7 @@ namespace WorldSimulation
                     flooded = Node.Flood(lowestSubregion, s => s.Region == region).ToList();
                     heightBySubregion = Enumerable.Range(0, flooded.Count).ToDictionary(i => flooded[i]);
 
-                    foreach (Subregion subregion in flooded.OrderByDescending(c => heightBySubregion[c]).Take(flooded.Count - 1))
+                    foreach (WorldSubregion subregion in flooded.OrderByDescending(c => heightBySubregion[c]).Take(flooded.Count - 1))
                     {
                         candidates = subregion.Neighbors.Where(n => n.Region == region && heightBySubregion[n] < heightBySubregion[subregion]).ToList();
                         subregion.Drainage = random.NextItem(candidates);
@@ -93,7 +93,7 @@ namespace WorldSimulation
             foreach (Region region in map.Regions.Where(r => r.River))
             {
                 bool hasRiverStart = true;
-                foreach (Subregion subregion in region.Subregions)
+                foreach (WorldSubregion subregion in region.Subregions)
                 {
                     if (subregion.Neighbors.Any(n => n.Region != region && n.Region.River && n.Drainage == subregion))
                     {
@@ -104,7 +104,7 @@ namespace WorldSimulation
 
                 if (hasRiverStart)
                 {
-                    Subregion riverStart = random.NextItem(region.Subregions.Where(s => s.Drainage != null).ToList());
+                    WorldSubregion riverStart = random.NextItem(region.Subregions.Where(s => s.Drainage != null).ToList());
                     _propagateRiver(riverStart);
                 }
             }
@@ -125,7 +125,7 @@ namespace WorldSimulation
                     _makeRiver(river, minWater);
         }
 
-        private static void _propagateRiver(Subregion subregion)
+        private static void _propagateRiver(WorldSubregion subregion)
         {
             subregion.River = true;
             if (subregion.Drainage != null && subregion.Region == subregion.Drainage.Region)

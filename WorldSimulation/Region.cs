@@ -8,7 +8,7 @@ namespace WorldSimulation
 {
     public class Region : INode<Region>
     {
-        List<Subregion> _subregions;
+        List<WorldSubregion> _subregions;
         List<RegionTrait> _traits;
         List<Population> _pops;
         RegionMap _map;
@@ -29,7 +29,7 @@ namespace WorldSimulation
         public bool IsLand => !IsSea;
         public bool IsRidge => Edge != null;
         public bool IsFlat => !IsSea && !IsRidge;
-        public IEnumerable<Subregion> Subregions => _subregions;
+        public IEnumerable<WorldSubregion> Subregions => _subregions;
         public IEnumerable<RegionTrait> Traits => _traits;
         public IEnumerable<Population> Pops => _pops;
         public int PopCount() => _pops.Count;
@@ -45,7 +45,7 @@ namespace WorldSimulation
                 Vector2 worldShift = width * new Vector2(1, 0);
                 int totalSize = 0;
 
-                foreach (Subregion subregion in _subregions)
+                foreach (WorldSubregion subregion in _subregions)
                 {
                     Vector2 subregionCenter = new Vector2(subregion.Center);
 
@@ -86,11 +86,11 @@ namespace WorldSimulation
         Region(RegionMap map)
         {
             _map = map;
-            _subregions = new List<Subregion>();
+            _subregions = new List<WorldSubregion>();
             _traits = new List<RegionTrait>();
             _pops = new List<Population>();
         }
-        public void AddSubregion(Subregion subregion)
+        public void AddSubregion(WorldSubregion subregion)
         {
             _subregions.Add(subregion);
             subregion.Region = this;

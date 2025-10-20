@@ -9,7 +9,7 @@ namespace WorldSimulation
 {
     public class EdgeDetailer
     {
-        static public void Detail(SubregionGraph graph, double threshold)
+        static public void Detail(WorldSubregionGraph graph, double threshold)
         {
             foreach (SubregionEdge edge in graph.Subregions.SelectMany(subregion => subregion.Edges))
             {

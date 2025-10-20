@@ -131,7 +131,7 @@ namespace WorldSimulation
             if (_parameters.RegionSmoothing)
                 RegionSmoother<WorldGenerator, HexGrid, HexCell, Edge>.Smooth(this, grid);
 
-            SubregionGraph = new SubregionGraph(grid, this);
+            SubregionGraph = new WorldSubregionGraph(grid, this);
             RegionMap = new RegionMap(this);
 
             if (_parameters.DeformationDetails)
@@ -185,7 +185,7 @@ namespace WorldSimulation
 
         public HexGrid GetGrid(int level) => _grids[level];
         public int GridLevels { get; } = 3;
-        public SubregionGraph SubregionGraph { get; private set; }
+        public WorldSubregionGraph SubregionGraph { get; private set; }
         public RegionMap RegionMap { get; private set; }
         public LandmassData LandmassData { get; private set; }
         public IEnumerable<HexCell> RegionCells => _grids[GridLevels - 1].Cells;
@@ -199,22 +199,22 @@ namespace WorldSimulation
         public bool RegionBorder(Edge edge) =>
             CellData[edge.Cell1].Parent == null || (edge.Cell2 != null && !CellData[edge.Cell1].Parent.Equals(CellData[edge.Cell2].Parent));
         public bool IsSea(HexCell cell) => CellData[cell].Elevation < Elevation.Lowland;
-        public bool IsSea(Subregion sregion) => sregion.Type != SubregionType.Edge && IsSea(sregion.ParentCell);
+        public bool IsSea(WorldSubregion sregion) => sregion.Type != SubregionType.Edge && IsSea(sregion.ParentCell);
         public bool IsLand(HexCell cell) => CellData[cell].Elevation > Elevation.ShallowOcean;
-        public bool IsLand(Subregion sregion) => sregion.Type == SubregionType.Edge || IsLand(sregion.ParentCell);
+        public bool IsLand(WorldSubregion sregion) => sregion.Type == SubregionType.Edge || IsLand(sregion.ParentCell);
         public bool PossibleRidge(Edge edge) => edge.Cell2 != null && (IsLand(edge.Cell1) || IsLand(edge.Cell2)) && !EdgeData[edge].Ridge;
         public bool HasRidge(Edge edge) => edge.Cell2 != null && (IsLand(edge.Cell1) || IsLand(edge.Cell2)) && EdgeData[edge].Ridge;
-        public bool HasRidge(Subregion sRegion) => sRegion.Type == SubregionType.Edge && HasRidge(sRegion.ParentEdge);
+        public bool HasRidge(WorldSubregion sRegion) => sRegion.Type == SubregionType.Edge && HasRidge(sRegion.ParentEdge);
         public bool HasRiver(HexCell cell) => RegionMap.GetRegion(cell).River;
         public bool HasRiver(Edge edge) => RegionMap.GetRegion(edge).River;
         public bool NearSea(HexCell cell) => cell.Neighbors.Any(IsSea);
         public bool NearLand(HexCell cell) => cell.Neighbors.Any(IsLand);
         public bool IsShore(Edge edge) => edge.Cells.Count() == 2 && IsLand(edge.Cell1) != IsLand(edge.Cell2);
         public int GetHeight(HexCell cell) => CellData[cell].Height;
-        public int GetHeight(Subregion subregion) => subregion.Type == SubregionType.Cell ? CellData[subregion.ParentCell].Height : 1;
-        public Humidity GetHumidity(Subregion subregion) => subregion.Region.Humidity;
-        public Belt GetBelt(Subregion subregion) => subregion.Region.Belt;
-        public double GetHeightD(Subregion subregion) => GetHeight(subregion);
+        public int GetHeight(WorldSubregion subregion) => subregion.Type == SubregionType.Cell ? CellData[subregion.ParentCell].Height : 1;
+        public Humidity GetHumidity(WorldSubregion subregion) => subregion.Region.Humidity;
+        public Belt GetBelt(WorldSubregion subregion) => subregion.Region.Belt;
+        public double GetHeightD(WorldSubregion subregion) => GetHeight(subregion);
         public bool LastGrid(HexGrid grid) => grid.Equals(_grids[GridLevels]);
         internal Dictionary<HexCell, CellData> CellData { get; private set; }
         internal Dictionary<Edge, EdgeData> EdgeData { get; private set; }
@@ -242,7 +242,7 @@ namespace WorldSimulation
             Vector2 worldShift = width * new Vector2(1, 0);
             int totalSize = 0;
 
-            foreach (Subregion subregion in region.Subregions)
+            foreach (WorldSubregion subregion in region.Subregions)
             {
                 Vector2 subregionCenter = new Vector2(subregion.Center);
 

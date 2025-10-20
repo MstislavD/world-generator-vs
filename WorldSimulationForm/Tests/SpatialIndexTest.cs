@@ -16,7 +16,7 @@ namespace WorldSimulationForm.Tests
     {
         public static Bitmap? GetImage(WorldGenerator generator, Size maxSize)
         {
-            SubregionGraph graph = generator.SubregionGraph;
+            WorldSubregionGraph graph = generator.SubregionGraph;
 
             if (graph == null)
                 return null;
@@ -34,7 +34,7 @@ namespace WorldSimulationForm.Tests
 
             Stopwatch sw = Stopwatch.StartNew();
 
-            QuadTreeSpatialIndex<Subregion> index = new QuadTreeSpatialIndex<Subregion>(graph.Subregions, bbox, 5);
+            QuadTreeSpatialIndex<WorldSubregion> index = new QuadTreeSpatialIndex<WorldSubregion>(graph.Subregions, bbox, 5);
 
             Debug.WriteLine($"Spatial index calculated in {sw.ElapsedMilliseconds} ms");
             sw.Restart();
@@ -43,7 +43,7 @@ namespace WorldSimulationForm.Tests
             int rows = (int)(graph.Height / graph.Width * columns);
             double side = graph.Width / columns;
 
-            Dictionary<Subregion, List<Vector2>> pointsBySubregion = graph.Subregions.ToDictionary(s => s, s => new List<Vector2>());
+            Dictionary<WorldSubregion, List<Vector2>> pointsBySubregion = graph.Subregions.ToDictionary(s => s, s => new List<Vector2>());
 
             Action<int> doColumn = i =>
             {
@@ -53,7 +53,7 @@ namespace WorldSimulationForm.Tests
                 {                  
                     double y = (j + 0.5) * side;
 
-                    Subregion? subregion =
+                    WorldSubregion? subregion =
                         index.FindPolygonContainingPoint(x, y) ??
                         index.FindPolygonContainingPoint(x - graph.Width, y) ??
                         index.FindPolygonContainingPoint(x + graph.Width, y);
@@ -79,9 +79,9 @@ namespace WorldSimulationForm.Tests
 
             // randomize subregion colors
             Random rnd = new Random();
-            Dictionary<Subregion, Brush> brushBySubregion = new Dictionary<Subregion, Brush>();
-            Dictionary<Subregion, Pen> penBySubregion = new Dictionary<Subregion, Pen>();
-            foreach (Subregion s in graph.Subregions)
+            Dictionary<WorldSubregion, Brush> brushBySubregion = new Dictionary<WorldSubregion, Brush>();
+            Dictionary<WorldSubregion, Pen> penBySubregion = new Dictionary<WorldSubregion, Pen>();
+            foreach (WorldSubregion s in graph.Subregions)
             {
                 Color color = Color.FromArgb(rnd.Next());
                 color = Color.FromArgb(255, color);

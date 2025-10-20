@@ -15,7 +15,7 @@ namespace WorldSimulation
         Dictionary<Edge, Region> _regionByEdge;
         public WorldGenerator Generator { get; private set; }
         public IEnumerable<Region> Regions => _regionByCell.Values.Union(_regionByEdge.Values);
-        public Region GetRegion(Subregion subregion) => subregion.Type == SubregionType.Cell ? GetRegion(subregion.ParentCell) : GetRegion(subregion.ParentEdge);
+        public Region GetRegion(WorldSubregion subregion) => subregion.Type == SubregionType.Cell ? GetRegion(subregion.ParentCell) : GetRegion(subregion.ParentEdge);
         public Region GetRegion(HexCell cell) => _regionByCell[cell];
         public Region GetRegion(Edge edge) => _regionByEdge[edge];
         public bool ContainsEdge(Edge edge) => _regionByEdge.ContainsKey(edge);
@@ -27,7 +27,7 @@ namespace WorldSimulation
             _regionByCell = new Dictionary<HexCell, Region>();
             _regionByEdge = new Dictionary<Edge, Region>();
 
-            foreach(Subregion subregion in generator.SubregionGraph.CellSubregions)
+            foreach(WorldSubregion subregion in generator.SubregionGraph.CellSubregions)
             {
                 HexCell cell = subregion.ParentCell;
                 if (!_regionByCell.ContainsKey(cell))
@@ -40,7 +40,7 @@ namespace WorldSimulation
                 region.Name = generator.NamingLanguage.GenerateName();       
             }
 
-            foreach(Subregion subregion in generator.SubregionGraph.EdgeSubregions)
+            foreach(WorldSubregion subregion in generator.SubregionGraph.EdgeSubregions)
             {
                 Edge edge = subregion.ParentEdge;
                 if (!_regionByEdge.ContainsKey(edge))
