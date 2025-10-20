@@ -17,7 +17,7 @@ namespace WorldSimulation
         public static void Generate<TGen, TGrid, TCell, TEdge>(TGen generator, TGrid grid, RandomExt random)
             where TGen:IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
             where TGrid:IGrid<TCell>
-            where TCell: INeighbors<TCell>, ICell<TCell, TEdge>
+            where TCell: INode<TCell>, INode<TCell, TEdge>
         {
             Func<TCell, TCell, bool> _ridgeBetween = (c1, c2) => generator.HasRidge(c1.GetEdgeByNeighbor(c2));
 

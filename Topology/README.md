@@ -1,13 +1,10 @@
-### INeighbors\<TCell>
-rename
+### INode\<TNode>
 
-### ICell\<TCell, TEdge>
-rename
+### INode\<TNode, TEdge>
 
-### IEdge\<TCell>
+### IEdge\<TNode>
 
-### ILayer\<T>
-rename
+### ITreeNode\<T>
 
 ### IPolygon
 
@@ -17,19 +14,15 @@ rename
 
 ### IEdges\<TEdge>
 
-### IFactoryHexGrid\<TGrid>
+### IFactoryGrid\<TGrid>
 
 ### ISpatialIndex\<TPolygon>
-
-### Geometry
 
 ### BoundingBox
 
 ### Vector2
 
 ### LineSegment
-
-### PolygonBase
 
 ### Polygon
 
@@ -48,14 +41,4 @@ rename
 ### QuadTreeSpatialIndex\<TPolygon>
 <br>
 
-### IRegionPartition\<TRegion>
-remove
-
-### PLNode
--> private
-
-### Trapezoid
--> private
-
-### TrapezoidSpatialIndex\<TRegion>
-TRegion -> TPolygon
+### TrapezoidSpatialIndex\<TPolygon>

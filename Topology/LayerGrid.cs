@@ -8,7 +8,7 @@ using Utilities;
 
 namespace Topology
 {
-    public interface ILayer<T>
+    public interface ITreeNode<T>
     {
         T? Parent { get; set; }
         IEnumerable<T>? Children { get; }
@@ -16,7 +16,7 @@ namespace Topology
         void AddChild(T cell);
     }
 
-    public class LayerHexCell<TCell, TEdge> : HexCell<TCell, TEdge>, ILayer<TCell>
+    public class LayerHexCell<TCell, TEdge> : HexCell<TCell, TEdge>, ITreeNode<TCell>
     {
         List<TCell>? _children;
         public TCell? Parent { get; set; }
@@ -29,7 +29,7 @@ namespace Topology
         }
     }
 
-    public class LayerEdge<TCell, TEdge> : Edge<TCell>, ILayer<TEdge>
+    public class LayerEdge<TCell, TEdge> : Edge<TCell>, ITreeNode<TEdge>
     {
         List<TEdge>? _children;
         public TEdge? Parent { get; set; }
@@ -42,7 +42,7 @@ namespace Topology
         }
     }
 
-    public interface IFactoryHexGrid<TGrid>
+    public interface IFactoryGrid<TGrid>
     {
         TGrid CreateGrid(int columns, int rows);
     }
@@ -57,11 +57,11 @@ namespace Topology
         /// <param name="random"></param>
         /// <param name="wideBorders">False if exact children of parent cells of the first and last row also lie in these rows.</param>
         /// <returns></returns>
-        static public TGrid CreateChildGrid<TGrid, TCell, TEdge>(TGrid parentGrid, IFactoryHexGrid<TGrid> factory,
+        static public TGrid CreateChildGrid<TGrid, TCell, TEdge>(TGrid parentGrid, IFactoryGrid<TGrid> factory,
             RandomExt random, bool wideBorders = false, int? sizeVariance = null)
             where TGrid : IGrid<TCell>, IEdges<TEdge>
-            where TCell : INeighbors<TCell>, ICell<TCell, TEdge>, ILayer<TCell>
-            where TEdge : IEdge<TCell>, ILayer<TEdge>
+            where TCell : INode<TCell>, INode<TCell, TEdge>, ITreeNode<TCell>
+            where TEdge : IEdge<TCell>, ITreeNode<TEdge>
         {
             int dh = wideBorders ? 1 : -1;
             TGrid childGrid = factory.CreateGrid(parentGrid.Columns * 2, parentGrid.Rows * 2 + dh);

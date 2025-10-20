@@ -79,7 +79,7 @@ namespace WorldSimulation
 
                 if (region.IsFlat)
                 {
-                    flooded = Geometry.Flood(lowestSubregion, s => s.Region == region).ToList();
+                    flooded = Node.Flood(lowestSubregion, s => s.Region == region).ToList();
                     heightBySubregion = Enumerable.Range(0, flooded.Count).ToDictionary(i => flooded[i]);
 
                     foreach (Subregion subregion in flooded.OrderByDescending(c => heightBySubregion[c]).Take(flooded.Count - 1))

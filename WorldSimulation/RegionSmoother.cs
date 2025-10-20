@@ -6,7 +6,7 @@ namespace WorldSimulation
     class RegionSmoother<TGen, TGrid, TCell, TEdge>
         where TGen : IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
         where TGrid : IHexGrid, IGrid<TCell>
-        where TCell : ICell<TCell, TEdge>
+        where TCell : INode<TCell, TEdge>, IPolygon
     {
         public static void Smooth(TGen generator, TGrid grid)
         {

@@ -13,7 +13,7 @@ namespace WorldSimulation
     class ElevationGenerator<TGen, TGrid, TCell, TEdge>
         where TGen : IGenerator, IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
         where TGrid : IGrid<TCell>, IEdges<TEdge>
-        where TCell : INeighbors<TCell>, ICell<TCell, TEdge>
+        where TCell : INode<TCell>, INode<TCell, TEdge>
         where TEdge : IEdge<TCell>
     {
         public static void GenerateRandom(TGen generator, TGrid grid, RandomExt random)
@@ -271,7 +271,7 @@ namespace WorldSimulation
 
             Func<TCell, bool> noLandAround = c => !c.Neighbors.Any(generator.IsLand);
             Func<TCell, bool> isShallow = c => generator.GetElevation(c) == Elevation.ShallowOcean;
-            Func<TCell, bool> isNotLandConnection = c => !Geometry.IsConnection(c, generator.IsLand);
+            Func<TCell, bool> isNotLandConnection = c => !Node.IsConnection(c, generator.IsLand);
 
             List<TCell> shallowSeas = grid.Cells.Where(isShallow).Where(noLandAround).ToList();
 

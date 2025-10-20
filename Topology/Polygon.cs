@@ -7,66 +7,29 @@ namespace Topology
     /// </summary>
     public interface IPolygon
     {
+        public Vector2 Center { get; }
         public IEnumerable<Vector2> Vertices { get; }
         public BoundingBox Bounds { get; }
         public int VertexCount { get; }
-        public bool ContainsPoint(Vector2 point);
     }
 
-    public abstract class PolygonBase : IPolygon
+    public class Polygon : IPolygon
     {
-        BoundingBox? _bbox = null;
-        public abstract IEnumerable<Vector2> Vertices { get; }
-        public abstract int VertexCount { get; }
-
-        public BoundingBox Bounds
-        {
-            get
-            {
-                if (_bbox == null)
-                    _bbox = CalculateBoundingBox();
-                return _bbox;
-            }
-            private set => _bbox = value;
-        }
-
-        private BoundingBox CalculateBoundingBox()
-        {
-            if (Vertices == null || VertexCount == 0)
-            {
-                return new BoundingBox(0, 0, 0, 0);
-            }
-
-            double minX = Vertices.First().X;
-            double maxX = Vertices.First().X;
-            double minY = Vertices.First().Y;
-            double maxY = Vertices.First().Y;
-
-            foreach (var vertex in Vertices)
-            {
-                minX = Math.Min(minX, vertex.X);
-                maxX = Math.Max(maxX, vertex.X);
-                minY = Math.Min(minY, vertex.Y);
-                maxY = Math.Max(maxY, vertex.Y);
-            }
-
-            return new BoundingBox(minX, minY, maxX, maxY);
-        }
-
         /// <summary>
         /// Ray casting algorithm for point-in-polygon test
         /// </summary>
+        /// <param name="polygon"></param>
         /// <param name="point"></param>
         /// <returns></returns>
-        public bool ContainsPoint(Vector2 point)
+        public static bool ContainsPoint(IPolygon polygon, Vector2 point)
         {
-            if (!Bounds.Contains(point))
+            if (!polygon.Bounds.Contains(point))
                 return false;
 
             bool inside = false;
-            Vector2 v1 = Vertices.First();
+            Vector2 v1 = polygon.Vertices.First();
 
-            foreach (Vector2 v2 in Vertices.Skip(1).Append(Vertices.First()))
+            foreach (Vector2 v2 in polygon.Vertices.Skip(1).Append(polygon.Vertices.First()))
             {
                 if ((v2.Y > point.Y) != (v1.Y > point.Y) &&
                     point.X < (v1.X - v2.X) * (point.Y - v2.Y) / (v1.Y - v2.Y) + v2.X)
@@ -78,10 +41,30 @@ namespace Topology
 
             return inside;
         }
-    }
 
-    public class Polygon : PolygonBase
-    {
+        public static BoundingBox CalculateBoundingBox(IPolygon polygon)
+        {
+            if (polygon.Vertices == null || polygon.VertexCount == 0)
+            {
+                return new BoundingBox(0, 0, 0, 0);
+            }
+
+            double minX = polygon.Vertices.First().X;
+            double maxX = polygon.Vertices.First().X;
+            double minY = polygon.Vertices.First().Y;
+            double maxY = polygon.Vertices.First().Y;
+
+            foreach (var vertex in polygon.Vertices)
+            {
+                minX = Math.Min(minX, vertex.X);
+                maxX = Math.Max(maxX, vertex.X);
+                minY = Math.Min(minY, vertex.Y);
+                maxY = Math.Max(maxY, vertex.Y);
+            }
+
+            return new BoundingBox(minX, minY, maxX, maxY);
+        }
+
         public static Polygon GetConvex(int size, float r = 0.8f, int points = 10)
         {
             r = size * r / 2;
@@ -121,13 +104,26 @@ namespace Topology
             return new Polygon(vertices);
         }
 
+        BoundingBox? _bbox = null;
         List<Vector2> _vertices = new List<Vector2>();
-        public override IEnumerable<Vector2> Vertices => _vertices;
-        public override int VertexCount => _vertices.Count;
+        public IEnumerable<Vector2> Vertices => _vertices;
+        public int VertexCount => _vertices.Count;
+
+        public virtual Vector2 Center
+        {
+            get
+            {
+                double cx = Vertices.Select(v => v.X).Sum() / VertexCount;
+                double cy = Vertices.Select(v => v.Y).Sum() / VertexCount;
+                return new Vector2(cx, cy);
+            }
+        }
 
         public Polygon(IEnumerable<Vector2> vertices)
         {
             _vertices.AddRange(vertices);
         }
+
+        public BoundingBox Bounds => _bbox ?? (_bbox = CalculateBoundingBox(this));
     }
 }

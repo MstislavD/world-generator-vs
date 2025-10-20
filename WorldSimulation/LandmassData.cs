@@ -24,7 +24,7 @@ namespace WorldSimulation
                 {
                     Landmass landmass = new Landmass(generator, random.Next());
                     _landmasses.Add(landmass);
-                    foreach (Region landmassRegion in Geometry.Flood(region, validRegion))
+                    foreach (Region landmassRegion in Node.Flood(region, validRegion))
                     {
                         landmassRegion.Landmass = landmass;
                         landmass.AddRegion(landmassRegion);

@@ -6,7 +6,7 @@ using WorldSimulation.HistorySimulation;
 
 namespace WorldSimulation
 {
-    public class Region : INeighbors<Region>
+    public class Region : INode<Region>
     {
         List<Subregion> _subregions;
         List<RegionTrait> _traits;

@@ -7,16 +7,16 @@ using Topology;
 
 namespace TrapezoidSpatialIndex
 {
-    public class PLNode
+    class TrapezoidTreeNode
     {
         public Vector2 Vertex { get; set; }
         public LineSegment Edge { get; set; }
         public Trapezoid Trapezoid { get; set; }
-        public PLNode Left { get; set; }
-        public PLNode Right { get; set; }
+        public TrapezoidTreeNode Left { get; set; }
+        public TrapezoidTreeNode Right { get; set; }
     }
 
-    public class Trapezoid
+    class Trapezoid
     {
         public LineSegment Top { get; set; }
         public LineSegment Bottom { get; set; }
@@ -26,7 +26,7 @@ namespace TrapezoidSpatialIndex
         public Trapezoid LowerLeft { get; set; }
         public Trapezoid UpperRight { get; set; }
         public Trapezoid LowerRight { get; set; }
-        public PLNode Node { get; set; }
+        public TrapezoidTreeNode Node { get; set; }
         public IEnumerable<Trapezoid> Neighbors(Func<Trapezoid, bool> include)
         {
             if (include(UpperLeft))

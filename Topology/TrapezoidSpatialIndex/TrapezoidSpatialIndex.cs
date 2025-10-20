@@ -6,54 +6,44 @@ using System.Linq;
 
 namespace TrapezoidSpatialIndex
 {
-    public interface IRegionPartition<TRegion>
+    public class TrapezoidSpatialIndex<TPolygon> : ISpatialIndex<TPolygon>
+        where TPolygon : IEdges<LineSegment>
     {
-        IEnumerable<TRegion> Regions { get; }
-        IEnumerable<LineSegment> Edges(TRegion region);
-        double Top { get; }
-        double Bottom { get; }
-        double Left { get; }
-        double Right { get; }
-        double Epsilon { get; }
-    }
-
-    public class TrapezoidSpatialIndex<TRegion> : ISpatialIndex<TRegion>
-    {
-        PLNode _root;
-        Dictionary<LineSegment, TRegion> _regionByEdge;
+        TrapezoidTreeNode _root;
+        Dictionary<LineSegment, TPolygon> _polygonByEdge;
         HashSet<Trapezoid> _trapezoids;
 
-        public TrapezoidSpatialIndex(IRegionPartition<TRegion> partition) : this(partition, new RandomExt()) { }
+        public TrapezoidSpatialIndex(IEnumerable<TPolygon> polygons, BoundingBox bbox, double eps) : this(polygons, bbox, eps, new RandomExt()) { }
 
-        public TrapezoidSpatialIndex(IRegionPartition<TRegion> partition, RandomExt random)
+        public TrapezoidSpatialIndex(IEnumerable<TPolygon> polygons, BoundingBox bbox, double eps, RandomExt random)
         {
-            _regionByEdge = new Dictionary<LineSegment, TRegion>();
+            _polygonByEdge = new Dictionary<LineSegment, TPolygon>();
             _trapezoids = new HashSet<Trapezoid>();
-            _root = new PLNode();
+            _root = new TrapezoidTreeNode();
             LastTrapezoid = null;
 
-            List<LineSegment> edges = _findAllEdges(partition);
+            List<LineSegment> edges = _findAllEdges(polygons, bbox);
 
             while (edges.Count > 0)
             {
                 LineSegment edge = random.NextItemExtract(edges);
                 if (edge.Vertex1.X != edge.Vertex2.X)
                 {
-                    _insertEdge(edge, partition.Epsilon);
+                    _insertEdge(edge, eps);
                 }
             }
         }
 
-        public TrapezoidSpatialIndex(IRegionPartition<TRegion> partition, RandomExt random, int count)
+        public TrapezoidSpatialIndex(IEnumerable<TPolygon> polygons, BoundingBox bbox, double eps, RandomExt random, int count)
         {
-            List<LineSegment> edges = _findAllEdges(partition);
+            List<LineSegment> edges = _findAllEdges(polygons, bbox);
 
             for (int i = 0; i < count && edges.Count > 0; i++)
             {
                 LineSegment edge = random.NextItemExtract(edges);
                 if (edge.Vertex1.X != edge.Vertex2.X)
                 {
-                    bool result = _insertEdge(edge, partition.Epsilon);
+                    bool result = _insertEdge(edge, eps);
                     if (!result && edges.Count > 0)
                         i -= 1;
                     
@@ -65,24 +55,24 @@ namespace TrapezoidSpatialIndex
             }
         }
 
-        private List<LineSegment> _findAllEdges(IRegionPartition<TRegion> partition)
+        private List<LineSegment> _findAllEdges(IEnumerable<TPolygon> polygons, BoundingBox bbox)
         {
             _root.Trapezoid = new Trapezoid();
-            _root.Trapezoid.Left = new Vector2(partition.Left, partition.Top);
-            _root.Trapezoid.Right = new Vector2(partition.Right, partition.Bottom);
-            _root.Trapezoid.Bottom = new LineSegment() { Vertex1 = new Vector2(partition.Left, partition.Bottom), Vertex2 = _root.Trapezoid.Right };
-            _root.Trapezoid.Top = new LineSegment() { Vertex1 = _root.Trapezoid.Left, Vertex2 = new Vector2(partition.Right, partition.Top) };
+            _root.Trapezoid.Left = new Vector2(bbox.MinX, bbox.MinY);
+            _root.Trapezoid.Right = new Vector2(bbox.MaxX, bbox.MaxY);
+            _root.Trapezoid.Bottom = new LineSegment() { Vertex1 = new Vector2(bbox.MinX, bbox.MaxY), Vertex2 = _root.Trapezoid.Right };
+            _root.Trapezoid.Top = new LineSegment() { Vertex1 = _root.Trapezoid.Left, Vertex2 = new Vector2(bbox.MaxX, bbox.MinY) };
             _root.Trapezoid.Node = _root;
 
             List<LineSegment> edges = new List<LineSegment>();
-            foreach (TRegion region in partition.Regions)
+            foreach (TPolygon polygon in polygons)
             {
-                foreach (LineSegment edge in partition.Edges(region))
+                foreach (LineSegment edge in polygon.Edges)
                 {
                     edges.Add(edge);
                     if (edge.Right == edge.Vertex1)
                     {
-                        _regionByEdge[edge] = region;
+                        _polygonByEdge[edge] = polygon;
                     }                    
                 }
             }
@@ -90,11 +80,12 @@ namespace TrapezoidSpatialIndex
             return edges;
         }
 
-        public IEnumerable<Trapezoid> GetTrapezoids => _trapezoids;
+        //make public for debug
+        IEnumerable<Trapezoid> GetTrapezoids => _trapezoids;
 
         Trapezoid _getTrapezoid(double x, double y)
         {
-            PLNode node = _root;
+            TrapezoidTreeNode node = _root;
             Vector2 vertex = new Vector2(x, y);
 
             while (node.Trapezoid == null)
@@ -126,9 +117,9 @@ namespace TrapezoidSpatialIndex
             return node.Trapezoid;
         }
 
-        public TRegion? FindPolygonContainingPoint(double x, double y)
+        public TPolygon? FindPolygonContainingPoint(double x, double y)
         {
-            PLNode node = _root;
+            TrapezoidTreeNode node = _root;
             Vector2 vertex = new Vector2(x, y);
 
             while (node.Trapezoid == null)
@@ -159,22 +150,23 @@ namespace TrapezoidSpatialIndex
 
             LastTrapezoid = node.Trapezoid;
 
-            if (node.Trapezoid != null && _regionByEdge.ContainsKey(node.Trapezoid.Top))
+            if (node.Trapezoid != null && _polygonByEdge.ContainsKey(node.Trapezoid.Top))
             {
-                return _regionByEdge[node.Trapezoid.Top];
+                return _polygonByEdge[node.Trapezoid.Top];
             }
 
             return default;
         }
 
-        public Trapezoid? LastTrapezoid { get; private set; }
+        // make public for debug
+        Trapezoid? LastTrapezoid { get; set; }
       
 
         bool _insertEdge(LineSegment edge, double epsilon)
         {
             List<Trapezoid> trapezoids = new List<Trapezoid>();
 
-            PLNode node = _root;
+            TrapezoidTreeNode node = _root;
 
             Vector2 leftVertex = edge.Left;
             Vector2 rightVertex = edge.Right;
@@ -199,7 +191,7 @@ namespace TrapezoidSpatialIndex
                     {
                         if (edge.Right.Equals(edge.Vertex1))
                         {
-                            _regionByEdge[node.Edge] = _regionByEdge[edge];
+                            _polygonByEdge[node.Edge] = _polygonByEdge[edge];
                         }
                         return false;
                     }
@@ -268,14 +260,14 @@ namespace TrapezoidSpatialIndex
             Trapezoid trC = new Trapezoid();
             Trapezoid trD = new Trapezoid();       
 
-            PLNode nodeA = new PLNode();
-            PLNode nodeB = new PLNode() { Trapezoid = trB };
-            PLNode nodeC = new PLNode() { Trapezoid = trC };
-            PLNode nodeD = new PLNode();
-            PLNode nodeS = new PLNode() { Edge = edge, Left = nodeB, Right = nodeC };
-            PLNode nodeQ = new PLNode() { Vertex = rightVertex, Left = nodeS, Right = nodeD };
+            TrapezoidTreeNode nodeA = new TrapezoidTreeNode();
+            TrapezoidTreeNode nodeB = new TrapezoidTreeNode() { Trapezoid = trB };
+            TrapezoidTreeNode nodeC = new TrapezoidTreeNode() { Trapezoid = trC };
+            TrapezoidTreeNode nodeD = new TrapezoidTreeNode();
+            TrapezoidTreeNode nodeS = new TrapezoidTreeNode() { Edge = edge, Left = nodeB, Right = nodeC };
+            TrapezoidTreeNode nodeQ = new TrapezoidTreeNode() { Vertex = rightVertex, Left = nodeS, Right = nodeD };
 
-            PLNode node = tr0.Node;
+            TrapezoidTreeNode node = tr0.Node;
             bool nodeContraction = false;
 
             node.Trapezoid = null;

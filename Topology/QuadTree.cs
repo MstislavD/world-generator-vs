@@ -142,7 +142,7 @@ namespace Topology
             // Then perform precise point-in-polygon tests
             foreach (var polygon in candidates)
             {
-                if (polygon.ContainsPoint(point))
+                if (Polygon.ContainsPoint(polygon, point))
                     return polygon;
             }
 
@@ -159,7 +159,7 @@ namespace Topology
             Vector2 point = new Vector2(x, y);
             foreach (var polygon in polygons)
             {
-                if (polygon.ContainsPoint(point))
+                if (Polygon.ContainsPoint(polygon, point))
                     return polygon;
             }
             return default;

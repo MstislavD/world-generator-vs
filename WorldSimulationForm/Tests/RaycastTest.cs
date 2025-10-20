@@ -27,7 +27,7 @@ namespace WorldSimulationForm.Tests
             for (int i = 0; i < points; i++)
             {
                 Vector2 point = new Vector2(r.Next(size), r.Next(size));
-                insideByPoint[point] = polygon.ContainsPoint(point);
+                insideByPoint[point] = Polygon.ContainsPoint(polygon, point);
             }
 
             Debug.WriteLine($"{points} raycasts for polygon with {polygon.VertexCount} vertices in {sw.ElapsedMilliseconds} ms");

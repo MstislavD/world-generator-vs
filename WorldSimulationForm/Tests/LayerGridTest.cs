@@ -17,7 +17,7 @@ namespace WorldSimulationForm.Tests
         public TestLayerGrid(int columns, int rows) : base(columns, rows) { }
     }
 
-    class Factory : Topology.IFactoryHexGrid<TestLayerGrid>
+    class Factory : Topology.IFactoryGrid<TestLayerGrid>
     {
         public TestLayerGrid CreateGrid(int columns, int rows) => new TestLayerGrid(columns, rows);
     }
