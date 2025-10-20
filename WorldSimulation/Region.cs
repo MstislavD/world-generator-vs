@@ -8,7 +8,7 @@ namespace WorldSimulation
 {
     public class Region : INode<Region>
     {
-        List<WorldSubregion> _subregions;
+        List<Subregion> _subregions;
         List<RegionTrait> _traits;
         List<Population> _pops;
         RegionMap _map;
@@ -19,8 +19,8 @@ namespace WorldSimulation
         public Belt Belt { get; internal set; }
         public Humidity Humidity { get; internal set; }
         public Biome Biome { get; internal set; }
-        public HexCell Cell { get; }
-        public Edge Edge { get; }
+        public WorldCell Cell { get; }
+        public WorldEdge Edge { get; }
         public double Water { get; internal set; }
         public Region Drainage { get; internal set; }
         public bool River { get; internal set; }
@@ -29,7 +29,7 @@ namespace WorldSimulation
         public bool IsLand => !IsSea;
         public bool IsRidge => Edge != null;
         public bool IsFlat => !IsSea && !IsRidge;
-        public IEnumerable<WorldSubregion> Subregions => _subregions;
+        public IEnumerable<Subregion> Subregions => _subregions;
         public IEnumerable<RegionTrait> Traits => _traits;
         public IEnumerable<Population> Pops => _pops;
         public int PopCount() => _pops.Count;
@@ -45,7 +45,7 @@ namespace WorldSimulation
                 Vector2 worldShift = width * new Vector2(1, 0);
                 int totalSize = 0;
 
-                foreach (WorldSubregion subregion in _subregions)
+                foreach (Subregion subregion in _subregions)
                 {
                     Vector2 subregionCenter = new Vector2(subregion.Center);
 
@@ -75,22 +75,22 @@ namespace WorldSimulation
         }
 
         public override string ToString() => $"{Name} ({Center})";
-        public Region(RegionMap map, HexCell cell) : this(map)
+        public Region(RegionMap map, WorldCell cell) : this(map)
         {
             Cell = cell;
         }
-        public Region(RegionMap map, Edge edge) : this(map)
+        public Region(RegionMap map, WorldEdge edge) : this(map)
         {
             Edge = edge;
         }
         Region(RegionMap map)
         {
             _map = map;
-            _subregions = new List<WorldSubregion>();
+            _subregions = new List<Subregion>();
             _traits = new List<RegionTrait>();
             _pops = new List<Population>();
         }
-        public void AddSubregion(WorldSubregion subregion)
+        public void AddSubregion(Subregion subregion)
         {
             _subregions.Add(subregion);
             subregion.Region = this;
@@ -129,7 +129,7 @@ namespace WorldSimulation
             {
                 if (Cell != null)
                 {
-                    foreach (HexCell cellNeighbor in Cell.Neighbors)
+                    foreach (WorldCell cellNeighbor in Cell.Neighbors)
                     {
                         Region flat = _map.GetRegion(cellNeighbor);
                         yield return HasBorder(flat, this) ? flat : _map.GetRegion(Cell.GetEdgeByNeighbor(cellNeighbor));

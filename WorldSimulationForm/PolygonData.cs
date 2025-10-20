@@ -2,6 +2,10 @@
 using Topology;
 using System.Drawing;
 
+using HexGrid = WorldSimulation.WorldGrid;
+using HexCell = WorldSimulation.WorldCell;
+using Edge = WorldSimulation.WorldEdge;
+
 namespace WorldSimulationForm
 {
     struct PolygonData

@@ -67,7 +67,7 @@ namespace WorldSimulationForm
 
             int gridLevel = (int)_gridLevel.Current;
 
-            HexGrid grid = _generator.GetGrid(gridLevel);
+            WorldGrid grid = _generator.GetGrid(gridLevel);
 
             RenderObjects? objects = null;
             if (_image == null)
@@ -110,7 +110,7 @@ namespace WorldSimulationForm
             _newHighlight = false;
         }
 
-        private RenderObjects _elevationImage(HexGrid grid)
+        private RenderObjects _elevationImage(WorldGrid grid)
         {
             Dictionary<Elevation, Brush> brushByElevation = new Dictionary<Elevation, Brush>();
             brushByElevation[Elevation.DeepOcean] = Brushes.MediumBlue;
@@ -126,14 +126,14 @@ namespace WorldSimulationForm
 
             RenderObjects objects = new RenderObjects();
             objects.Polygons.AddRange(grid.Cells.Select(c => new PolygonData(c, brushByElevation[_generator.GetData(c).Elevation])));
-            IEnumerable<Edge> edges = _regionBorder.Current ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
+            IEnumerable<WorldEdge> edges = _regionBorder.Current ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
             objects.Segments.AddRange(edges.Select(e => new SegmentData(e, Pens.Black)));
             objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
 
             return objects;
         }
 
-        private RenderObjects _heightImage(HexGrid grid)
+        private RenderObjects _heightImage(WorldGrid grid)
         {
             Color lowlandColor = Color.Green;
             Color uplandColor = Color.Yellow;
@@ -168,8 +168,8 @@ namespace WorldSimulationForm
 
             RenderObjects objects = new RenderObjects();
 
-            Dictionary<HexCell, Color> colorByCell = new Dictionary<HexCell, Color>();
-            foreach (HexCell cell in grid.Cells)
+            Dictionary<WorldCell, Color> colorByCell = new Dictionary<WorldCell, Color>();
+            foreach (WorldCell cell in grid.Cells)
             {
                 if (_generator.IsSea(cell))
                 {
@@ -190,7 +190,7 @@ namespace WorldSimulationForm
             else
             {
                 objects.Polygons.AddRange(grid.Cells.Select(c => new PolygonData(c, colorByCell[c])));
-                IEnumerable<Edge> edges = _regionBorder.Current ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
+                IEnumerable<WorldEdge> edges = _regionBorder.Current ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
                 objects.Segments.AddRange(edges.Select(e => new SegmentData(e, Pens.Black)));
                 objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
 
@@ -220,7 +220,7 @@ namespace WorldSimulationForm
             bool drawBelts = false; // _chbBelts.Checked;
 
             ColorConverter converter = new ColorConverter();
-            Func<WorldSubregion, Brush> colorBySubregion = s =>
+            Func<Subregion, Brush> colorBySubregion = s =>
             {
                 Brush color = drawBelts ? brushByBelt[s.Region.Belt] : new SolidBrush(Interpolation.Interpolate(colorByTemperature, s.Region.Temperature, converter));
 
@@ -249,7 +249,7 @@ namespace WorldSimulationForm
 
             bool drawZones = true; // _chbZones.Checked;
 
-            Func<WorldSubregion, Brush> brushBySubregion = s =>
+            Func<Subregion, Brush> brushBySubregion = s =>
             {
                 Brush brush;
                 if (drawZones)
@@ -330,7 +330,7 @@ namespace WorldSimulationForm
             colorByBiome[Biomes.PolarSea] = Brushes.Blue;
             colorByBiome[Biomes.Mountains] = Brushes.DarkRed;
 
-            foreach (WorldSubregion s in _generator.SubregionGraph.Subregions)
+            foreach (Subregion s in _generator.SubregionGraph.Subregions)
             {
                 Biome biome = _generator.RegionMap.GetRegion(s).Biome;
 
@@ -361,7 +361,7 @@ namespace WorldSimulationForm
 
                 float scale = imp_textures ? 0.75f : 1.0f;
 
-                foreach (WorldSubregion subregion in _generator.SubregionGraph.Subregions.Where(_generator.HasRidge).OrderBy(s => s.Center.Y))
+                foreach (Subregion subregion in _generator.SubregionGraph.Subregions.Where(_generator.HasRidge).OrderBy(s => s.Center.Y))
                 {
                     Bitmap mountain = rnd.NextItem(mountains);
                     float localScale = (float)(scale * (0.8 + 0.2 * rnd.NextDouble()));
@@ -416,7 +416,7 @@ namespace WorldSimulationForm
                     brushes.Add(region.IsRidge ? Brushes.Black : Brushes.Blue);
 
                 int i = 0;
-                foreach (WorldSubregion s in region.Subregions)
+                foreach (Subregion s in region.Subregions)
                 {
                     if (i >= brushes.Count)
                         i = 0;
@@ -462,11 +462,11 @@ namespace WorldSimulationForm
                 {
                     if (_currentEvent.Origin != null)
                     {
-                        foreach (WorldSubregion sreg in _currentEvent.Origin.Subregions)
+                        foreach (Subregion sreg in _currentEvent.Origin.Subregions)
                         {
                             foreach (SubregionEdge sedge in sreg.Edges.Where(sreg.HasNeighbor))
                             {
-                                WorldSubregion neighbor = sreg.GetNeighbor(sedge);
+                                Subregion neighbor = sreg.GetNeighbor(sedge);
                                 if (!sreg.SameRegion(neighbor))
                                     objects.Segments.Add(new SegmentData(sedge.Vertices.ToArray(), Color.Red, 5));
                             }
@@ -489,7 +489,7 @@ namespace WorldSimulationForm
                 brushByLandmass[landmass] = new SolidBrush(Color.FromArgb(vector[0], vector[1], vector[2]));
             }
 
-            Func<WorldSubregion, Brush> getBrush = subregion =>
+            Func<Subregion, Brush> getBrush = subregion =>
             {
                 WorldSimulation.Region region = subregion.Region;
                 if (region.IsSea)
@@ -526,7 +526,7 @@ namespace WorldSimulationForm
         {
             RenderObjects objects = new RenderObjects();
             RandomExt random = new RandomExt();
-            WorldSubregionGraph graph = _generator.SubregionGraph;
+            SubregionGraph graph = _generator.SubregionGraph;
 
             List<SolidBrush> brushes = ((KnownColor[])Enum.GetValues(typeof(KnownColor))).Where(kc => !kc.Equals(KnownColor.Transparent)).
                 Select(kc => new SolidBrush(Color.FromKnownColor(kc))).ToList();
@@ -552,7 +552,7 @@ namespace WorldSimulationForm
                         new Vector2(cellSize * i, cellSize * (j + 1)),
                     ];
                     Vector2 c = new Vector2(cellSize * (i + 0.5), cellSize * (j + 0.5));
-                    WorldSubregion? subregion = graph.SpatialIndex.FindPolygonContainingPoint(c.X, c.Y);
+                    Subregion? subregion = graph.SpatialIndex.FindPolygonContainingPoint(c.X, c.Y);
 
                     if (subregion == null)
                         subregion = graph.SpatialIndex.FindPolygonContainingPoint(c.X + graph.Width, c.Y);
@@ -581,12 +581,12 @@ namespace WorldSimulationForm
             return objects;
         }
 
-        private RenderObjects _subregionHeightImageRenderObjects(Dictionary<HexCell, Color> colorByCell, Color ridgeColor)
+        private RenderObjects _subregionHeightImageRenderObjects(Dictionary<WorldCell, Color> colorByCell, Color ridgeColor)
         {
             RenderObjects objects = new RenderObjects();
-            WorldSubregionGraph graph = _generator.SubregionGraph;
+            SubregionGraph graph = _generator.SubregionGraph;
 
-            foreach (WorldSubregion subregion in graph.Subregions)
+            foreach (Subregion subregion in graph.Subregions)
             {
                 List<Vector2> polygon = subregion.Vertices.ToList();
                 objects.Polygons.Add(new PolygonData(polygon, subregion.Type == SubregionType.Cell ? colorByCell[subregion.Cell] : ridgeColor));
@@ -600,12 +600,12 @@ namespace WorldSimulationForm
 
         private void _addRivers(RenderObjects objects, Color riverColor, int width)
         {
-            WorldSubregionGraph graph = _generator.SubregionGraph;
+            SubregionGraph graph = _generator.SubregionGraph;
             Pen riverPen = new Pen(riverColor, width);
             riverPen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
             riverPen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
 
-            foreach (WorldSubregion subregion in graph.CellSubregions.Where(s => s.River))
+            foreach (Subregion subregion in graph.CellSubregions.Where(s => s.River))
             {
                 SubregionEdge edge = subregion.GetEdge(subregion.Drainage);
 
@@ -616,7 +616,7 @@ namespace WorldSimulationForm
 
                 bool riverOrigin = true;
 
-                foreach (WorldSubregion neighbor in subregion.Neighbors.Where(n => n.River && n.Drainage == subregion))
+                foreach (Subregion neighbor in subregion.Neighbors.Where(n => n.River && n.Drainage == subregion))
                 {
                     riverOrigin = false;
                     Vector2 v1 = Vector2.Lerp(subregion.Center, subregion.GetEdge(neighbor).Center, 0.5);
@@ -633,7 +633,7 @@ namespace WorldSimulationForm
                 }
             }
 
-            foreach (WorldSubregion subregion in graph.EdgeSubregions.Where(s => s.River))
+            foreach (Subregion subregion in graph.EdgeSubregions.Where(s => s.River))
             {
                 if (subregion.Drainage != null)
                 {
@@ -650,11 +650,11 @@ namespace WorldSimulationForm
             Pen subregionPen = new Pen(subregionBorderColor);
             Brush subregionBrush = new SolidBrush(subregionBorderColor);
 
-            foreach (WorldSubregion sreg in _generator.SubregionGraph.Subregions)
+            foreach (Subregion sreg in _generator.SubregionGraph.Subregions)
             {
                 foreach (SubregionEdge sedge in sreg.Edges.Where(sreg.HasNeighbor))
                 {
-                    WorldSubregion neighbor = sreg.GetNeighbor(sedge);
+                    Subregion neighbor = sreg.GetNeighbor(sedge);
                     if (_regionBorder && !sreg.SameRegion(neighbor))
                         objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, Pens.Black));
                     else if (_generator.IsLand(sreg) && _generator.IsSea(neighbor))
@@ -689,11 +689,11 @@ namespace WorldSimulationForm
                 objects.Origin = _origin;
             }
 
-            foreach (WorldSubregion sreg in region.Subregions)
+            foreach (Subregion sreg in region.Subregions)
             {
                 foreach (SubregionEdge sedge in sreg.Edges.Where(sreg.HasNeighbor))
                 {
-                    WorldSubregion neighbor = sreg.GetNeighbor(sedge);
+                    Subregion neighbor = sreg.GetNeighbor(sedge);
                     if (!sreg.SameRegion(neighbor))
                         objects.Segments.Add(new SegmentData(sedge.Vertices.ToArray(), Color.Black, 3));
                 }
@@ -715,11 +715,11 @@ namespace WorldSimulationForm
 
             foreach (WorldSimulation.Region region in regions)
             {
-                foreach (WorldSubregion sreg in region.Subregions)
+                foreach (Subregion sreg in region.Subregions)
                 {
                     foreach (SubregionEdge sedge in sreg.Edges.Where(sreg.HasNeighbor))
                     {
-                        WorldSubregion neighbor = sreg.GetNeighbor(sedge);
+                        Subregion neighbor = sreg.GetNeighbor(sedge);
                         if (!_outlinedRegions.Contains(neighbor.Region))
                         {
                             objects.PreImageSegments.Add(new SegmentData(sedge.Vertices.ToArray(), Color.Red, 5));

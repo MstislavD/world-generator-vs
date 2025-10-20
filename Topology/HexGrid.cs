@@ -210,8 +210,8 @@ namespace Topology
     /// <summary>
     /// Implementaion of the generic HexGrid class.
     /// </summary>
-    public class HexGrid : HexGrid<HexCell, Edge>
-    {
-        public HexGrid(int _width, int _height) : base(_width, _height) { }
-    }
+    //public class HexGrid : HexGrid<HexCell, Edge>
+    //{
+    //    public HexGrid(int _width, int _height) : base(_width, _height) { }
+    //}
 }

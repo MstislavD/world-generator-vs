@@ -6,6 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using HexGrid = WorldSimulation.WorldGrid;
+using HexCell = WorldSimulation.WorldCell;
+using Edge = WorldSimulation.WorldEdge;
+
+
 namespace WorldSimulation
 { 
     public interface IContainer<TGrid, TCell>
@@ -85,7 +90,7 @@ namespace WorldSimulation
         /// <returns></returns>
         static public ExpandedHexGrid Expand(HexGrid grid, RandomExt random)
         {
-            Topology.HexGrid expandedGrid = new HexGrid(grid.Columns * 2, grid.Rows * 2 - 1);
+            HexGrid expandedGrid = new HexGrid(grid.Columns * 2, grid.Rows * 2 - 1);
             Dictionary<HexCell, HexCell> parentByCellTmp = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, HexCell> parentByCell = new Dictionary<HexCell, HexCell>();
             Dictionary<HexCell, List<HexCell>> childrenByCell = new Dictionary<HexCell, List<HexCell>>();

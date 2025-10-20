@@ -11,7 +11,7 @@ namespace WorldSimulation
     public enum Humidity { Dry, Seasonal, Wet, NA }
     public class CellData
     {
-        public HexCell Parent { get; set; }
+        public WorldCell Parent { get; set; }
         public Elevation Elevation { get; set; } = Elevation.DeepOcean;
         public int Height { get; set; }
     }

@@ -52,13 +52,13 @@ namespace WorldSimulation
                 List<Vector2> vertices = Vertices.ToList();
                 for (int i = 1; i < vertices.Count; i++)
                 {
-                    yield return _rounded(new Edge() { Vertex1 = vertices[i - 1], Vertex2 = vertices[i] });
+                    yield return _rounded(new WorldEdge() { Vertex1 = vertices[i - 1], Vertex2 = vertices[i] });
                 }
-                yield return _rounded(new Edge() { Vertex1 = vertices[vertices.Count - 1], Vertex2 = vertices[0] });
+                yield return _rounded(new WorldEdge() { Vertex1 = vertices[vertices.Count - 1], Vertex2 = vertices[0] });
             }
         }
 
-        TEdge _rounded(Edge edge)
+        TEdge _rounded(WorldEdge edge)
         {
             int precision = 5;
             double x1 = Math.Round(edge.Vertex1.X, precision);

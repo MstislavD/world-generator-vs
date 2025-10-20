@@ -36,9 +36,4 @@ namespace Topology
         public int GetDirection(TEdge edge) => _edges.ToList().IndexOf(edge);
         public BoundingBox Bounds => _bbox ?? (_bbox = Polygon.CalculateBoundingBox(this));
     }
-
-    /// <summary>
-    /// Concrete implementation of the generic HexCell class.
-    /// </summary>
-    public class HexCell : HexCell<HexCell, Edge> { }
 }

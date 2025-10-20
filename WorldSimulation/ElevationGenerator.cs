@@ -58,6 +58,24 @@ namespace WorldSimulation
             }
         }
 
+        public static void GenerateFromParent<TLGen, TLGrid, TLCell, TLEdge>(TLGen generator, TLGrid childGrid)
+            where TLGen : IGeneratorCell<TLCell>, IGeneratorEdge<TLEdge>
+            where TLGrid : IGrid<TLCell>, IEdges<TLEdge>
+            where TLCell : ITreeNode<TLCell>
+            where TLEdge : ITreeNode<TLEdge>
+        {
+            foreach (TLCell cell in childGrid.Cells)
+            {
+                TLCell parent = cell.Parent ?? throw new Exception();
+                generator.SetElevation(cell, generator.GetElevation(parent));
+                generator.SetHeight(cell, generator.GetHeight(parent));
+            }
+            foreach (TLEdge edge in childGrid.Edges.Where(e => e.Parent != null))
+            {
+                generator.SetRidge(edge, generator.GetRidge(edge.Parent));
+            }
+        }
+
         public static void GenerateModify(TGen generator, TGrid grid, RandomExt random)
         {
             _createIslands(generator, grid, random);

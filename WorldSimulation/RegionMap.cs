@@ -11,25 +11,25 @@ namespace WorldSimulation
     public class RegionMap
     {
         
-        Dictionary<HexCell, Region> _regionByCell;
-        Dictionary<Edge, Region> _regionByEdge;
+        Dictionary<WorldCell, Region> _regionByCell;
+        Dictionary<WorldEdge, Region> _regionByEdge;
         public WorldGenerator Generator { get; private set; }
         public IEnumerable<Region> Regions => _regionByCell.Values.Union(_regionByEdge.Values);
-        public Region GetRegion(WorldSubregion subregion) => subregion.Type == SubregionType.Cell ? GetRegion(subregion.ParentCell) : GetRegion(subregion.ParentEdge);
-        public Region GetRegion(HexCell cell) => _regionByCell[cell];
-        public Region GetRegion(Edge edge) => _regionByEdge[edge];
-        public bool ContainsEdge(Edge edge) => _regionByEdge.ContainsKey(edge);
+        public Region GetRegion(Subregion subregion) => subregion.Type == SubregionType.Cell ? GetRegion(subregion.ParentCell) : GetRegion(subregion.ParentEdge);
+        public Region GetRegion(WorldCell cell) => _regionByCell[cell];
+        public Region GetRegion(WorldEdge edge) => _regionByEdge[edge];
+        public bool ContainsEdge(WorldEdge edge) => _regionByEdge.ContainsKey(edge);
         public int CountNonRidge => _regionByCell.Count;
         public RegionMap (WorldGenerator generator)
         {
             Generator = generator;
 
-            _regionByCell = new Dictionary<HexCell, Region>();
-            _regionByEdge = new Dictionary<Edge, Region>();
+            _regionByCell = new Dictionary<WorldCell, Region>();
+            _regionByEdge = new Dictionary<WorldEdge, Region>();
 
-            foreach(WorldSubregion subregion in generator.SubregionGraph.CellSubregions)
+            foreach(Subregion subregion in generator.SubregionGraph.CellSubregions)
             {
-                HexCell cell = subregion.ParentCell;
+                WorldCell cell = subregion.ParentCell;
                 if (!_regionByCell.ContainsKey(cell))
                 {
                     _regionByCell[cell] = new Region(this, cell);
@@ -40,9 +40,9 @@ namespace WorldSimulation
                 region.Name = generator.NamingLanguage.GenerateName();       
             }
 
-            foreach(WorldSubregion subregion in generator.SubregionGraph.EdgeSubregions)
+            foreach(Subregion subregion in generator.SubregionGraph.EdgeSubregions)
             {
-                Edge edge = subregion.ParentEdge;
+                WorldEdge edge = subregion.ParentEdge;
                 if (!_regionByEdge.ContainsKey(edge))
                 {
                     _regionByEdge[edge] = new Region(this, edge);

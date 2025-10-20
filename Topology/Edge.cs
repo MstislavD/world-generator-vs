@@ -82,5 +82,5 @@ namespace Topology
     /// <summary>
     /// Concrete implementation of the generic Edge class.
     /// </summary>
-    public class Edge : Edge<HexCell> { }
+    //public class Edge : Edge<HexCell> { }
 }

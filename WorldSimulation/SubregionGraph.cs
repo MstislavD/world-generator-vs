@@ -10,11 +10,11 @@ using System.Diagnostics;
 
 namespace WorldSimulation
 {
-    public class WorldSubregion : Subregion<WorldSubregion, HexCell, Edge> { }
+    public class Subregion : Subregion<Subregion, WorldCell, WorldEdge> { }
 
-    public class WorldSubregionGraph : SubregionGraph<WorldGenerator, WorldSubregion, HexGrid, HexCell, Edge>
+    public class SubregionGraph : SubregionGraph<WorldGenerator, Subregion, WorldGrid, WorldCell, WorldEdge>
     {
-        public WorldSubregionGraph(HexGrid grid, WorldGenerator generator) : base(grid, generator) { }
+        public SubregionGraph(WorldGrid grid, WorldGenerator generator) : base(grid, generator) { }
     }
 
     public enum SubregionType { Cell, Edge }

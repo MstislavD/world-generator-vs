@@ -1,17 +1,6 @@
 ﻿using Topology;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Utilities;
-using TrapezoidSpatialIndex;
 using System.Diagnostics;
-
-//using HexGrid = WorldSimulation.WorldGrid;
-//using HexCell = WorldSimulation.WorldCell;
-//using Edge = WorldSimulation.WorldEdge;
-
 
 namespace WorldSimulation
 {
@@ -53,7 +42,7 @@ namespace WorldSimulation
     }
     public enum Elevation { DeepOcean, ShallowOcean, Lowland, Upland, Highland, Mountain }
 
-    public class WorldGenerator : IGenerator, IGeneratorCell<HexCell>, IGeneratorEdge<Edge>
+    public class WorldGenerator : IGenerator, IGeneratorCell<WorldCell>, IGeneratorEdge<WorldEdge>, IFactoryGrid<WorldGrid>
     {
         int _gridWidth = 10; // 10;
         int _gridHeight = 7; // 7;
@@ -64,7 +53,7 @@ namespace WorldSimulation
 
         GenerationParameters _parameters = new GenerationParameters();
 
-        List<HexGrid> _grids;
+        List<WorldGrid> _grids;
 
         public WorldGenerator() { }
 
@@ -87,21 +76,21 @@ namespace WorldSimulation
             RandomExt heightRandom = new RandomExt(_parameters.HeightSeed);
             NamingLanguage = new Language(Seed);
 
-            _grids = new List<HexGrid>();
-            CellData = new Dictionary<HexCell, CellData>();
-            EdgeData = new Dictionary<Edge, EdgeData>();
+            _grids = new List<WorldGrid>();
+            CellData = new Dictionary<WorldCell, CellData>();
+            EdgeData = new Dictionary<WorldEdge, EdgeData>();
 
-            HexGrid grid = new HexGrid(_gridWidth, _gridHeight);
+            WorldGrid grid = new WorldGrid(_gridWidth, _gridHeight);
             _grids.Add(grid);
             _addData(grid);
 
 
-            Action <WorldGenerator, HexGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
+            Action <WorldGenerator, WorldGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
             {
-                MapScript.Random => ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateRandom,
-                MapScript.One_continent => ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateScriptPangea,
-                MapScript.Two_continents => ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateScriptTwoContinents,
-                MapScript.Three_continents => ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateScriptThreeContinents,
+                MapScript.Random => ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateRandom,
+                MapScript.One_continent => ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateScriptPangea,
+                MapScript.Two_continents => ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateScriptTwoContinents,
+                MapScript.Three_continents => ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateScriptThreeContinents,
                 _ => throw new Exception()
             };
             generateContinents(this, grid, random);
@@ -110,28 +99,29 @@ namespace WorldSimulation
             {
                 bool expandSmoothely = i == GridLevels - 1 && _parameters.UniformRegionSize;
                 RandomExt rndLastGrid = i == GridLevels - 1 ? subregionRandom : random;
-                IContainer<HexGrid, HexCell> expandedGrid = expandSmoothely ? HexGridExpander.Expand(grid, rndLastGrid, 0) : HexGridExpander.Expand(grid, rndLastGrid);
+                IContainer<WorldGrid, WorldCell> expandedGrid = expandSmoothely ? HexGridExpander.Expand(grid, rndLastGrid, 0) : HexGridExpander.Expand(grid, rndLastGrid);
                 grid = expandedGrid.Grid;
+                //grid = ChildGridGenerator.CreateChildGrid<WorldGrid, WorldCell, WorldEdge>(grid, this, rndLastGrid, sizeVariance: expandSmoothely ? 0 : null);
                 _grids.Add(grid);
                 _addData(grid);
 
-                ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateFromParent(this, expandedGrid);
+                ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateFromParent(this, expandedGrid);
 
                 if (i < GridLevels - 1)
                 {
-                    ElevationGenerator<WorldGenerator, HexGrid, HexCell, Edge>.GenerateModify(this, grid, random);
+                    ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateModify(this, grid, random);
                 }
 
                 if (i == GridLevels - 2)
                 {
-                    HeightGenerator.Generate<WorldGenerator, HexGrid, HexCell, Edge>(this, grid, heightRandom);
+                    HeightGenerator.Generate<WorldGenerator, WorldGrid, WorldCell, WorldEdge>(this, grid, heightRandom);
                 }
             }
 
             if (_parameters.RegionSmoothing)
-                RegionSmoother<WorldGenerator, HexGrid, HexCell, Edge>.Smooth(this, grid);
+                RegionSmoother<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.Smooth(this, grid);
 
-            SubregionGraph = new WorldSubregionGraph(grid, this);
+            SubregionGraph = new SubregionGraph(grid, this);
             RegionMap = new RegionMap(this);
 
             if (_parameters.DeformationDetails)
@@ -183,41 +173,41 @@ namespace WorldSimulation
         public event EventHandler OnGenerationComplete;
         public event EventHandler<string> LogUpdated;
 
-        public HexGrid GetGrid(int level) => _grids[level];
+        public WorldGrid GetGrid(int level) => _grids[level];
         public int GridLevels { get; } = 3;
-        public WorldSubregionGraph SubregionGraph { get; private set; }
+        public SubregionGraph SubregionGraph { get; private set; }
         public RegionMap RegionMap { get; private set; }
         public LandmassData LandmassData { get; private set; }
-        public IEnumerable<HexCell> RegionCells => _grids[GridLevels - 1].Cells;
+        public IEnumerable<WorldCell> RegionCells => _grids[GridLevels - 1].Cells;
         public GenerationParameters Parameters => _parameters;
-        public CellData GetData(HexCell cell) => CellData[cell];
-        public Elevation GetElevation(HexCell cell) => CellData[cell].Elevation;
-        public HexCell GetCellParent(HexCell cell) => CellData[cell].Parent ?? cell;
-        public HexCell GetDrainage(HexCell cell) => RegionMap.GetRegion(cell).Drainage.Cell ?? cell;
-        public HexCell GetDrainage(Edge edge) => RegionMap.GetRegion(edge).Drainage.Cell;
-        public Edge GetEdgeParent(Edge edge) => EdgeData[edge].Parent ?? edge;
-        public bool RegionBorder(Edge edge) =>
+        public CellData GetData(WorldCell cell) => CellData[cell];
+        public Elevation GetElevation(WorldCell cell) => CellData[cell].Elevation;
+        public WorldCell GetCellParent(WorldCell cell) => CellData[cell].Parent ?? cell;
+        public WorldCell GetDrainage(WorldCell cell) => RegionMap.GetRegion(cell).Drainage.Cell ?? cell;
+        public WorldCell GetDrainage(WorldEdge edge) => RegionMap.GetRegion(edge).Drainage.Cell;
+        public WorldEdge GetEdgeParent(WorldEdge edge) => EdgeData[edge].Parent ?? edge;
+        public bool RegionBorder(WorldEdge edge) =>
             CellData[edge.Cell1].Parent == null || (edge.Cell2 != null && !CellData[edge.Cell1].Parent.Equals(CellData[edge.Cell2].Parent));
-        public bool IsSea(HexCell cell) => CellData[cell].Elevation < Elevation.Lowland;
-        public bool IsSea(WorldSubregion sregion) => sregion.Type != SubregionType.Edge && IsSea(sregion.ParentCell);
-        public bool IsLand(HexCell cell) => CellData[cell].Elevation > Elevation.ShallowOcean;
-        public bool IsLand(WorldSubregion sregion) => sregion.Type == SubregionType.Edge || IsLand(sregion.ParentCell);
-        public bool PossibleRidge(Edge edge) => edge.Cell2 != null && (IsLand(edge.Cell1) || IsLand(edge.Cell2)) && !EdgeData[edge].Ridge;
-        public bool HasRidge(Edge edge) => edge.Cell2 != null && (IsLand(edge.Cell1) || IsLand(edge.Cell2)) && EdgeData[edge].Ridge;
-        public bool HasRidge(WorldSubregion sRegion) => sRegion.Type == SubregionType.Edge && HasRidge(sRegion.ParentEdge);
-        public bool HasRiver(HexCell cell) => RegionMap.GetRegion(cell).River;
-        public bool HasRiver(Edge edge) => RegionMap.GetRegion(edge).River;
-        public bool NearSea(HexCell cell) => cell.Neighbors.Any(IsSea);
-        public bool NearLand(HexCell cell) => cell.Neighbors.Any(IsLand);
-        public bool IsShore(Edge edge) => edge.Cells.Count() == 2 && IsLand(edge.Cell1) != IsLand(edge.Cell2);
-        public int GetHeight(HexCell cell) => CellData[cell].Height;
-        public int GetHeight(WorldSubregion subregion) => subregion.Type == SubregionType.Cell ? CellData[subregion.ParentCell].Height : 1;
-        public Humidity GetHumidity(WorldSubregion subregion) => subregion.Region.Humidity;
-        public Belt GetBelt(WorldSubregion subregion) => subregion.Region.Belt;
-        public double GetHeightD(WorldSubregion subregion) => GetHeight(subregion);
-        public bool LastGrid(HexGrid grid) => grid.Equals(_grids[GridLevels]);
-        internal Dictionary<HexCell, CellData> CellData { get; private set; }
-        internal Dictionary<Edge, EdgeData> EdgeData { get; private set; }
+        public bool IsSea(WorldCell cell) => CellData[cell].Elevation < Elevation.Lowland;
+        public bool IsSea(Subregion sregion) => sregion.Type != SubregionType.Edge && IsSea(sregion.ParentCell);
+        public bool IsLand(WorldCell cell) => CellData[cell].Elevation > Elevation.ShallowOcean;
+        public bool IsLand(Subregion sregion) => sregion.Type == SubregionType.Edge || IsLand(sregion.ParentCell);
+        public bool PossibleRidge(WorldEdge edge) => edge.Cell2 != null && (IsLand(edge.Cell1) || IsLand(edge.Cell2)) && !EdgeData[edge].Ridge;
+        public bool HasRidge(WorldEdge edge) => edge.Cell2 != null && (IsLand(edge.Cell1) || IsLand(edge.Cell2)) && EdgeData[edge].Ridge;
+        public bool HasRidge(Subregion sRegion) => sRegion.Type == SubregionType.Edge && HasRidge(sRegion.ParentEdge);
+        public bool HasRiver(WorldCell cell) => RegionMap.GetRegion(cell).River;
+        public bool HasRiver(WorldEdge edge) => RegionMap.GetRegion(edge).River;
+        public bool NearSea(WorldCell cell) => cell.Neighbors.Any(IsSea);
+        public bool NearLand(WorldCell cell) => cell.Neighbors.Any(IsLand);
+        public bool IsShore(WorldEdge edge) => edge.Cells.Count() == 2 && IsLand(edge.Cell1) != IsLand(edge.Cell2);
+        public int GetHeight(WorldCell cell) => CellData[cell].Height;
+        public int GetHeight(Subregion subregion) => subregion.Type == SubregionType.Cell ? CellData[subregion.ParentCell].Height : 1;
+        public Humidity GetHumidity(Subregion subregion) => subregion.Region.Humidity;
+        public Belt GetBelt(Subregion subregion) => subregion.Region.Belt;
+        public double GetHeightD(Subregion subregion) => GetHeight(subregion);
+        public bool LastGrid(WorldGrid grid) => grid.Equals(_grids[GridLevels]);
+        internal Dictionary<WorldCell, CellData> CellData { get; private set; }
+        internal Dictionary<WorldEdge, EdgeData> EdgeData { get; private set; }
         public bool GenerationIsComplete { get; private set; }
         public int Seed => _parameters.MainSeed;
         public Language NamingLanguage { get; private set; }
@@ -242,7 +232,7 @@ namespace WorldSimulation
             Vector2 worldShift = width * new Vector2(1, 0);
             int totalSize = 0;
 
-            foreach (WorldSubregion subregion in region.Subregions)
+            foreach (Subregion subregion in region.Subregions)
             {
                 Vector2 subregionCenter = new Vector2(subregion.Center);
 
@@ -299,32 +289,34 @@ namespace WorldSimulation
             }
         }
 
-        void _addData(HexGrid grid)
+        void _addData(WorldGrid grid)
         {
-            foreach (HexCell cell in grid.Cells)
+            foreach (WorldCell cell in grid.Cells)
             {
                 CellData[cell] = new CellData();
             }
-            foreach (Edge edge in grid.Edges)
+            foreach (WorldEdge edge in grid.Edges)
             {
                 EdgeData[edge] = new EdgeData();
             }
         }
 
-        public void SetElevation(HexCell cell, Elevation elevation) => CellData[cell].Elevation = elevation;
+        public void SetElevation(WorldCell cell, Elevation elevation) => CellData[cell].Elevation = elevation;
 
-        public void ChangeElevationLevel(HexCell cell, int delta) => CellData[cell].Elevation += delta;
+        public void ChangeElevationLevel(WorldCell cell, int delta) => CellData[cell].Elevation += delta;
 
-        public void SetRidge(Edge edge, bool r) => EdgeData[edge].Ridge = r;
+        public void SetRidge(WorldEdge edge, bool r) => EdgeData[edge].Ridge = r;
 
-        public void SetParent(HexCell cell, HexCell parent) => CellData[cell].Parent = parent;
+        public void SetParent(WorldCell cell, WorldCell parent) => CellData[cell].Parent = parent;
 
-        public void SetHeight(HexCell cell, int height) => CellData[cell].Height = height;
+        public void SetHeight(WorldCell cell, int height) => CellData[cell].Height = height;
 
-        public void SetParent(Edge edge, Edge parent) => EdgeData[edge].Parent = parent;
+        public void SetParent(WorldEdge edge, WorldEdge parent) => EdgeData[edge].Parent = parent;
 
-        public bool GetRidge(Edge edge) => EdgeData[edge].Ridge;
+        public bool GetRidge(WorldEdge edge) => EdgeData[edge].Ridge;
 
-        public HexCell GetParent(HexCell cell) => CellData[cell].Parent;
+        public WorldCell GetParent(WorldCell cell) => CellData[cell].Parent;
+
+        public WorldGrid CreateGrid(int columns, int rows) => new WorldGrid(columns, rows);
     }
 }

@@ -4,6 +4,9 @@ using System.Drawing;
 
 namespace WorldSimulationForm
 {
+    using HexGrid = WorldSimulation.WorldGrid;
+    using HexCell = WorldSimulation.WorldCell;
+    using Edge = WorldSimulation.WorldEdge;
     struct SegmentData
     {
         public IEnumerable<Vector2> Vertices;
