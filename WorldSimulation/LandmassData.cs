@@ -13,7 +13,7 @@ namespace WorldSimulation
 
         List<Landmass> _landmasses;
 
-        public LandmassData(WorldGenerator generator, Random random)
+        public LandmassData(WorldGeneratorLegacy generator, Random random)
         {
             _landmasses = new List<Landmass>();
             Func<Region, bool> validRegion = r => r.IsFlat && r.Biome != Biomes.Mountains;

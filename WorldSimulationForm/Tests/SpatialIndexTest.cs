@@ -18,7 +18,7 @@ namespace WorldSimulationForm.Tests
 
     internal class SpatialIndexTest
     {
-        public static Bitmap? GetImage(WorldGenerator generator, Size maxSize)
+        public static Bitmap? GetImage(WorldGeneratorLegacy generator, Size maxSize)
         {
             SubregionGraph graph = generator.SubregionGraph;
 

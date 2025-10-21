@@ -9,7 +9,7 @@ namespace WorldSimulation
 {
     class TemperatureGenerator
     {
-        public static void Generate(WorldGenerator generator, Random random)
+        public static void Generate(WorldGeneratorLegacy generator, Random random)
         {
             double height = generator.SubregionGraph.Height;
             double equator = height / 2;

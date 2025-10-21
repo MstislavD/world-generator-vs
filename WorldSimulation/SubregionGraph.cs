@@ -12,9 +12,9 @@ namespace WorldSimulation
 {
     public class Subregion : Subregion<Subregion, WorldCell, WorldEdge> { }
 
-    public class SubregionGraph : SubregionGraph<WorldGenerator, Subregion, WorldGrid, WorldCell, WorldEdge>
+    public class SubregionGraph : SubregionGraph<WorldGeneratorLegacy, Subregion, WorldGrid, WorldCell, WorldEdge>
     {
-        public SubregionGraph(WorldGrid grid, WorldGenerator generator) : base(grid, generator) { }
+        public SubregionGraph(WorldGrid grid, WorldGeneratorLegacy generator) : base(grid, generator) { }
     }
 
     public enum SubregionType { Cell, Edge }

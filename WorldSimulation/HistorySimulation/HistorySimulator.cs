@@ -6,7 +6,7 @@ namespace WorldSimulation.HistorySimulation
 {
     public class HistorySimulator
     {
-        WorldGenerator _generator;
+        WorldGeneratorLegacy _generator;
         Dictionary<int, HashSet<HistoricEvent>> _eventsByTurn;
         List<Race> _races;
 
@@ -20,7 +20,7 @@ namespace WorldSimulation.HistorySimulation
         public bool IsFinished { get; private set; } = false;
         public int EventCount { get; private set; }
 
-        public HistorySimulator(int seed, WorldGenerator generator)
+        public HistorySimulator(int seed, WorldGeneratorLegacy generator)
         {
             Random = new Utilities.RandomExt(seed);
             _generator = generator;

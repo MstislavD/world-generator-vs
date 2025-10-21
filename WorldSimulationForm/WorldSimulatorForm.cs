@@ -22,7 +22,7 @@ namespace WorldSimulationForm
         bool _trackedEvents = true;
         bool _newHighlight = false;
 
-        WorldGenerator _generator;
+        WorldGeneratorLegacy _generator;
 
         Button _btnNextEvent;
         Point _mouse;
@@ -63,7 +63,7 @@ namespace WorldSimulationForm
             _paediaForm.RaceHoverBegin += RaceHoverBegin;
             _paediaForm.RegionHoverBegin += RegionHoverBegin;
 
-            _generator = new WorldGenerator();
+            _generator = new WorldGeneratorLegacy();
             _generator.LogUpdated += Generator_LogUpdated;
             _generator.OnGenerationComplete += (sender, e) => { _renderMap(this, EventArgs.Empty); };
 

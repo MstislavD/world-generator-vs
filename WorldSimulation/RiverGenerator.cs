@@ -14,7 +14,7 @@ namespace WorldSimulation
         
         static bool _printLog = false;
 
-        public static void GenerateForRegions(WorldGenerator generator, RandomExt random)
+        public static void GenerateForRegions(WorldGeneratorLegacy generator, RandomExt random)
         {
             RegionMap map = generator.RegionMap;
 
@@ -59,7 +59,7 @@ namespace WorldSimulation
             }
         }
 
-        public static void GenerateForSubregions(WorldGenerator generator, RandomExt random)
+        public static void GenerateForSubregions(WorldGeneratorLegacy generator, RandomExt random)
         {
             SubregionGraph graph = generator.SubregionGraph;
             RegionMap map = generator.RegionMap;

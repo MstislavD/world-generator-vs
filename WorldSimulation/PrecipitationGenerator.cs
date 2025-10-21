@@ -12,7 +12,7 @@ namespace WorldSimulation
     {
         static bool _printLog = false;
 
-        public static void Generate(WorldGenerator generator)
+        public static void Generate(WorldGeneratorLegacy generator)
         {
             RandomExt random = new RandomExt(generator.Parameters.PrecipitationSeed);
             RegionMap map = generator.RegionMap;

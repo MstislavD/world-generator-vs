@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace WorldSimulation
 {
-    using ElevationGenerator = ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>;
+    using ElevationGenerator = ElevationGenerator<WorldGeneratorLegacy, WorldGrid, WorldCell, WorldEdge>;
     public class WorldCell : LayerHexCell<WorldCell, WorldEdge> { }
     public class WorldEdge : LayerEdge<WorldCell, WorldEdge> { }
     public class WorldGrid : HexGrid<WorldCell, WorldEdge>
@@ -41,7 +41,7 @@ namespace WorldSimulation
     }
     public enum Elevation { DeepOcean, ShallowOcean, Lowland, Upland, Highland, Mountain }
 
-    public class WorldGenerator : IGenerator, IGeneratorCell<WorldCell>, IGeneratorEdge<WorldEdge>, IFactoryGrid<WorldGrid>
+    public class WorldGeneratorLegacy : IGenerator, IGeneratorCell<WorldCell>, IGeneratorEdge<WorldEdge>, IFactoryGrid<WorldGrid>
     {
         int _gridWidth = 10; // 10;
         int _gridHeight = 7; // 7;
@@ -54,7 +54,7 @@ namespace WorldSimulation
 
         List<WorldGrid> _grids;
 
-        public WorldGenerator() { }
+        public WorldGeneratorLegacy() { }
 
         public void Regenerate()
         {
@@ -84,7 +84,7 @@ namespace WorldSimulation
             _addData(grid);
 
 
-            Action<WorldGenerator, WorldGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
+            Action<WorldGeneratorLegacy, WorldGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
             {
                 MapScript.Random => ElevationGenerator.GenerateRandom,
                 MapScript.One_continent => ElevationGenerator.GenerateScriptPangea,
@@ -111,12 +111,12 @@ namespace WorldSimulation
 
                 if (i == GridLevels - 2)
                 {
-                    HeightGenerator.Generate<WorldGenerator, WorldGrid, WorldCell, WorldEdge>(this, grid, heightRandom);
+                    HeightGenerator.Generate<WorldGeneratorLegacy, WorldGrid, WorldCell, WorldEdge>(this, grid, heightRandom);
                 }
             }
 
             if (_parameters.RegionSmoothing)
-                RegionSmoother<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.Smooth(this, grid);
+                RegionSmoother<WorldGeneratorLegacy, WorldGrid, WorldCell, WorldEdge>.Smooth(this, grid);
 
             SubregionGraph = new SubregionGraph(grid, this);
             RegionMap = new RegionMap(this);

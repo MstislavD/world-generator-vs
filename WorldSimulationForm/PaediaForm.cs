@@ -18,7 +18,7 @@ namespace WorldSimulationForm
     public partial class PaediaForm : Form
     {
         FlowLayoutPanel _itemPanel;
-        WorldGenerator _generator;
+        WorldGeneratorLegacy _generator;
         Stack<ViewMode> _viewModes;
         Stack<Race> _viewRaces;
         Stack<WorldSimulation.Region> _viewRegions;
@@ -109,7 +109,7 @@ namespace WorldSimulationForm
             }
         }
 
-        public void InitializeHistory(WorldGenerator generator)
+        public void InitializeHistory(WorldGeneratorLegacy generator)
         {
             _generator = generator;
 

@@ -9,11 +9,11 @@ namespace WorldSimulation
 {
     public class Landmass
     {
-        WorldGenerator _generator;
+        WorldGeneratorLegacy _generator;
         List<Region> _regions;
         List<Landmass> _neighbors;
 
-        public Landmass(WorldGenerator generator,int seed)
+        public Landmass(WorldGeneratorLegacy generator,int seed)
         {
             _generator = generator;
             _regions = new List<Region>();

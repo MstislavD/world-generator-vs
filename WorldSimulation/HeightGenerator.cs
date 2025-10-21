@@ -83,7 +83,7 @@ namespace WorldSimulation
             }
         }
 
-        public static void Generate(WorldGenerator generator)
+        public static void Generate(WorldGeneratorLegacy generator)
         {
             Dictionary<Elevation, int> countByElevation = new Dictionary<Elevation, int>();
             foreach (Region region in generator.RegionMap.Regions)

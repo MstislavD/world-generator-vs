@@ -13,14 +13,14 @@ namespace WorldSimulation
         
         Dictionary<WorldCell, Region> _regionByCell;
         Dictionary<WorldEdge, Region> _regionByEdge;
-        public WorldGenerator Generator { get; private set; }
+        public WorldGeneratorLegacy Generator { get; private set; }
         public IEnumerable<Region> Regions => _regionByCell.Values.Union(_regionByEdge.Values);
         public Region GetRegion(Subregion subregion) => subregion.Type == SubregionType.Cell ? GetRegion(subregion.ParentCell) : GetRegion(subregion.ParentEdge);
         public Region GetRegion(WorldCell cell) => _regionByCell[cell];
         public Region GetRegion(WorldEdge edge) => _regionByEdge[edge];
         public bool ContainsEdge(WorldEdge edge) => _regionByEdge.ContainsKey(edge);
         public int CountNonRidge => _regionByCell.Count;
-        public RegionMap (WorldGenerator generator)
+        public RegionMap (WorldGeneratorLegacy generator)
         {
             Generator = generator;
 
@@ -54,7 +54,7 @@ namespace WorldSimulation
             }
         }
 
-        public void SetBiomes(WorldGenerator generator)
+        public void SetBiomes(WorldGeneratorLegacy generator)
         {
             foreach(Region region in Regions)
             {
