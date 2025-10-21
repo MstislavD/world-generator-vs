@@ -22,6 +22,11 @@ namespace WorldSimulationForm
             return new HexGridRenderer(grid, maxWidth, maxHeight, objects)._image;
         }
 
+        static public Bitmap Render(IHexGrid grid, Rectangle rect, RenderObjects objects)
+        {
+            return new HexGridRenderer(grid, rect.Width, rect.Height, objects)._image;
+        }
+
         HexGridRenderer(IHexGrid grid, int maxWidth, int maxHeight, RenderObjects objects)
         {
             double xScale = (maxWidth - 1) / grid.BoundingBox.MaxX;

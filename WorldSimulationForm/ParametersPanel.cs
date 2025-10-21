@@ -110,7 +110,7 @@ namespace WorldSimulationForm
             ComboBox combo = new ComboBox();
             combo.Items.AddRange(parameter.PossibleValues.Cast<object>().ToArray());
             combo.SelectedItem = parameter.Current;
-            combo.SelectedIndexChanged += (sender, e) => { parameter.Update(combo, combo.SelectedItem); OnParameterUpdate.Invoke(combo, parameter); };
+            combo.SelectionChangeCommitted += (sender, e) => { parameter.Update(combo, combo.SelectedItem); OnParameterUpdate.Invoke(combo, parameter); };
             parameter.OnUpdate += (sender, e) => combo.SelectedItem = parameter;
             combo.DropDownStyle = ComboBoxStyle.DropDownList;
             combo.Width = Width - combo.Margin.Left * 2;

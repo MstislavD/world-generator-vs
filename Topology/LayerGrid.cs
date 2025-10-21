@@ -16,6 +16,18 @@ namespace Topology
         void AddChild(T cell);
     }
 
+    public class TreeNode
+    {
+        public static T GetRoot<T>(T node)
+            where T: ITreeNode<T>
+        {
+            if (node.Parent == null)
+                return node;
+            else
+                return GetRoot(node.Parent);
+        }
+    }
+
     public class LayerHexCell<TCell, TEdge> : HexCell<TCell, TEdge>, ITreeNode<TCell>
     {
         List<TCell>? _children;

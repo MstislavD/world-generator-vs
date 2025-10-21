@@ -42,7 +42,7 @@ namespace WorldSimulation
             foreach (TEdge edge in childGrid.Edges.Where(e => e.Parent != null))
             {
                 TEdge parent = edge.Parent;
-                generator.SetRidge(edge, generator.GetRidge(parent));
+                generator.SetRidge(edge, generator.HasRidge(parent));
             }
         }
 

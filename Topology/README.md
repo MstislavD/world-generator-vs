@@ -32,6 +32,8 @@
 
 ### HexGrid\<TCell, TEdge>
 
+### TreeNode
+
 ### LayerHexCell\<TCell, TEdge>
 
 ### LayerEdge\<TCell, TEdge>

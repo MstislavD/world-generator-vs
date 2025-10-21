@@ -5,12 +5,7 @@ using System.Diagnostics;
 namespace WorldSimulation
 {
     using ElevationGenerator = ElevationGenerator<WorldGeneratorLegacy, WorldGrid, WorldCell, WorldEdge>;
-    public class WorldCell : LayerHexCell<WorldCell, WorldEdge> { }
-    public class WorldEdge : LayerEdge<WorldCell, WorldEdge> { }
-    public class WorldGrid : HexGrid<WorldCell, WorldEdge>
-    {
-        public WorldGrid(int columns, int rows) : base(columns, rows) { }
-    }
+    
     public interface IGeneratorCell<TCell>
     {
         public Elevation GetElevation(TCell cell);
@@ -27,9 +22,7 @@ namespace WorldSimulation
     public interface IGeneratorEdge<TEdge>
     {
         public bool HasRidge(TEdge edge);
-        public bool GetRidge(TEdge edge);
         public TEdge GetEdgeParent(TEdge edge);
-        //public void SetParent(TEdge edge, TEdge parent);
         public void SetRidge(TEdge edge, bool r);
         public bool PossibleRidge(TEdge e);
     }
