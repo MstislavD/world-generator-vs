@@ -13,12 +13,10 @@ namespace WorldSimulation
     }
     public interface IGeneratorCell<TCell>
     {
-        public TCell GetParent(TCell cell);
         public Elevation GetElevation(TCell cell);
         public void SetElevation(TCell cell, Elevation elevation);
         public int GetHeight(TCell cell);
         public void SetHeight(TCell cell, int height);
-        public void SetParent(TCell cell, TCell parent);
         public void ChangeElevationLevel(TCell cell, int delta);
         public bool IsSea(TCell cell);
         public bool IsLand(TCell cell);
@@ -31,7 +29,7 @@ namespace WorldSimulation
         public bool HasRidge(TEdge edge);
         public bool GetRidge(TEdge edge);
         public TEdge GetEdgeParent(TEdge edge);
-        public void SetParent(TEdge edge, TEdge parent);
+        //public void SetParent(TEdge edge, TEdge parent);
         public void SetRidge(TEdge edge, bool r);
         public bool PossibleRidge(TEdge e);
     }
@@ -86,7 +84,7 @@ namespace WorldSimulation
             _addData(grid);
 
 
-            Action <WorldGenerator, WorldGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
+            Action<WorldGenerator, WorldGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
             {
                 MapScript.Random => ElevationGenerator.GenerateRandom,
                 MapScript.One_continent => ElevationGenerator.GenerateScriptPangea,
@@ -100,8 +98,6 @@ namespace WorldSimulation
             {
                 bool expandSmoothely = i == GridLevels - 1 && _parameters.UniformRegionSize;
                 RandomExt rndLastGrid = i == GridLevels - 1 ? subregionRandom : random;
-                //IContainer<WorldGrid, WorldCell> expandedGrid = expandSmoothely ? HexGridExpander.Expand(grid, rndLastGrid, 0) : HexGridExpander.Expand(grid, rndLastGrid);
-                //grid = expandedGrid.Grid;
                 grid = ChildGridGenerator.CreateChildGrid<WorldGrid, WorldCell, WorldEdge>(grid, this, rndLastGrid, sizeVariance: expandSmoothely ? 0 : null);
                 _grids.Add(grid);
                 _addData(grid);
@@ -183,12 +179,11 @@ namespace WorldSimulation
         public GenerationParameters Parameters => _parameters;
         public CellData GetData(WorldCell cell) => CellData[cell];
         public Elevation GetElevation(WorldCell cell) => CellData[cell].Elevation;
-        public WorldCell GetCellParent(WorldCell cell) => CellData[cell].Parent ?? cell;
+        public WorldCell GetCellParent(WorldCell cell) => cell.Parent ?? cell;
         public WorldCell GetDrainage(WorldCell cell) => RegionMap.GetRegion(cell).Drainage.Cell ?? cell;
         public WorldCell GetDrainage(WorldEdge edge) => RegionMap.GetRegion(edge).Drainage.Cell;
-        public WorldEdge GetEdgeParent(WorldEdge edge) => EdgeData[edge].Parent ?? edge;
-        public bool RegionBorder(WorldEdge edge) =>
-            CellData[edge.Cell1].Parent == null || (edge.Cell2 != null && !CellData[edge.Cell1].Parent.Equals(CellData[edge.Cell2].Parent));
+        public WorldEdge GetEdgeParent(WorldEdge edge) => edge.Parent ?? edge;
+        public bool RegionBorder(WorldEdge edge) => edge.Cell1.Parent == null || edge.Cell2 != null && !edge.Cell1.Parent.Equals(edge.Cell2.Parent);
         public bool IsSea(WorldCell cell) => CellData[cell].Elevation < Elevation.Lowland;
         public bool IsSea(Subregion sregion) => sregion.Type != SubregionType.Edge && IsSea(sregion.ParentCell);
         public bool IsLand(WorldCell cell) => CellData[cell].Elevation > Elevation.ShallowOcean;
@@ -308,15 +303,9 @@ namespace WorldSimulation
 
         public void SetRidge(WorldEdge edge, bool r) => EdgeData[edge].Ridge = r;
 
-        public void SetParent(WorldCell cell, WorldCell parent) => CellData[cell].Parent = parent;
-
         public void SetHeight(WorldCell cell, int height) => CellData[cell].Height = height;
 
-        public void SetParent(WorldEdge edge, WorldEdge parent) => EdgeData[edge].Parent = parent;
-
         public bool GetRidge(WorldEdge edge) => EdgeData[edge].Ridge;
-
-        public WorldCell GetParent(WorldCell cell) => CellData[cell].Parent;
 
         public WorldGrid CreateGrid(int columns, int rows) => new WorldGrid(columns, rows);
     }

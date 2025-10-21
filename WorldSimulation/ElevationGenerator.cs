@@ -36,14 +36,12 @@ namespace WorldSimulation
             foreach (TCell cell in childGrid.Cells)
             {
                 TCell parent = cell.Parent ?? throw new Exception();
-                generator.SetParent(cell, parent);
                 generator.SetElevation(cell, generator.GetElevation(parent));
                 generator.SetHeight(cell, generator.GetHeight(parent));
             }
             foreach (TEdge edge in childGrid.Edges.Where(e => e.Parent != null))
             {
                 TEdge parent = edge.Parent;
-                generator.SetParent(edge, parent);
                 generator.SetRidge(edge, generator.GetRidge(parent));
             }
         }

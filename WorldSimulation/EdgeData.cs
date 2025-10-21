@@ -9,7 +9,6 @@ namespace WorldSimulation
 {
     public class EdgeData
     {
-        public WorldEdge Parent { get; set; }
         public bool Ridge { get; set; }
     }
 }
