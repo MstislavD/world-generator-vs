@@ -13,8 +13,8 @@ namespace WorldSimulation
     class ElevationGenerator<TGen, TGrid, TCell, TEdge>
         where TGen : IGenerator, IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
         where TGrid : IHexGrid, IGrid<TCell>, IEdges<TEdge>
-        where TCell : INode<TCell>, INode<TCell, TEdge>
-        where TEdge : IEdge<TCell>
+        where TCell : INode<TCell>, INode<TCell, TEdge>, ITreeNode<TCell>
+        where TEdge : IEdge<TCell>, ITreeNode<TEdge>
     {
         public static void GenerateRandom(TGen generator, TGrid grid, RandomExt random)
         {
@@ -58,21 +58,20 @@ namespace WorldSimulation
             }
         }
 
-        public static void GenerateFromParent<TLGen, TLGrid, TLCell, TLEdge>(TLGen generator, TLGrid childGrid)
-            where TLGen : IGeneratorCell<TLCell>, IGeneratorEdge<TLEdge>
-            where TLGrid : IGrid<TLCell>, IEdges<TLEdge>
-            where TLCell : ITreeNode<TLCell>
-            where TLEdge : ITreeNode<TLEdge>
+        public static void GenerateFromParent(TGen generator, TGrid childGrid)
         {
-            foreach (TLCell cell in childGrid.Cells)
+            foreach (TCell cell in childGrid.Cells)
             {
-                TLCell parent = cell.Parent ?? throw new Exception();
+                TCell parent = cell.Parent ?? throw new Exception();
+                generator.SetParent(cell, parent);
                 generator.SetElevation(cell, generator.GetElevation(parent));
                 generator.SetHeight(cell, generator.GetHeight(parent));
             }
-            foreach (TLEdge edge in childGrid.Edges.Where(e => e.Parent != null))
+            foreach (TEdge edge in childGrid.Edges.Where(e => e.Parent != null))
             {
-                generator.SetRidge(edge, generator.GetRidge(edge.Parent));
+                TEdge parent = edge.Parent;
+                generator.SetParent(edge, parent);
+                generator.SetRidge(edge, generator.GetRidge(parent));
             }
         }
 

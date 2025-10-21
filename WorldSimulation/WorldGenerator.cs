@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 namespace WorldSimulation
 {
+    using ElevationGenerator = ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>;
     public class WorldCell : LayerHexCell<WorldCell, WorldEdge> { }
     public class WorldEdge : LayerEdge<WorldCell, WorldEdge> { }
     public class WorldGrid : HexGrid<WorldCell, WorldEdge>
@@ -87,10 +88,10 @@ namespace WorldSimulation
 
             Action <WorldGenerator, WorldGrid, RandomExt> generateContinents = _parameters.MapScript.Current switch
             {
-                MapScript.Random => ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateRandom,
-                MapScript.One_continent => ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateScriptPangea,
-                MapScript.Two_continents => ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateScriptTwoContinents,
-                MapScript.Three_continents => ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateScriptThreeContinents,
+                MapScript.Random => ElevationGenerator.GenerateRandom,
+                MapScript.One_continent => ElevationGenerator.GenerateScriptPangea,
+                MapScript.Two_continents => ElevationGenerator.GenerateScriptTwoContinents,
+                MapScript.Three_continents => ElevationGenerator.GenerateScriptThreeContinents,
                 _ => throw new Exception()
             };
             generateContinents(this, grid, random);
@@ -99,17 +100,17 @@ namespace WorldSimulation
             {
                 bool expandSmoothely = i == GridLevels - 1 && _parameters.UniformRegionSize;
                 RandomExt rndLastGrid = i == GridLevels - 1 ? subregionRandom : random;
-                IContainer<WorldGrid, WorldCell> expandedGrid = expandSmoothely ? HexGridExpander.Expand(grid, rndLastGrid, 0) : HexGridExpander.Expand(grid, rndLastGrid);
-                grid = expandedGrid.Grid;
-                //grid = ChildGridGenerator.CreateChildGrid<WorldGrid, WorldCell, WorldEdge>(grid, this, rndLastGrid, sizeVariance: expandSmoothely ? 0 : null);
+                //IContainer<WorldGrid, WorldCell> expandedGrid = expandSmoothely ? HexGridExpander.Expand(grid, rndLastGrid, 0) : HexGridExpander.Expand(grid, rndLastGrid);
+                //grid = expandedGrid.Grid;
+                grid = ChildGridGenerator.CreateChildGrid<WorldGrid, WorldCell, WorldEdge>(grid, this, rndLastGrid, sizeVariance: expandSmoothely ? 0 : null);
                 _grids.Add(grid);
                 _addData(grid);
 
-                ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateFromParent(this, expandedGrid);
+                ElevationGenerator.GenerateFromParent(this, grid);
 
                 if (i < GridLevels - 1)
                 {
-                    ElevationGenerator<WorldGenerator, WorldGrid, WorldCell, WorldEdge>.GenerateModify(this, grid, random);
+                    ElevationGenerator.GenerateModify(this, grid, random);
                 }
 
                 if (i == GridLevels - 2)

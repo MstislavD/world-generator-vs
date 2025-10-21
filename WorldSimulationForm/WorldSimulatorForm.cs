@@ -80,7 +80,7 @@ namespace WorldSimulationForm
 
             _gridLevel = new ParameterArray("Grid level", _generator.GridLevels, Enumerable.Range(0, _generator.GridLevels + 1).Cast<object>());
 
-            //_mapSettings.Add(_gridLevel);
+            _mapSettings.Add(_gridLevel);
             _mapSettings.Add(_mapMode);
             //_mapSettings.Add(_regionBorder);
             _mapSettings.Add(_subregionBorder);
