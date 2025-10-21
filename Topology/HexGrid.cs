@@ -8,15 +8,12 @@ namespace Topology
     {
         public int Columns { get; }
         public int Rows { get; }
-        public double Width { get; }
-        public double Height { get; }
+        public BoundingBox BoundingBox { get; }
         public double HexSide { get; }
     }
 
     public interface IGrid<TCell>
     {
-        public int Columns { get; }
-        public int Rows { get; }
         public TCell GetCell(int x, int y);
         public IEnumerable<TCell> Cells { get; }
         public int CellCount { get; }
@@ -59,6 +56,7 @@ namespace Topology
         public int Rows => _cells.GetLength(1);
         public double Width => Columns * _hexWidth;
         public double Height => (Rows + 1.0 / 3) * 1.5 * _hexSide;
+        public BoundingBox BoundingBox => new BoundingBox(0, 0, Width, Height);
         public TCell GetCell(int x, int y) => _cells[x, y];
         public double HexSide => _hexSide;
         public IEnumerable<TCell> Cells => _coords.Select(c => GetCell(c.x, c.y));
@@ -206,12 +204,4 @@ namespace Topology
             return edge;
         }
     }
-
-    /// <summary>
-    /// Implementaion of the generic HexGrid class.
-    /// </summary>
-    //public class HexGrid : HexGrid<HexCell, Edge>
-    //{
-    //    public HexGrid(int _width, int _height) : base(_width, _height) { }
-    //}
 }

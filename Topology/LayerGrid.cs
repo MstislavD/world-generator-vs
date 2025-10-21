@@ -59,7 +59,7 @@ namespace Topology
         /// <returns></returns>
         static public TGrid CreateChildGrid<TGrid, TCell, TEdge>(TGrid parentGrid, IFactoryGrid<TGrid> factory,
             RandomExt random, bool wideBorders = false, int? sizeVariance = null)
-            where TGrid : IGrid<TCell>, IEdges<TEdge>
+            where TGrid : IHexGrid, IGrid<TCell>, IEdges<TEdge>
             where TCell : INode<TCell>, INode<TCell, TEdge>, ITreeNode<TCell>
             where TEdge : IEdge<TCell>, ITreeNode<TEdge>
         {

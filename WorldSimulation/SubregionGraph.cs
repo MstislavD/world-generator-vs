@@ -37,8 +37,8 @@ namespace WorldSimulation
 
         public SubregionGraph(TGrid grid, TGen generator)
         {
-            Width = grid.Width;
-            Height = grid.Height;
+            Width = grid.BoundingBox.MaxX;
+            Height = grid.BoundingBox.MaxY;
 
             foreach (TEdge edge in grid.Edges.Where(generator.HasRidge))
             {

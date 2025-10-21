@@ -12,7 +12,7 @@ namespace WorldSimulation
 {
     class ElevationGenerator<TGen, TGrid, TCell, TEdge>
         where TGen : IGenerator, IGeneratorCell<TCell>, IGeneratorEdge<TEdge>
-        where TGrid : IGrid<TCell>, IEdges<TEdge>
+        where TGrid : IHexGrid, IGrid<TCell>, IEdges<TEdge>
         where TCell : INode<TCell>, INode<TCell, TEdge>
         where TEdge : IEdge<TCell>
     {

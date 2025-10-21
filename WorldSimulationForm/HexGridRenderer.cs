@@ -24,12 +24,12 @@ namespace WorldSimulationForm
 
         HexGridRenderer(IHexGrid grid, int maxWidth, int maxHeight, RenderObjects objects)
         {
-            double xScale = (maxWidth - 1) / grid.Width;
-            double yScale = (maxHeight - 1) / grid.Height;
+            double xScale = (maxWidth - 1) / grid.BoundingBox.MaxX;
+            double yScale = (maxHeight - 1) / grid.BoundingBox.MaxY;
             double scale = Math.Min(xScale, yScale);
 
-            int imageWidth = (int)(grid.Width * scale) + 1;
-            int imageHeight = (int)(grid.Height * scale) + 1;
+            int imageWidth = (int)(grid.BoundingBox.MaxX * scale) + 1;
+            int imageHeight = (int)(grid.BoundingBox.MaxY * scale) + 1;
 
             _objects = objects;
 
@@ -50,7 +50,7 @@ namespace WorldSimulationForm
                 PointF[] points = polygon.Vertices.Select(v => PointFromVertex(v)).ToArray();
                 g.FillPolygon(polygon.Brush, points);
 
-                if (polygon.Vertices.Any(v => v.X > grid.Width))
+                if (polygon.Vertices.Any(v => v.X > grid.BoundingBox.MaxX))
                 {
                     points = polygon.Vertices.Select(v => PointFromVertex(v, -imageWidth + 1)).ToArray();
                     g.FillPolygon(polygon.Brush, points);
@@ -100,7 +100,7 @@ namespace WorldSimulationForm
             points = _repair(points, imageWidth);
             g.DrawLines(segment.Pen, points);
 
-            if (segment.Vertices.Any(v => v.X > grid.Width))
+            if (segment.Vertices.Any(v => v.X > grid.BoundingBox.MaxX))
             {
                 points = segment.Vertices.Select(v => PointFromVertex(v, -imageWidth + 1)).ToArray();
                 g.DrawLines(segment.Pen, points);
