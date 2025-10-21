@@ -31,33 +31,6 @@ namespace WorldSimulation
             _createRidges(generator, grid, random);
         }
 
-        public static void GenerateFromParent(TGen generator, IContainer<TGrid, TCell> expandedGrid)
-        {
-            TGrid grid = expandedGrid.Grid;
-
-            foreach (TCell cell in grid.Cells)
-            {
-                TCell parent = expandedGrid.GetParent(cell);
-                generator.SetParent(cell, parent);
-                generator.SetElevation(cell, generator.GetElevation(parent));
-                generator.SetHeight(cell, generator.GetHeight(parent));
-            }
-            foreach (TEdge edge in grid.Edges)
-            {
-                if (edge.Cell2 != null)
-                {
-                    TCell p1 = generator.GetCellParent(edge.Cell1);
-                    TCell p2 = generator.GetCellParent(edge.Cell2);
-                    if (!p1.Equals(p2))
-                    {
-                        TEdge parent = p1.GetEdgeByNeighbor(p2);
-                        generator.SetParent(edge, parent);
-                        generator.SetRidge(edge, generator.GetRidge(parent));
-                    }
-                }
-            }
-        }
-
         public static void GenerateFromParent(TGen generator, TGrid childGrid)
         {
             foreach (TCell cell in childGrid.Cells)
