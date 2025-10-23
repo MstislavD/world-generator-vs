@@ -20,6 +20,7 @@ namespace WorldSimulation
 
     public class WorldGenerator : IFactoryGrid<WorldGrid>
     {
+        int seed = 0;
         double seaPct = 0.7;
         List<WorldGrid> grids = [];
         public int GridLevels { get; } = 7;
@@ -27,8 +28,8 @@ namespace WorldSimulation
 
         public void Generate()
         {
-            Random rng = new Random();
-            RandomExt rng_e = new RandomExt();
+            Random rng = new Random(seed);
+            RandomExt rng_e = new RandomExt(seed);
 
             grids.Clear();
             grids.Add(new WorldGrid(10, 7));
@@ -40,6 +41,11 @@ namespace WorldSimulation
                 GenerateFromParent(grid);
                 grids.Add(grid);
             }
+        }
+
+        public void Regenerate()
+        {
+            seed = new Random().Next();
         }
 
         public static void GenerateRandom(WorldGrid grid, Random random, double seaPct)

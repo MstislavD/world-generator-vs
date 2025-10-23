@@ -125,7 +125,7 @@ namespace WorldSimulationForm
             ridgePen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
 
             RenderObjects objects = new RenderObjects();
-            objects.Polygons.AddRange(grid.Cells.Select(c => new PolygonData(c, brushByElevation[_generator.GetData(c).Elevation])));
+            objects.Polygons.AddRange(grid.Cells.Select(c => new PolygonData(c, brushByElevation[_generator.GetElevation(c)])));
             IEnumerable<WorldEdge> edges = _regionBorder.Current ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
             objects.Segments.AddRange(edges.Select(e => new SegmentData(e, Pens.Black)));
             objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
