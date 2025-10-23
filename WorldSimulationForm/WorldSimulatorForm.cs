@@ -146,6 +146,11 @@ namespace WorldSimulationForm
 
             _mapSettings.Add(_gridLevel);
             _mapSettings.RegisterProvider(panel);
+
+            _generationSettings.Add(_regenerate);
+            _generationSettings.RegisterProvider(panel);
+
+            panel.RegisterParameter(generator.SeaToLand);
         }
 
         private void Panel_OnParameterUpdate(object? sender, Parameter parameter)

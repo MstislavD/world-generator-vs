@@ -23,15 +23,18 @@ namespace WorldSimulation
         int seed = 0;
         double seaPct = 0.7;
         List<WorldGrid> grids = [];
+        Random rng = new Random();
         public int GridLevels { get; } = 5;
         public WorldGrid? Grid(int level) => grids.Count > level ? grids[level] : null;
         public bool GenerationIsComplete { get; private set; } = false;
 
         public event EventHandler OnGenerationComplete = delegate { };
 
+        public Parameter<bool> SeaToLand { get; } = new Parameter<bool>("Sea to land", true);
+
         public void Generate()
         {
-            Random rng = new Random(seed);
+            rng = new Random(seed);
             RandomExt rng_e = new RandomExt(seed);
 
             grids.Clear();
@@ -42,6 +45,8 @@ namespace WorldSimulation
             {
                 WorldGrid grid = ChildGridGenerator.CreateChildGrid<WorldGrid, WorldCell, WorldEdge>(grids[i], this, rng_e);
                 GenerateFromParent(grid);
+                if (SeaToLand)
+                    _seaToLand(grid);
                 grids.Add(grid);
             }
 
@@ -63,6 +68,12 @@ namespace WorldSimulation
 
         public Elevation GetElevation(WorldCell cell) => cell.Elevation;
 
+        public void SetElevation(WorldCell cell, Elevation elevation) => cell.Elevation = elevation;
+
+        public bool IsLand(WorldCell cell) => cell.Elevation >= Elevation.Lowland;
+
+        public bool IsSea(WorldCell cell) => cell.Elevation < Elevation.Lowland;
+
         public static void GenerateRandom(WorldGrid grid, Random random, double seaPct)
         {
             int landCount = (int)(grid.CellCount * (1 - seaPct));
@@ -83,6 +94,29 @@ namespace WorldSimulation
             foreach (WorldEdge edge in childGrid.Edges.Where(e => e.Parent != null))
             {
                 
+            }
+        }
+
+        void _seaToLand(IGrid<WorldCell> grid)
+        {
+            double pct = 0.025;
+
+            WeightedTree<WorldCell> tree = new();
+            foreach(WorldCell cell in grid.Cells)
+            {
+                if (IsSea(cell) && cell.Neighbors.Any(IsLand) && !Node.IsConnection(cell, IsSea))
+                {
+                    tree.Add(cell, Math.Pow(2, cell.Neighbors.Count(IsLand)));
+                }
+            }
+
+            int count = (int)(pct * grid.CellCount);
+
+            while (count > 0 && tree.Count > 0)
+            {
+                WorldCell cell = tree.Extract(rng);
+                cell.Elevation = Elevation.Lowland;
+                count -= 1;
             }
         }
 

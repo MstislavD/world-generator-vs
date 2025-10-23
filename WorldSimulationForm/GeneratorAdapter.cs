@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -52,7 +53,7 @@ namespace WorldSimulationForm
         public LegacyGeneratorAdapter(WorldGeneratorLegacy generator)
         {
             _gen = generator;
-            _gen.OnGenerationComplete += OnGenerationComplete.Invoke;
+            generator.OnGenerationComplete += (s, e) => OnGenerationComplete(s, e);
         }
 
         public int GridLevels => _gen.GridLevels;
@@ -102,7 +103,8 @@ namespace WorldSimulationForm
         public GeneratorAdapter(WorldGenerator generator)
         {
             _gen = generator;
-            _gen.OnGenerationComplete += OnGenerationComplete.Invoke;
+            // can't be simplified!!! or the Invoke which remembers only fresh empty event will be called
+            _gen.OnGenerationComplete += (s, e) => OnGenerationComplete(s, e); 
         }
 
         public int GridLevels => _gen.GridLevels;
