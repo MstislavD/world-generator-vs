@@ -17,20 +17,15 @@ namespace WorldSimulationForm
         RenderObjects _objects;
         System.Numerics.Vector2 origin;
 
-        static public Bitmap Render(IHexGrid grid, int maxWidth, int maxHeight, RenderObjects objects)
+        static public Bitmap Render(IHexGrid grid, Size size, RenderObjects objects)
         {
-            return new HexGridRenderer(grid, maxWidth, maxHeight, objects)._image;
+            return new HexGridRenderer(grid, size, objects)._image;
         }
 
-        static public Bitmap Render(IHexGrid grid, Rectangle rect, RenderObjects objects)
+        HexGridRenderer(IHexGrid grid, Size size, RenderObjects objects)
         {
-            return new HexGridRenderer(grid, rect.Width, rect.Height, objects)._image;
-        }
-
-        HexGridRenderer(IHexGrid grid, int maxWidth, int maxHeight, RenderObjects objects)
-        {
-            double xScale = (maxWidth - 1) / grid.BoundingBox.MaxX;
-            double yScale = (maxHeight - 1) / grid.BoundingBox.MaxY;
+            double xScale = (size.Width - 1) / grid.BoundingBox.MaxX;
+            double yScale = (size.Height - 1) / grid.BoundingBox.MaxY;
             double scale = Math.Min(xScale, yScale);
 
             int imageWidth = (int)(grid.BoundingBox.MaxX * scale) + 1;

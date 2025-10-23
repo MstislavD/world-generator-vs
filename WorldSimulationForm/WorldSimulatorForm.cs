@@ -1,11 +1,12 @@
-﻿using System.ComponentModel;
+﻿using System.CodeDom;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
+using System.Reflection.Metadata.Ecma335;
+using System.Windows.Forms;
+using Utilities;
 using WorldSimulation;
 using WorldSimulation.HistorySimulation;
-using Utilities;
-using System.Reflection.Metadata.Ecma335;
-using System.CodeDom;
 using WorldSimulationForm.Tests;
 
 namespace WorldSimulationForm
@@ -30,6 +31,7 @@ namespace WorldSimulationForm
         Label _lblInfo;
 
         Bitmap? _image, _testImage;
+        Rectangle _imageRect;
 
         float _multiplier = 0;
         Vector2 _origin = new(0, 0);
@@ -59,14 +61,10 @@ namespace WorldSimulationForm
             KeyPreview = true;
             Text = "World Simulator";
 
-            _logForm = new LogForm();
-            _paediaForm = new PaediaForm();
-            _paediaForm.RaceHoverBegin += RaceHoverBegin;
-            _paediaForm.RegionHoverBegin += RegionHoverBegin;
-
-            _generator = new LegacyGeneratorAdapter(new WorldGeneratorLegacy());
-            _generator.LogUpdated += Generator_LogUpdated;
-            _generator.OnGenerationComplete += _renderMap;
+            _imageRect = new Rectangle();
+            _imageRect.Width = (int)(ClientSize.Width * (1 - _panelWidth) - _margin * 3);
+            _imageRect.Height = ClientSize.Height - _margin * 2;
+            _imageRect.Location = new Point((int)(ClientSize.Width * _panelWidth + _margin * 2), _margin);
 
             ParametersPanel panel = new ParametersPanel();
             panel.Location = new Point(_margin);
@@ -78,6 +76,31 @@ namespace WorldSimulationForm
 
             Button btnStart = panel.AddButton("Start");
             btnStart.Click += BtnStart_Click;
+
+            if (_legacy) 
+                initializationLegacy(panel);
+            else 
+                initialization(panel);
+
+                Button btnTest = panel.AddButton("Test");
+            //btnTest.Click += (s, e) => new PointLocationForm.PointLocationForm(_generator.SubregionGraph).Visible = true;
+            //btnTest.Click += (s, e) => { _testImage = RaycastTest.GetImage((int)(ClientSize.Height * 0.5f)); Invalidate(); };
+            //btnTest.Click += (s, e) => { _testImage = SpatialIndexTest.GetImage(_generator, _imageRect.Size); Invalidate(); };
+            btnTest.Click += (s, e) => { _testImage = LayerGridTest.GetImage(_imageRect.Size); Invalidate(); };
+
+            _lblInfo = panel.AddLabel("Info");
+            _lblInfo.AutoSize = true;
+            _lblInfo.MaximumSize = new Size(panel.Width - _lblInfo.Margin.Left * 2, 1000);
+        }
+
+        void initializationLegacy(ParametersPanel panel)
+        {
+            WorldGeneratorLegacy generator = new();
+
+            generator.LogUpdated += Generator_LogUpdated;
+
+            _generator = new LegacyGeneratorAdapter(generator);
+            _generator.OnGenerationComplete += _renderMap;
 
             _gridLevel = new ParameterArray("Grid level", _generator.GridLevels, Enumerable.Range(0, _generator.GridLevels + 1).Cast<object>());
 
@@ -103,20 +126,26 @@ namespace WorldSimulationForm
             _btnNextEvent.Enabled = false;
             _btnNextEvent.Click += BtnNextEvent_Click;
 
-            Button btnTest = panel.AddButton("Test");
-            //btnTest.Click += (s, e) => new PointLocationForm.PointLocationForm(_generator.SubregionGraph).Visible = true;
-            //btnTest.Click += (s, e) => { _testImage = RaycastTest.GetImage((int)(ClientSize.Height * 0.5f)); Invalidate(); };
-            //btnTest.Click += (s, e) => { _testImage = SpatialIndexTest.GetImage(_generator, imageMaxSize()); Invalidate(); };
-            btnTest.Click += (s, e) => { _testImage = LayerGridTest.GetImage(imageMaxSize()); Invalidate(); };
-
-
-            _lblInfo = panel.AddLabel("Info");
-            _lblInfo.AutoSize = true;
-            _lblInfo.MaximumSize = new Size(panel.Width - _lblInfo.Margin.Left * 2, 1000);
-
             MouseMove += WorldSimulatorForm_MouseMove;
-            MouseClick += WorldSimulatorForm_MouseClick;          
+            MouseClick += WorldSimulatorForm_MouseClick;
             KeyDown += WorldSimulatorForm_KeyDown;
+
+            _logForm = new LogForm();
+            _paediaForm = new PaediaForm();
+            _paediaForm.RaceHoverBegin += RaceHoverBegin;
+            _paediaForm.RegionHoverBegin += RegionHoverBegin;
+        }
+
+        void initialization(ParametersPanel panel)
+        {
+            WorldGenerator generator = new();
+            _generator = new GeneratorAdapter(generator);
+            _generator.OnGenerationComplete += _renderMap;
+            _gridLevel = new ParameterArray("Grid level", _generator.GridLevels - 1, Enumerable.Range(0, _generator.GridLevels).Cast<object>());
+            _mapMode.Update(this, MapMode.Elevation);
+
+            _mapSettings.Add(_gridLevel);
+            _mapSettings.RegisterProvider(panel);
         }
 
         private void Panel_OnParameterUpdate(object? sender, Parameter parameter)
@@ -148,13 +177,16 @@ namespace WorldSimulationForm
 
         private void BtnStart_Click(object? sender, EventArgs e)
         {
-            _seed = new Random().Next();
-            _logForm.Clear();
-
+            _seed = new Random().Next();           
             Debug.WriteLine($"Generation seed: {_seed}");
             _generator.Regenerate(_seed);
-            _paediaForm.InitializeHistory(_generator);
-            _generator.History.EventLogged += History_EventLogged;
+
+            if (_legacy)
+            {
+                _logForm.Clear();
+                _paediaForm.InitializeHistory(_generator);
+                _generator.History.EventLogged += History_EventLogged;
+            }
 
             _renderMap(sender, e);
         }
@@ -206,10 +238,10 @@ namespace WorldSimulationForm
             SubregionGraph graph = _generator.SubregionGraph;
 
             if (graph != null && _image != null &&
-                _mouse.X >= _imageLeft && _mouse.X < _image.Width + _imageLeft &&
+                _mouse.X >= _imageRect.Left && _mouse.X < _image.Width + _imageRect.Left &&
                 _mouse.Y >= _margin && _mouse.Y < _image.Height + _margin)
             {
-                double x = graph.Width * (_mouse.X - _imageLeft) / _image.Width;
+                double x = graph.Width * (_mouse.X - _imageRect.Left) / _image.Width;
                 double y = graph.Height * (_mouse.Y - _margin) / _image.Height;
 
                 if (_multiplier > 0)
@@ -246,10 +278,10 @@ namespace WorldSimulationForm
 
                 // cursor is inside the map image
                 if (graph != null && _image != null &&
-                    _mouse.X >= _imageLeft && _mouse.X < _image.Width + _imageLeft &&
+                    _mouse.X >= _imageRect.Left && _mouse.X < _image.Width + _imageRect.Left &&
                     _mouse.Y >= _margin && _mouse.Y < _image.Height + _margin)
                 {
-                    double x = graph.Width * (_mouse.X - _imageLeft) / _image.Width;
+                    double x = graph.Width * (_mouse.X - _imageRect.Left) / _image.Width;
                     double y = graph.Height * (_mouse.Y - _margin) / _image.Height;
 
                     if (_multiplier > 0)
@@ -305,8 +337,6 @@ namespace WorldSimulationForm
 
             return regionInfo;
         }
-
-        private int _imageLeft => (int)(ClientSize.Width * _panelWidth + _margin * 2);
 
         private void WorldSimulatorForm_KeyDown(object? sender, KeyEventArgs e)
         {

@@ -52,7 +52,7 @@ namespace WorldSimulationForm.Tests
             objects.Polygons.AddRange(childGrid.Cells.Select(c => new PolygonData(c.Vertices, colorByParent[c.Parent])));
             objects.Segments.AddRange(childGrid.Edges.Where(e => e.Parent != null).Select(e => new SegmentData([e.Vertex1, e.Vertex2], Pens.Black)));
 
-            Bitmap image = HexGridRenderer.Render(childGrid, maxSize.Width, maxSize.Height, objects);
+            Bitmap image = HexGridRenderer.Render(childGrid, maxSize, objects);
 
             return image;            
         }

@@ -11,7 +11,6 @@ namespace WorldSimulationForm
     // used to handle both new and old generators
     public interface IGenerator
     {
-        event EventHandler<string> LogUpdated;
         event EventHandler OnGenerationComplete;
         int GridLevels { get; }
         GenerationParameters Parameters { get; }
@@ -53,7 +52,6 @@ namespace WorldSimulationForm
         public LegacyGeneratorAdapter(WorldGeneratorLegacy generator)
         {
             _gen = generator;
-            _gen.LogUpdated += LogUpdated.Invoke;
             _gen.OnGenerationComplete += OnGenerationComplete.Invoke;
         }
 
@@ -71,7 +69,6 @@ namespace WorldSimulationForm
 
         public LandmassData LandmassData => _gen.LandmassData;
 
-        public event EventHandler<string> LogUpdated = delegate { };
         public event EventHandler OnGenerationComplete = delegate { };
 
         public void Generate() => _gen.Generate();
@@ -105,6 +102,7 @@ namespace WorldSimulationForm
         public GeneratorAdapter(WorldGenerator generator)
         {
             _gen = generator;
+            _gen.OnGenerationComplete += OnGenerationComplete.Invoke;
         }
 
         public int GridLevels => _gen.GridLevels;
@@ -117,11 +115,10 @@ namespace WorldSimulationForm
 
         public SubregionGraph SubregionGraph => throw new NotImplementedException();
 
-        public bool GenerationIsComplete => throw new NotImplementedException();
+        public bool GenerationIsComplete => _gen.GenerationIsComplete;
 
         public LandmassData LandmassData => throw new NotImplementedException();
 
-        public event EventHandler<string> LogUpdated = delegate { };
         public event EventHandler OnGenerationComplete = delegate { };
 
         public void Generate() => _gen.Generate();
@@ -141,25 +138,17 @@ namespace WorldSimulationForm
             throw new NotImplementedException();
         }
 
-        public Elevation GetElevation(WorldCell cell)
-        {
-            throw new NotImplementedException();
-        }
+        public Elevation GetElevation(WorldCell cell) => _gen.GetElevation(cell);
 
-        public WorldGrid GetGrid(int gridLevel)
-        {
-            throw new NotImplementedException();
-        }
+        public WorldGrid GetGrid(int gridLevel) => _gen.Grid(gridLevel);
 
         public int GetHeight(WorldCell cell)
         {
             throw new NotImplementedException();
         }
 
-        public bool HasRidge(WorldEdge edge)
-        {
-            throw new NotImplementedException();
-        }
+        // temp
+        public bool HasRidge(WorldEdge edge) => false;
 
         public bool HasRidge(Subregion subregion)
         {
@@ -196,10 +185,8 @@ namespace WorldSimulationForm
             throw new NotImplementedException();
         }
 
-        public bool IsShore(WorldEdge edge)
-        {
-            throw new NotImplementedException();
-        }
+        // temp
+        public bool IsShore(WorldEdge edge) => false;
 
         public bool LastGrid(WorldGrid grid)
         {
@@ -208,10 +195,7 @@ namespace WorldSimulationForm
 
         public void Regenerate() => _gen.Regenerate();
 
-        public void Regenerate(int seed)
-        {
-            throw new NotImplementedException();
-        }
+        public void Regenerate(int seed) => _gen.Regenerate();
 
         public bool RegionBorder(WorldEdge edge)
         {

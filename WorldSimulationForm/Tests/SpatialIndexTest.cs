@@ -18,7 +18,7 @@ namespace WorldSimulationForm.Tests
 
     internal class SpatialIndexTest
     {
-        public static Bitmap? GetImage(WorldGeneratorLegacy generator, Size maxSize)
+        public static Bitmap? GetImage(IGenerator generator, Size maxSize)
         {
             SubregionGraph graph = generator.SubregionGraph;
 
@@ -75,7 +75,7 @@ namespace WorldSimulationForm.Tests
             Debug.WriteLine($"{columns} x {rows} ({columns * rows}) points indexed in {sw.ElapsedMilliseconds} ms ({msPerIndex} ms per point)");
             sw.Restart();
 
-            Bitmap overlay = HexGridRenderer.Render(grid, maxSize.Width, maxSize.Height, objects);
+            Bitmap overlay = HexGridRenderer.Render(grid, maxSize, objects);
             overlay.MakeTransparent(Color.White);
 
             Bitmap image = new Bitmap(overlay.Width, overlay.Height);

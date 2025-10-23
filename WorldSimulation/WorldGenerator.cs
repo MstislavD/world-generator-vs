@@ -23,8 +23,11 @@ namespace WorldSimulation
         int seed = 0;
         double seaPct = 0.7;
         List<WorldGrid> grids = [];
-        public int GridLevels { get; } = 7;
+        public int GridLevels { get; } = 5;
         public WorldGrid? Grid(int level) => grids.Count > level ? grids[level] : null;
+        public bool GenerationIsComplete { get; private set; } = false;
+
+        public event EventHandler OnGenerationComplete = delegate { };
 
         public void Generate()
         {
@@ -41,12 +44,24 @@ namespace WorldSimulation
                 GenerateFromParent(grid);
                 grids.Add(grid);
             }
+
+            GenerationIsComplete = true;
+            OnGenerationComplete.Invoke(this, EventArgs.Empty);
         }
 
         public void Regenerate()
         {
             seed = new Random().Next();
+            Generate();
         }
+
+        public void Regenerate(int newSeed)
+        {
+            seed = newSeed;
+            Generate();
+        }
+
+        public Elevation GetElevation(WorldCell cell) => cell.Elevation;
 
         public static void GenerateRandom(WorldGrid grid, Random random, double seaPct)
         {

@@ -28,24 +28,27 @@ namespace WorldSimulationForm
         {
             if (!_generator.GenerationIsComplete) return;
 
-            if (_generator.History.EventCount == 0)
+            if (_legacy)
             {
-                _btnNextEvent.Text = "Next Event";
-                _btnNextEvent.Enabled = !_generator.History.IsFinished;
-                _currentEvent = null;
-            }
-            else
-            {
-                _btnNextEvent.Text = $"Next ({_generator.History.Turn})";
-            }
+                if (_generator.History.EventCount == 0)
+                {
+                    _btnNextEvent.Text = "Next Event";
+                    _btnNextEvent.Enabled = !_generator.History.IsFinished;
+                    _currentEvent = null;
+                }
+                else
+                {
+                    _btnNextEvent.Text = $"Next ({_generator.History.Turn})";
+                }
 
-            _image = null;
+                if (_logForm.Visible)
+                {
+                    _logForm.Update();
+                    _logForm.Focus();
+                }
+            }            
 
-            if (_logForm.Visible)
-            {
-                _logForm.Update();
-                _logForm.Focus();
-            }
+            _image = null;            
 
             Invalidate();
         }
@@ -58,7 +61,7 @@ namespace WorldSimulationForm
 
             if (_testImage != null)
             {
-                e.Graphics.DrawImage(_testImage, _imageLeft, _margin);
+                e.Graphics.DrawImage(_testImage, _imageRect.Left, _margin);
                 _testImage = null;
                 return;
             }
@@ -90,22 +93,19 @@ namespace WorldSimulationForm
                     objects.Multiplier = Math.Pow(2, _multiplier);
                     objects.Origin = _origin;
                 }
-            }
-           
+            }           
 
-            int imageMaxWidth = (int)(ClientSize.Width * (1 - _panelWidth) - _margin * 3);
-            int imageMaxHeight = ClientSize.Height - _margin * 2;
-            _image = _image ?? HexGridRenderer.Render(grid, imageMaxWidth, imageMaxHeight, objects);
-            e.Graphics.DrawImage(_image, _imageLeft, _margin);
+            _image = _image ?? HexGridRenderer.Render(grid, _imageRect.Size, objects);
+            e.Graphics.DrawImage(_image, _imageRect.Left, _margin);
 
             Bitmap? overlay = null;
             if (_newHighlight)
                 if (_highlightedRegion != null)
-                    overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _regionOutline(_highlightedRegion));
+                    overlay = HexGridRenderer.Render(grid, _image.Size, _regionOutline(_highlightedRegion));
                 else if (_highlightedArea != null)
-                    overlay = HexGridRenderer.Render(grid, _image.Width, _image.Height, _areaOutline(_highlightedArea));                            
+                    overlay = HexGridRenderer.Render(grid, _image.Size, _areaOutline(_highlightedArea));                            
             if (overlay != null)
-                e.Graphics.DrawImage(overlay, _imageLeft, _margin);
+                e.Graphics.DrawImage(overlay, _imageRect.Left, _margin);
 
             _newHighlight = false;
         }
@@ -730,13 +730,6 @@ namespace WorldSimulationForm
             }
 
             return objects;
-        }
-
-        internal Size imageMaxSize()
-        {
-            int width = (int)(ClientSize.Width * (1 - _panelWidth) - _margin * 3);
-            int height = ClientSize.Height - _margin * 2;
-            return new Size(width, height);
         }
     }
 }
