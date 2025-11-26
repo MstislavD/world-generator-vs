@@ -23,7 +23,8 @@ namespace WorldSimulationForm
         bool _trackedEvents = true;
         bool _newHighlight = false;
 
-        bool _legacy = false;
+        // if true, old version of generator is activated
+        bool _legacy = true;
         IGenerator _generator;
 
         Button _btnNextEvent;
