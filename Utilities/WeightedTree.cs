@@ -57,11 +57,11 @@ namespace WorldSimulation
         public T Extract(double randomDouble)
         {
             if (_root == null)
-                throw new Exception();
+                throw new Exception("WeightedTree is empty.");
 
-            if (randomDouble<0 || randomDouble > 1)
+            if (randomDouble < 0 || randomDouble > 1)
             {
-                throw new Exception("Random double parameter must be in [0,1] interval.");
+                throw new ArgumentOutOfRangeException("Random double parameter must be in [0,1] interval.");
             }
             double value = _root.TotalWeight * randomDouble;
             Node<T> extracted = _extract(_root, value);
@@ -139,7 +139,7 @@ namespace WorldSimulation
                 node.SubtreeCount -= 1;
                 return extracted;
             }
-            else if (value < value2)
+            else if (value <= value2)
             {
                 int subtreeCount = node.SubtreeCount;
                 Node<T> substitute = _substitute(node);
