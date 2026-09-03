@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using Topology;
@@ -48,6 +48,7 @@ namespace WorldSimulationForm
                 }
             }            
 
+            _image?.Dispose();
             _image = null;            
 
             Invalidate();
@@ -62,6 +63,7 @@ namespace WorldSimulationForm
             if (_testImage != null)
             {
                 e.Graphics.DrawImage(_testImage, _imageRect.Left, _margin);
+                _testImage.Dispose();
                 _testImage = null;
                 return;
             }
@@ -97,15 +99,27 @@ namespace WorldSimulationForm
 
             _image = _image ?? HexGridRenderer.Render(grid, _imageRect.Size, objects);
             e.Graphics.DrawImage(_image, _imageRect.Left, _margin);
+            objects?.Dispose();
 
             Bitmap? overlay = null;
+            RenderObjects? outline = null;
             if (_newHighlight)
                 if (_highlightedRegion != null)
-                    overlay = HexGridRenderer.Render(grid, _image.Size, _regionOutline(_highlightedRegion));
+                {
+                    outline = _regionOutline(_highlightedRegion);
+                    overlay = HexGridRenderer.Render(grid, _image.Size, outline);
+                }
                 else if (_highlightedArea != null)
-                    overlay = HexGridRenderer.Render(grid, _image.Size, _areaOutline(_highlightedArea));                            
+                {
+                    outline = _areaOutline(_highlightedArea);
+                    overlay = HexGridRenderer.Render(grid, _image.Size, outline);
+                }
             if (overlay != null)
+            {
                 e.Graphics.DrawImage(overlay, _imageRect.Left, _margin);
+                overlay.Dispose();
+            }
+            outline?.Dispose();
 
             _newHighlight = false;
         }
@@ -113,12 +127,12 @@ namespace WorldSimulationForm
         private RenderObjects _elevationImage(WorldGrid grid)
         {
             Dictionary<Elevation, Brush> brushByElevation = new Dictionary<Elevation, Brush>();
-            brushByElevation[Elevation.DeepOcean] = Brushes.MediumBlue;
-            brushByElevation[Elevation.ShallowOcean] = Brushes.Blue;
-            brushByElevation[Elevation.Lowland] = Brushes.Green;
-            brushByElevation[Elevation.Upland] = Brushes.Yellow;
-            brushByElevation[Elevation.Highland] = Brushes.Orange;
-            brushByElevation[Elevation.Mountain] = Brushes.Brown;
+            brushByElevation[Elevation.DeepOcean] = new SolidBrush(Color.MediumBlue);
+            brushByElevation[Elevation.ShallowOcean] = new SolidBrush(Color.Blue);
+            brushByElevation[Elevation.Lowland] = new SolidBrush(Color.Green);
+            brushByElevation[Elevation.Upland] = new SolidBrush(Color.Yellow);
+            brushByElevation[Elevation.Highland] = new SolidBrush(Color.Orange);
+            brushByElevation[Elevation.Mountain] = new SolidBrush(Color.Brown);
 
             Pen ridgePen = new Pen(Color.DarkRed, 0);
             ridgePen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
@@ -127,7 +141,8 @@ namespace WorldSimulationForm
             RenderObjects objects = new RenderObjects();
             objects.Polygons.AddRange(grid.Cells.Select(c => new PolygonData(c, brushByElevation[_generator.GetElevation(c)])));
             IEnumerable<WorldEdge> edges = _regionBorder.Current ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
-            objects.Segments.AddRange(edges.Select(e => new SegmentData(e, Pens.Black)));
+            Pen blackPen = new Pen(Color.Black);
+            objects.Segments.AddRange(edges.Select(e => new SegmentData(e, blackPen)));
             objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
 
             return objects;
@@ -185,13 +200,15 @@ namespace WorldSimulationForm
 
             if (_generator.LastGrid(grid))
             {
+                ridgePen.Dispose(); // not used in the subregion path
                 return _subregionHeightImageRenderObjects(colorByCell, ridgeColor);
             }
             else
             {
                 objects.Polygons.AddRange(grid.Cells.Select(c => new PolygonData(c, colorByCell[c])));
                 IEnumerable<WorldEdge> edges = _regionBorder.Current ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
-                objects.Segments.AddRange(edges.Select(e => new SegmentData(e, Pens.Black)));
+                Pen blackPen = new Pen(Color.Black);
+                    objects.Segments.AddRange(edges.Select(e => new SegmentData(e, blackPen)));
                 objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
 
                 IEnumerable<Vector2[]> cellRivers = grid.Cells.Where(_generator.IsLand).Where(_generator.HasRiver).Select(c => new Vector2[] { c.Center, _generator.GetDrainage(c).Center });
@@ -206,30 +223,23 @@ namespace WorldSimulationForm
 
         private RenderObjects _temperatureImage()
         {
-            Dictionary<Belt, Brush> brushByBelt = new Dictionary<Belt, Brush>();
-            brushByBelt[Belt.Polar] = Brushes.Purple;
-            brushByBelt[Belt.Boreal] = Brushes.Teal;
-            brushByBelt[Belt.Temperate] = Brushes.Green;
-            brushByBelt[Belt.Subtropical] = Brushes.Olive;
-            brushByBelt[Belt.Tropical] = Brushes.Yellow;
-
             Dictionary<double, Color> colorByTemperature = _rainbowColors();
 
             RenderObjects objects = new RenderObjects();
 
-            bool drawBelts = false; // _chbBelts.Checked;
+            //bool drawBelts = false; // _chbBelts.Checked; (belt mode unused - per-belt brushes were dead code)
 
             ColorConverter converter = new ColorConverter();
             Func<Subregion, Brush> colorBySubregion = s =>
             {
-                Brush color = drawBelts ? brushByBelt[s.Region.Belt] : new SolidBrush(Interpolation.Interpolate(colorByTemperature, s.Region.Temperature, converter));
+                Color color = Interpolation.Interpolate(colorByTemperature, s.Region.Temperature, converter);
 
                 if (_generator.IsSea(s))
-                    color = Brushes.Blue;// new SolidBrush(Color.FromArgb(75, (color as SolidBrush).Color));
+                    color = Color.Blue;// Color.FromArgb(75, ...)
                 if (_generator.HasRidge(s))
-                    color = Brushes.DarkRed;
+                    color = Color.DarkRed;
 
-                return color;
+                return new SolidBrush(color);
             };
 
             objects.Polygons.AddRange(_generator.SubregionGraph.Subregions.Select(s => new PolygonData(s.Vertices, colorBySubregion(s))));
@@ -251,27 +261,27 @@ namespace WorldSimulationForm
 
             Func<Subregion, Brush> brushBySubregion = s =>
             {
-                Brush brush;
+                Color color;
                 if (drawZones)
                 {
                     if (s.Region.Humidity == Humidity.Dry)
-                        brush = Brushes.Red;
+                        color = Color.Red;
                     else if (s.Region.Humidity == Humidity.Seasonal)
-                        brush = Brushes.Yellow;
+                        color = Color.Yellow;
                     else
-                        brush = Brushes.Green;
+                        color = Color.Green;
                 }
                 else
                 {
-                    brush = Brushes.Green; // Interpolation.Interpolate(colorByTemperature, _generator.GetPrecipitation(s), ColorConverter.Converter);
+                    color = Color.Green; // Interpolation.Interpolate(colorByTemperature, _generator.GetPrecipitation(s), ColorConverter.Converter);
                 }
 
                 if (s.Region.IsSea)
-                    brush = Brushes.Blue; // Color.FromArgb(75, color);
+                    color = Color.Blue; // Color.FromArgb(75, color);
                 if (s.Region.IsRidge)
-                    brush = Brushes.DarkRed;
+                    color = Color.DarkRed;
 
-                return brush;
+                return new SolidBrush(color);
             };
 
             objects.Polygons.AddRange(_generator.SubregionGraph.Subregions.Select(s => new PolygonData(s.Vertices, brushBySubregion(s))));
@@ -286,55 +296,61 @@ namespace WorldSimulationForm
             RenderObjects objects = new RenderObjects();
 
             bool imp_textures = _texture.Current.Equals("Texture Imp");
+            bool isColor = _texture.Current.Equals("Color");
 
             Dictionary<Biome, TextureBrush> brushByBiome = new Dictionary<Biome, TextureBrush>();
+            if (!isColor)
+            {
+                brushByBiome[Biomes.WetTundra] = new TextureBrush(wet_tundra);
+                brushByBiome[Biomes.Tundra] = new TextureBrush(tundra);
+                brushByBiome[Biomes.DryTundra] = new TextureBrush(dry_tundra);
+                brushByBiome[Biomes.WetTaiga] = new TextureBrush(wet_taiga);
+                brushByBiome[Biomes.Taiga] = new TextureBrush(taiga);
+                brushByBiome[Biomes.DryTaiga] = new TextureBrush(imp_textures ? dry_taiga_imp : dry_taiga);
+                brushByBiome[Biomes.MixedForest] = new TextureBrush(mixed_forest);
+                brushByBiome[Biomes.ForestSteppe] = new TextureBrush(imp_textures ? forest_steppe_imp : forest_steppe);
+                brushByBiome[Biomes.TemperateSteppe] = new TextureBrush(imp_textures ? temperate_steppe_imp : grassland);
+                brushByBiome[Biomes.BroadleafForest] = new TextureBrush(broadleaf);
+                brushByBiome[Biomes.SubtropicalSteppe] = new TextureBrush(imp_textures ? temperate_steppe_imp : grassland);
+                brushByBiome[Biomes.SubtropicalDesert] = new TextureBrush(imp_textures ? semidesert_imp : semidesert);
+                brushByBiome[Biomes.Rainforest] = new TextureBrush(imp_textures ? rainforest_imp : rainforest);
+                brushByBiome[Biomes.Savanna] = new TextureBrush(imp_textures ? savanna_imp : savanna);
+                brushByBiome[Biomes.TropicalDesert] = new TextureBrush(imp_textures ? desert_imp : desert);
+                brushByBiome[Biomes.ShallowOcean] = new TextureBrush(imp_textures ? shallow_sea_imp : shallow_sea);
+                brushByBiome[Biomes.DeepOcean] = new TextureBrush(imp_textures ? deep_sea_imp : deep_sea);
+                brushByBiome[Biomes.PolarSea] = new TextureBrush(imp_textures ? deep_sea_imp : polar_sea);
+                brushByBiome[Biomes.Mountains] = new TextureBrush(imp_textures ? mountains_imp : mountains);
+            }
+
             Dictionary<Biome, Brush> colorByBiome = new Dictionary<Biome, Brush>();
-
-            brushByBiome[Biomes.WetTundra] = new TextureBrush(wet_tundra);
-            brushByBiome[Biomes.Tundra] = new TextureBrush(tundra);
-            brushByBiome[Biomes.DryTundra] = new TextureBrush(dry_tundra);
-            brushByBiome[Biomes.WetTaiga] = new TextureBrush(wet_taiga);
-            brushByBiome[Biomes.Taiga] = new TextureBrush(taiga);
-            brushByBiome[Biomes.DryTaiga] = new TextureBrush(imp_textures ? dry_taiga_imp : dry_taiga);
-            brushByBiome[Biomes.MixedForest] = new TextureBrush(mixed_forest);
-            brushByBiome[Biomes.ForestSteppe] = new TextureBrush(imp_textures ? forest_steppe_imp : forest_steppe);
-            brushByBiome[Biomes.TemperateSteppe] = new TextureBrush(imp_textures ? temperate_steppe_imp : grassland);
-            brushByBiome[Biomes.BroadleafForest] = new TextureBrush(broadleaf);
-            brushByBiome[Biomes.SubtropicalSteppe] = new TextureBrush(imp_textures ? temperate_steppe_imp : grassland);
-            brushByBiome[Biomes.SubtropicalDesert] = new TextureBrush(imp_textures ? semidesert_imp : semidesert);
-            brushByBiome[Biomes.Rainforest] = new TextureBrush(imp_textures ? rainforest_imp : rainforest);
-            brushByBiome[Biomes.Savanna] = new TextureBrush(imp_textures ? savanna_imp : savanna);
-            brushByBiome[Biomes.TropicalDesert] = new TextureBrush(imp_textures ? desert_imp : desert);
-            brushByBiome[Biomes.ShallowOcean] = new TextureBrush(imp_textures ? shallow_sea_imp : shallow_sea);
-            brushByBiome[Biomes.DeepOcean] = new TextureBrush(imp_textures ? deep_sea_imp : deep_sea);
-            brushByBiome[Biomes.PolarSea] = new TextureBrush(imp_textures ? deep_sea_imp : polar_sea);
-            brushByBiome[Biomes.Mountains] = new TextureBrush(imp_textures ? mountains_imp : mountains);
-
-            colorByBiome[Biomes.WetTundra] = Brushes.Cyan;
-            colorByBiome[Biomes.Tundra] = Brushes.Cyan;
-            colorByBiome[Biomes.DryTundra] = Brushes.Cyan;
-            colorByBiome[Biomes.WetTaiga] = Brushes.Teal;
-            colorByBiome[Biomes.Taiga] = Brushes.Teal;
-            colorByBiome[Biomes.DryTaiga] = Brushes.Teal;
-            colorByBiome[Biomes.MixedForest] = Brushes.LimeGreen;
-            colorByBiome[Biomes.ForestSteppe] = Brushes.LimeGreen;
-            colorByBiome[Biomes.TemperateSteppe] = Brushes.Yellow;
-            colorByBiome[Biomes.BroadleafForest] = Brushes.LimeGreen;
-            colorByBiome[Biomes.SubtropicalSteppe] = Brushes.Yellow;
-            colorByBiome[Biomes.SubtropicalDesert] = Brushes.Orange;
-            colorByBiome[Biomes.Rainforest] = Brushes.DarkGreen;
-            colorByBiome[Biomes.Savanna] = Brushes.Olive; ;
-            colorByBiome[Biomes.TropicalDesert] = Brushes.Orange;
-            colorByBiome[Biomes.ShallowOcean] = Brushes.Blue;
-            colorByBiome[Biomes.DeepOcean] = Brushes.Blue;
-            colorByBiome[Biomes.PolarSea] = Brushes.Blue;
-            colorByBiome[Biomes.Mountains] = Brushes.DarkRed;
+            if (isColor)
+            {
+                colorByBiome[Biomes.WetTundra] = new SolidBrush(Color.Cyan);
+                colorByBiome[Biomes.Tundra] = new SolidBrush(Color.Cyan);
+                colorByBiome[Biomes.DryTundra] = new SolidBrush(Color.Cyan);
+                colorByBiome[Biomes.WetTaiga] = new SolidBrush(Color.Teal);
+                colorByBiome[Biomes.Taiga] = new SolidBrush(Color.Teal);
+                colorByBiome[Biomes.DryTaiga] = new SolidBrush(Color.Teal);
+                colorByBiome[Biomes.MixedForest] = new SolidBrush(Color.LimeGreen);
+                colorByBiome[Biomes.ForestSteppe] = new SolidBrush(Color.LimeGreen);
+                colorByBiome[Biomes.TemperateSteppe] = new SolidBrush(Color.Yellow);
+                colorByBiome[Biomes.BroadleafForest] = new SolidBrush(Color.LimeGreen);
+                colorByBiome[Biomes.SubtropicalSteppe] = new SolidBrush(Color.Yellow);
+                colorByBiome[Biomes.SubtropicalDesert] = new SolidBrush(Color.Orange);
+                colorByBiome[Biomes.Rainforest] = new SolidBrush(Color.DarkGreen);
+                colorByBiome[Biomes.Savanna] = new SolidBrush(Color.Olive);
+                colorByBiome[Biomes.TropicalDesert] = new SolidBrush(Color.Orange);
+                colorByBiome[Biomes.ShallowOcean] = new SolidBrush(Color.Blue);
+                colorByBiome[Biomes.DeepOcean] = new SolidBrush(Color.Blue);
+                colorByBiome[Biomes.PolarSea] = new SolidBrush(Color.Blue);
+                colorByBiome[Biomes.Mountains] = new SolidBrush(Color.DarkRed);
+            }
 
             foreach (Subregion s in _generator.SubregionGraph.Subregions)
             {
                 Biome biome = _generator.RegionMap.GetRegion(s).Biome;
 
-                if (_texture.Current.Equals("Color"))
+                if (isColor)
                     objects.Polygons.Add(new PolygonData(s.Vertices, colorByBiome[biome]));
                 else
                     objects.Polygons.Add(new PolygonData(s.Vertices, brushByBiome[biome]));
@@ -357,6 +373,7 @@ namespace WorldSimulationForm
                     Bitmap mirror = new Bitmap(mountains[i]);
                     mirror.RotateFlip(RotateFlipType.RotateNoneFlipX);
                     mountains.Add(mirror);
+                    objects.Disposables.Add(mirror);
                 }
 
                 float scale = imp_textures ? 0.75f : 1.0f;
@@ -410,10 +427,10 @@ namespace WorldSimulationForm
                         brushes.Add(getBrush(pop.Race));
                     }
                     if (brushes.Count == 0)
-                        brushes.Add(Brushes.White);
+                        brushes.Add(new SolidBrush(Color.White));
                 }
                 else
-                    brushes.Add(region.IsRidge ? Brushes.Black : Brushes.Blue);
+                    brushes.Add(region.IsRidge ? new SolidBrush(Color.Black) : new SolidBrush(Color.Blue));
 
                 int i = 0;
                 foreach (Subregion s in region.Subregions)
@@ -493,15 +510,18 @@ namespace WorldSimulationForm
             {
                 WorldSimulation.Region region = subregion.Region;
                 if (region.IsSea)
-                    return Brushes.Blue;
+                    return new SolidBrush(Color.Blue);
                 else if (region.Biome == Biomes.Mountains)
-                    return Brushes.Black;
+                    return new SolidBrush(Color.Black);
                 else
                     return brushByLandmass[region.Landmass];
             };
 
             objects.Polygons.AddRange(_generator.SubregionGraph.Subregions.Select(s => new PolygonData(s.Vertices, getBrush(s))));
-            objects.Vertices.AddRange(_generator.LandmassData.Landmasses.Select(s => new VertexData(s.Center, Brushes.Black)));
+            Brush landmassMark = new SolidBrush(Color.Black);
+            objects.Vertices.AddRange(_generator.LandmassData.Landmasses.Select(s => new VertexData(s.Center, landmassMark)));
+
+            Pen blackPen = new Pen(Color.Black);
 
             foreach (Landmass landmass in _generator.LandmassData.Landmasses)
             {
@@ -513,7 +533,7 @@ namespace WorldSimulationForm
                     else if (x - landmass.Center.X < -_generator.SubregionGraph.Width / 2)
                         x += _generator.SubregionGraph.Width;
 
-                    objects.Segments.Add(new SegmentData([landmass.Center, new(x, neighbor.Center.Y)], Pens.Black));
+                    objects.Segments.Add(new SegmentData([landmass.Center, new(x, neighbor.Center.Y)], blackPen));
                 }
             }
 
@@ -649,6 +669,7 @@ namespace WorldSimulationForm
             Color subregionBorderColor = Color.FromArgb(20, Color.Black);
             Pen subregionPen = new Pen(subregionBorderColor);
             Brush subregionBrush = new SolidBrush(subregionBorderColor);
+            Pen blackPen = new Pen(Color.Black);
 
             foreach (Subregion sreg in _generator.SubregionGraph.Subregions)
             {
@@ -656,9 +677,9 @@ namespace WorldSimulationForm
                 {
                     Subregion neighbor = sreg.GetNeighbor(sedge);
                     if (_regionBorder && !sreg.SameRegion(neighbor))
-                        objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, Pens.Black));
+                        objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, blackPen));
                     else if (_generator.IsLand(sreg) && _generator.IsSea(neighbor))
-                        objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, Pens.Black));
+                        objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, blackPen));
                     else if (_subregionBorder)
                     {
                         objects.PreImageSegments.Add(new SegmentData(sedge.Vertices, subregionPen));

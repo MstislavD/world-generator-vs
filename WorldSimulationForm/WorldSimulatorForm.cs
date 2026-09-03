@@ -1,4 +1,4 @@
-﻿using System.CodeDom;
+using System.CodeDom;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
@@ -397,6 +397,17 @@ namespace WorldSimulationForm
         {
             string info = $"T{_generator.History.Turn}: {e.Info}";
             _logForm.AddEntry(info);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _image?.Dispose();
+                _testImage?.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

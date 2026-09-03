@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -43,7 +43,7 @@ namespace WorldSimulationForm
             else
                 origin = (System.Numerics.Vector2)_objects.Origin;
 
-                Graphics g = Graphics.FromImage(_image);
+                using Graphics g = Graphics.FromImage(_image);
 
             foreach (PolygonData polygon in _objects.Polygons)
             {

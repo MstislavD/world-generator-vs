@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,9 +50,11 @@ namespace WorldSimulationForm.Tests
 
             var objects = new RenderObjects();
             objects.Polygons.AddRange(childGrid.Cells.Select(c => new PolygonData(c.Vertices, colorByParent[c.Parent])));
-            objects.Segments.AddRange(childGrid.Edges.Where(e => e.Parent != null).Select(e => new SegmentData([e.Vertex1, e.Vertex2], Pens.Black)));
+            Pen blackPen = new Pen(Color.Black);
+            objects.Segments.AddRange(childGrid.Edges.Where(e => e.Parent != null).Select(e => new SegmentData([e.Vertex1, e.Vertex2], blackPen)));
 
             Bitmap image = HexGridRenderer.Render(childGrid, maxSize, objects);
+            objects.Dispose();
 
             return image;            
         }
