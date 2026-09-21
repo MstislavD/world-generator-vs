@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using Utilities;
 
@@ -111,7 +111,7 @@ namespace WorldSimulationForm
             combo.Items.AddRange(parameter.PossibleValues.Cast<object>().ToArray());
             combo.SelectedItem = parameter.Current;
             combo.SelectionChangeCommitted += (sender, e) => { parameter.Update(combo, combo.SelectedItem); OnParameterUpdate.Invoke(combo, parameter); };
-            parameter.OnUpdate += (sender, e) => combo.SelectedItem = parameter;
+            parameter.OnUpdate += (sender, e) => combo.SelectedItem = parameter.Current;
             combo.DropDownStyle = ComboBoxStyle.DropDownList;
             combo.Width = Width - combo.Margin.Left * 2;
             _tooltip.SetToolTip(combo, parameter.Name);

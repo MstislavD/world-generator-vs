@@ -135,6 +135,8 @@ namespace WorldSimulationForm
             _paediaForm = new PaediaForm();
             _paediaForm.RaceHoverBegin += RaceHoverBegin;
             _paediaForm.RegionHoverBegin += RegionHoverBegin;
+            _paediaForm.RaceHoverEnd += RaceHoverEnd;
+            _paediaForm.RegionHoverEnd += RegionHoverEnd;
         }
 
         void initialization(ParametersPanel panel)
@@ -169,6 +171,8 @@ namespace WorldSimulationForm
         private void RegionHoverBegin(object? sender, WorldSimulation.Region? region)
         {
             _highlightedRegion = region;
+            if (region == null)
+                _highlightedArea = []; // no subregion hovered — drop any stale race highlight from the paedia
             _newHighlight = true;
             Invalidate();
         }
@@ -177,6 +181,20 @@ namespace WorldSimulationForm
         {
             _highlightedArea = _generator.RegionMap.Regions.Where(r => r.Pops.Any(p => p.Race == race)).ToList();
             _highlightedRegion = null;
+            _newHighlight = true;
+            Invalidate();
+        }
+
+        private void RaceHoverEnd(object? sender, Race race)
+        {
+            _highlightedArea = []; // paedia left the race view / a label — drop its highlight
+            _newHighlight = true;
+            Invalidate();
+        }
+
+        private void RegionHoverEnd(object? sender, WorldSimulation.Region region)
+        {
+            _highlightedRegion = null; // paedia left the region view / was hidden — drop its highlight
             _newHighlight = true;
             Invalidate();
         }
@@ -212,6 +230,7 @@ namespace WorldSimulationForm
             };
             _currentEvent = _trackedEvents ? hist.NextTrackedEvent() : hist.NextEvents(eventsCount);
 
+            _paediaForm.RefreshRaces(); // events may have created new races — refresh the open window
             _renderMap(sender, e);
         }
 
@@ -244,11 +263,11 @@ namespace WorldSimulationForm
             SubregionGraph graph = _generator.SubregionGraph;
 
             if (graph != null && _image != null &&
-                _mouse.X >= _imageRect.Left && _mouse.X < _image.Width + _imageRect.Left &&
-                _mouse.Y >= _margin && _mouse.Y < _image.Height + _margin)
+                e.Location.X >= _imageRect.Left && e.Location.X < _image.Width + _imageRect.Left &&
+                e.Location.Y >= _margin && e.Location.Y < _image.Height + _margin)
             {
-                double x = graph.Width * (_mouse.X - _imageRect.Left) / _image.Width;
-                double y = graph.Height * (_mouse.Y - _margin) / _image.Height;
+                double x = graph.Width * (e.Location.X - _imageRect.Left) / _image.Width;
+                double y = graph.Height * (e.Location.Y - _margin) / _image.Height;
 
                 if (_multiplier > 0)
                 {
