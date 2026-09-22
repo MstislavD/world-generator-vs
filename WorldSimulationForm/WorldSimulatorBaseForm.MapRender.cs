@@ -8,7 +8,7 @@ using static WorldSimulationForm.Properties.Resources;
 
 namespace WorldSimulationForm
 {
-    public partial class WorldSimulatorForm
+    public abstract partial class WorldSimulatorBaseForm
     {
         Dictionary<double, Color> _rainbowColors()
         {
@@ -24,32 +24,14 @@ namespace WorldSimulationForm
             return rainbow;
         }
 
-        private void _renderMap(object? sender, EventArgs e)
+        protected void _renderMap(object? sender, EventArgs e)
         {
             if (!_generator.GenerationIsComplete) return;
 
-            if (_legacy)
-            {
-                if (_generator.History.EventCount == 0)
-                {
-                    _btnNextEvent.Text = "Next Event";
-                    _btnNextEvent.Enabled = !_generator.History.IsFinished;
-                    _currentEvent = null;
-                }
-                else
-                {
-                    _btnNextEvent.Text = $"Next ({_generator.History.Turn})";
-                }
-
-                if (_logForm.Visible)
-                {
-                    _logForm.Update();
-                    _logForm.Focus();
-                }
-            }            
+            OnWorldRendered();
 
             _image?.Dispose();
-            _image = null;            
+            _image = null;
 
             Invalidate();
         }

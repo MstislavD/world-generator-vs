@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,8 +17,8 @@ namespace WorldSimulationForm
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-            Application.Run(new WorldSimulatorForm());
-            //Application.Run(new GeneratorForm());
+            Application.Run(new LegacyWorldSimulatorForm());
+            //Application.Run(new NewWorldSimulatorForm());
         }
     }
 }

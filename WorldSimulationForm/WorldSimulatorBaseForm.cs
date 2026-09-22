@@ -1,9 +1,6 @@
-using System.CodeDom;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
-using System.Reflection.Metadata.Ecma335;
-using System.Windows.Forms;
 using Utilities;
 using WorldSimulation;
 using WorldSimulation.HistorySimulation;
@@ -13,21 +10,23 @@ namespace WorldSimulationForm
 {
     public enum MapMode { Elevation, Height, Temperature, Precipitation, Biomes, Pops, Cells, Landmasses }
 
+    /// <summary>
+    /// The common part of the simulator forms: window layout, parameters panel, map rendering, zoom and pan.
+    /// A subclass plugs a concrete generator in via Initialize() and overrides the hooks for
+    /// generator-specific behavior (see LegacyWorldSimulatorForm / NewWorldSimulatorForm).
+    /// </summary>
     [DesignerCategory("")]
-    public partial class WorldSimulatorForm : Form
+    public abstract partial class WorldSimulatorBaseForm : Form
     {
         float _panelWidth = 0.05f;
         int _margin = 5;
         int _seed;
 
-        bool _trackedEvents = true;
         bool _newHighlight = false;
 
-        // if true, old version of generator is activated
-        bool _legacy = true;
-        IGenerator _generator;
+        // assigned by the subclass in Initialize()
+        protected IGenerator _generator = null!;
 
-        Button _btnNextEvent;
         Point _mouse;
         Label _lblInfo;
 
@@ -36,25 +35,23 @@ namespace WorldSimulationForm
 
         float _multiplier = 0;
         Vector2 _origin = new(0, 0);
-        LogForm _logForm;
-        bool _printLog = false;
-        PaediaForm _paediaForm;
 
         WorldSimulation.Region? _highlightedRegion;
         List<WorldSimulation.Region> _highlightedArea = [];
-        HistoricEvent? _currentEvent;
+        protected HistoricEvent? _currentEvent;
 
-        ParameterArray _gridLevel;
-        ParameterEnum<MapMode> _mapMode = new("Map mode", MapMode.Biomes);
+        // created by the subclass in Initialize() (the value range differs between generators)
+        protected ParameterArray _gridLevel = null!;
+        protected ParameterEnum<MapMode> _mapMode = new("Map mode", MapMode.Elevation);
         Parameter<bool> _regionBorder = new("Region borders", false);
-        Parameter<bool> _subregionBorder = new("SRegion borders", false);
-        ParameterArray _texture = new("Texture", "Texture", ["Color", "Texture", "Texture Imp"]);
-        Parameter<bool> _regenerate = new("New seed", true);
+        protected Parameter<bool> _subregionBorder = new("SRegion borders", false);
+        protected ParameterArray _texture = new("Texture", "Texture", ["Color", "Texture", "Texture Imp"]);
+        protected Parameter<bool> _regenerate = new("New seed", true);
 
-        ParameterList _mapSettings = new ParameterList();
-        ParameterList _generationSettings = new ParameterList();
+        protected ParameterList _mapSettings = new ParameterList();
+        protected ParameterList _generationSettings = new ParameterList();
 
-        public WorldSimulatorForm()
+        public WorldSimulatorBaseForm()
         {
             DoubleBuffered = true;
             Visible = true;
@@ -78,83 +75,45 @@ namespace WorldSimulationForm
             Button btnStart = panel.AddButton("Start");
             btnStart.Click += BtnStart_Click;
 
-            if (_legacy) 
-                initializationLegacy(panel);
-            else 
-                initialization(panel);
+            Initialize(panel);
 
-                Button btnTest = panel.AddButton("Test");
+            Button btnTest = panel.AddButton("Test");
             //btnTest.Click += (s, e) => new PointLocationForm.PointLocationForm(_generator.SubregionGraph).Visible = true;
             //btnTest.Click += (s, e) => { _testImage = RaycastTest.GetImage((int)(ClientSize.Height * 0.5f)); Invalidate(); };
             //btnTest.Click += (s, e) => { _testImage = SpatialIndexTest.GetImage(_generator, _imageRect.Size); Invalidate(); };
             btnTest.Click += (s, e) => { _testImage = LayerGridTest.GetImage(_imageRect.Size); Invalidate(); };
+
+            MouseMove += WorldSimulatorBaseForm_MouseMove;
+            MouseClick += WorldSimulatorBaseForm_MouseClick;
+            KeyDown += WorldSimulatorBaseForm_KeyDown;
 
             _lblInfo = panel.AddLabel("Info");
             _lblInfo.AutoSize = true;
             _lblInfo.MaximumSize = new Size(panel.Width - _lblInfo.Margin.Left * 2, 1000);
         }
 
-        void initializationLegacy(ParametersPanel panel)
-        {
-            WorldGeneratorLegacy generator = new();
+        /// <summary>Plugs in the generator: creates it, registers its parameters and buttons, subscribes to OnGenerationComplete.</summary>
+        protected abstract void Initialize(ParametersPanel panel);
 
-            generator.LogUpdated += Generator_LogUpdated;
+        // ----- subclass hooks -----
 
-            _generator = new LegacyGeneratorAdapter(generator);
-            _generator.OnGenerationComplete += _renderMap;
+        /// <summary>Called after Start is pressed and a new world generated. Default: nothing.</summary>
+        protected virtual void OnGenerationStarted() { }
 
-            _gridLevel = new ParameterArray("Grid level", _generator.GridLevels, Enumerable.Range(0, _generator.GridLevels + 1).Cast<object>());
+        /// <summary>Called on every map (re)render, before the image is invalidated. Default: nothing.</summary>
+        protected virtual void OnWorldRendered() { }
 
-            _mapSettings.Add(_gridLevel);
-            _mapSettings.Add(_mapMode);
-            //_mapSettings.Add(_regionBorder);
-            _mapSettings.Add(_subregionBorder);
-            _mapSettings.Add(_texture);
-            _mapSettings.RegisterProvider(panel);
+        /// <summary>The subregion graph used for mouse hit-testing and keyboard panning; null if the generator has none.</summary>
+        protected virtual SubregionGraph? MapGraph => null;
 
-            _generationSettings.Add(_regenerate);
-            _generationSettings.RegisterProvider(panel);
+        /// <summary>Called when the user clicks a subregion on the map. Default: nothing.</summary>
+        protected virtual void OnSubregionClicked(WorldSimulation.Region region) { }
 
-            _generator.Parameters.RegisterProvider(panel);
+        /// <summary>The world size in world units (for keyboard pan steps); (0, 0) until a world exists.</summary>
+        protected virtual (double Width, double Height) WorldSize() => (0, 0);
 
-            Button btnLog = panel.AddButton("Log");
-            btnLog.Click += BtnLog_Click;
-
-            Button btnPaedia = panel.AddButton("Paedia");
-            btnPaedia.Click += BtnPaedia_Click;
-
-            _btnNextEvent = panel.AddButton("Next Event");
-            _btnNextEvent.Enabled = false;
-            _btnNextEvent.Click += BtnNextEvent_Click;
-
-            MouseMove += WorldSimulatorForm_MouseMove;
-            MouseClick += WorldSimulatorForm_MouseClick;
-            KeyDown += WorldSimulatorForm_KeyDown;
-
-            _logForm = new LogForm();
-            _paediaForm = new PaediaForm();
-            _paediaForm.RaceHoverBegin += RaceHoverBegin;
-            _paediaForm.RegionHoverBegin += RegionHoverBegin;
-            _paediaForm.RaceHoverEnd += RaceHoverEnd;
-            _paediaForm.RegionHoverEnd += RegionHoverEnd;
-        }
-
-        void initialization(ParametersPanel panel)
-        {
-            WorldGenerator generator = new();
-            _generator = new GeneratorAdapter(generator);
-            _generator.OnGenerationComplete += _renderMap;
-            _gridLevel = new ParameterArray("Grid level", _generator.GridLevels - 1, Enumerable.Range(0, _generator.GridLevels).Cast<object>());
-            _mapMode.Update(this, MapMode.Elevation);
-
-            _mapSettings.Add(_gridLevel);
-            _mapSettings.RegisterProvider(panel);
-
-            _generationSettings.Add(_regenerate);
-            _generationSettings.RegisterProvider(panel);
-
-            panel.RegisterParameter(generator.SeaToLand);
-        }
+        /// <summary>Opens the sibling form for the other generator (this one stays hidden). Default: nothing.</summary>
+        protected virtual void SwitchToSibling() { }
 
         private void Panel_OnParameterUpdate(object? sender, Parameter parameter)
         {
@@ -168,7 +127,7 @@ namespace WorldSimulationForm
                 _generator.Generate();
         }
 
-        private void RegionHoverBegin(object? sender, WorldSimulation.Region? region)
+        protected void RegionHoverBegin(object? sender, WorldSimulation.Region? region)
         {
             _highlightedRegion = region;
             if (region == null)
@@ -177,7 +136,7 @@ namespace WorldSimulationForm
             Invalidate();
         }
 
-        private void RaceHoverBegin(object? sender, Race race)
+        protected void RaceHoverBegin(object? sender, Race race)
         {
             _highlightedArea = _generator.RegionMap.Regions.Where(r => r.Pops.Any(p => p.Race == race)).ToList();
             _highlightedRegion = null;
@@ -185,14 +144,14 @@ namespace WorldSimulationForm
             Invalidate();
         }
 
-        private void RaceHoverEnd(object? sender, Race race)
+        protected void RaceHoverEnd(object? sender, Race race)
         {
             _highlightedArea = []; // paedia left the race view / a label — drop its highlight
             _newHighlight = true;
             Invalidate();
         }
 
-        private void RegionHoverEnd(object? sender, WorldSimulation.Region region)
+        protected void RegionHoverEnd(object? sender, WorldSimulation.Region region)
         {
             _highlightedRegion = null; // paedia left the region view / was hidden — drop its highlight
             _newHighlight = true;
@@ -205,62 +164,14 @@ namespace WorldSimulationForm
             Debug.WriteLine($"Generation seed: {_seed}");
             _generator.Regenerate(_seed);
 
-            if (_legacy)
-            {
-                _logForm.Clear();
-                _paediaForm.InitializeHistory(_generator);
-                _generator.History.EventLogged += History_EventLogged;
-            }
+            OnGenerationStarted();
 
             _renderMap(sender, e);
         }
 
-        private void BtnNextEvent_Click(object? sender, EventArgs e)
+        private void WorldSimulatorBaseForm_MouseClick(object? sender, MouseEventArgs e)
         {
-            var hist = _generator.History;
-
-            if (sender == null || hist == null) return;
-
-            int eventsCount = ModifierKeys switch
-            {
-                Keys.Alt => 1000,
-                Keys.Shift => 100,
-                Keys.Control => 10,
-                _ => 1
-            };
-            _currentEvent = _trackedEvents ? hist.NextTrackedEvent() : hist.NextEvents(eventsCount);
-
-            _paediaForm.RefreshRaces(); // events may have created new races — refresh the open window
-            _renderMap(sender, e);
-        }
-
-        private void BtnPaedia_Click(object? sender, EventArgs e)
-        {
-            if (!_paediaForm.Visible)
-                _paediaForm.Show();
-            else
-                _paediaForm.Hide();
-        }
-
-        private void BtnLog_Click(object? sender, EventArgs e)
-        {
-            if (!_logForm.Visible)
-                _logForm.Show();
-            else
-                _logForm.Hide();
-        }
-
-        private void Generator_LogUpdated(object? sender, string entry)
-        {
-            if (_printLog && sender is HistorySimulator)
-            {
-                _logForm.AddEntry(entry);
-            }               
-        }
-
-        private void WorldSimulatorForm_MouseClick(object? sender, MouseEventArgs e)
-        {
-            SubregionGraph graph = _generator.SubregionGraph;
+            SubregionGraph? graph = MapGraph;
 
             if (graph != null && _image != null &&
                 e.Location.X >= _imageRect.Left && e.Location.X < _image.Width + _imageRect.Left &&
@@ -281,25 +192,18 @@ namespace WorldSimulationForm
                         graph.SpatialIndex.FindPolygonContainingPoint(x - graph.Width, y);
 
                 if (subregion != null)
-                {
-                    WorldSimulation.Region region = _generator.RegionMap.GetRegion(subregion);
-
-                    _paediaForm.OnRegionSelected(region);
-                    if (!_paediaForm.Visible)
-                        _paediaForm.Show();
-                    _paediaForm.Focus();
-                }
+                    OnSubregionClicked(_generator.RegionMap.GetRegion(subregion));
             }
         }
 
-        private void WorldSimulatorForm_MouseMove(object? sender, MouseEventArgs e)
+        private void WorldSimulatorBaseForm_MouseMove(object? sender, MouseEventArgs e)
         {
             if (e.Location != _mouse)
             {
                 _mouse = e.Location;
                 _lblInfo.Text = "";
 
-                SubregionGraph graph = _generator.SubregionGraph;
+                SubregionGraph? graph = MapGraph;
 
                 // cursor is inside the map image
                 if (graph != null && _image != null &&
@@ -363,12 +267,19 @@ namespace WorldSimulationForm
             return regionInfo;
         }
 
-        private void WorldSimulatorForm_KeyDown(object? sender, KeyEventArgs e)
+        private void WorldSimulatorBaseForm_KeyDown(object? sender, KeyEventArgs e)
         {
-            if (_generator.SubregionGraph == null) return;
+            if (e.KeyCode == Keys.F12)
+            {
+                SwitchToSibling();
+                return;
+            }
 
-            float xStep = (float)_generator.SubregionGraph.Width / MathF.Pow(2, _multiplier + 2);
-            float yStep = (float)_generator.SubregionGraph.Height / MathF.Pow(2, _multiplier + 2);
+            (double w, double h) = WorldSize();
+            if (w <= 0 || h <= 0) return;
+
+            float xStep = (float)w / MathF.Pow(2, _multiplier + 2);
+            float yStep = (float)h / MathF.Pow(2, _multiplier + 2);
 
             if (e.KeyCode == Keys.Add)
             {
@@ -410,12 +321,6 @@ namespace WorldSimulationForm
             {
                 BtnStart_Click(sender, e);
             }
-        }
-
-        private void History_EventLogged(object? sender, HistoricEvent e)
-        {
-            string info = $"T{_generator.History.Turn}: {e.Info}";
-            _logForm.AddEntry(info);
         }
 
         protected override void Dispose(bool disposing)
