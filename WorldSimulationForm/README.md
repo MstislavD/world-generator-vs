@@ -46,19 +46,17 @@ Elevation; there are no subregions, regions or history — those members throw i
 5. **Texture** (combo) — *Color* / *Texture* / *Texture Imp* biome rendering style for Biomes mode.
 6. **New seed** (checkbox, on) — when a generator parameter changes: on → regenerate with a fresh
    random seed; off → re-run generation with the same seed.
-7. **Generator parameters** — any change regenerates the world (subject to *New seed*):
-   - *Seeds* (read-only text boxes, click = new random value): Main Seed, Subregion Seed,
-     Deformation Seed, Height Seed, Precipitation Seed
-   - *Deformation*: Frequency Min/Max (1–500), Strength Min/Max, Number of Deformations (1–8),
-     Detailed, Detalization (1–50)
-   - *Sea/land balance*: Deep Sea % (0.3–0.9), Rise Elevation %, Lower Elevation %, Island %,
-     Ridge %, Ridge Clear %
-   - *Regions*: Uniform Subregion Size, Region Smoothing, Deform (checkboxes)
-   - *Climate & precipitation*: Temp Smoothing, Precipitation Smoothing Steps (0–4),
-     Precipitation Smoothing Inertia (1–8), "Precipiation Swaps %" (sic)
-   - *World shape*: Map Script (Random / One / Two / Three continents), Land Size
-     (Tiny…Colossal), Hemispheres (Two / North / South), Climate (Balanced / Dry / Wet)
-   - *Rivers*: River %, Tributary Threshold
+7. **Generator parameters** — only four are exposed in the panel: Map Script (Random / One /
+   Two / Three continents), Land Size (Tiny…Colossal), Hemispheres (Two / North / South),
+   Climate (Balanced / Dry / Wet). Changing any of them regenerates the world (subject to
+   *New seed*).
+
+   The legacy generator has many more parameters in [../WorldSimulation/GenerationParameters.cs](../WorldSimulation/GenerationParameters.cs)
+   (five seeds, deformation, sea/land balance, region options, climate/precipitation smoothing,
+   rivers) that affect generation but have **no UI controls** — the constructor only adds the four
+   above to its `ParameterList`, so `RegisterProvider` has nothing else to bind. They can be changed
+   programmatically via `generator.Parameters.<Name>` (e.g. `.Update(this, value)`), or by editing
+   their defaults in that file. The five seeds are re-rolled automatically on every regeneration.
 8. **Log** (button) — toggles the Log window.
 9. **Paedia** (button) — toggles the Paedia window.
 10. **Next Event** (button) — advances history by 1 event (Ctrl = 10, Shift = 100, Alt = 1000);
@@ -177,6 +175,9 @@ on the next render.
 - **New generator form**: Elevation mode only. No subregions/regions/history — `GeneratorAdapter`
   throws `NotImplementedException` for those members; the form's UI does not expose them (hover/click
   are inert, keyboard pan steps come from grid dimensions).
+- **Legacy generator parameters**: only Map Script / Land Size / Hemispheres / Climate have UI
+  controls; the rest of [../WorldSimulation/GenerationParameters.cs](../WorldSimulation/GenerationParameters.cs)
+  is code-only (see [Parameters panel](#parameters-panel)).
 - **KeyPreview hazard**: WASD/R/+/- fire even when a panel control has focus.
 - The legacy *Next Event* modifier switch only handles single modifiers (Ctrl+Alt together → 1 event).
 - `-` zoom is unbounded below (zooms out past the world).
