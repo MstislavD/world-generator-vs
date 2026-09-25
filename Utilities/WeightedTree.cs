@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -49,6 +49,73 @@ namespace WorldSimulation
             }
         }
 
+        /// <summary>
+        /// Removes the item from the tree and rebalances the weight sums.
+        /// Returns false if the item was not present in the tree.
+        /// </summary>
+        public bool Remove(T item)
+        {
+            if (!_nodeByItem.TryGetValue(item, out Node<T>? node))
+            {
+                return false;
+            }
+            _nodeByItem.Remove(item);
+
+            // The tree keeps no ordering invariant, so the removed node's slot
+            // can be taken over by any of its subtrees. `top` is the subtree that
+            // takes the slot; in the leaf case it is the removed node itself,
+            // whose parent link is still intact after unlinking.
+            Node<T>? top = node;
+            if (node.Left == null && node.Right == null)
+            {
+                _unlink(node);
+            }
+            else if (node.Left != null && node.Right != null)
+            {
+                Node<T> left = node.Left;
+                Node<T> right = node.Right;
+
+                // Reattach the right subtree as a leaf of the left subtree.
+                Node<T> slot = left;
+                while (slot.Left != null && slot.Right != null)
+                {
+                    slot = slot.Left.SubtreeCount > slot.Right.SubtreeCount ? slot.Left : slot.Right;
+                }
+                if (slot.Left == null)
+                {
+                    slot.Left = right;
+                }
+                else
+                {
+                    slot.Right = right;
+                }
+                right.Parent = slot;
+                for (Node<T>? p = slot; p != null && p != node; p = p.Parent)
+                {
+                    p.TotalWeight += right.TotalWeight;
+                    p.SubtreeCount += right.SubtreeCount;
+                }
+
+                _promote(left, node);
+                top = left;
+            }
+            else
+            {
+                Node<T> child = node.Left ?? node.Right!;
+                _promote(child, node);
+                top = child;
+            }
+
+            // Drop the removed item's weight and count from every ancestor.
+            for (Node<T>? p = top?.Parent; p != null; p = p.Parent)
+            {
+                p.TotalWeight -= node.ItemWeight;
+                p.SubtreeCount -= 1;
+            }
+
+            return true;
+        }
+
         public T Extract(Random random)
         {
             return Extract(random.NextDouble());
@@ -86,6 +153,39 @@ namespace WorldSimulation
         public double Weight => _root == null ? 0 : _root.TotalWeight;
         public bool Contains(T item) => _nodeByItem.ContainsKey(item);
         public double GetWeight(T item) => _nodeByItem[item].ItemWeight;
+
+        void _unlink(Node<T> node)
+        {
+            if (node.Parent == null)
+            {
+                _root = null;
+            }
+            else if (node.Parent.Left == node)
+            {
+                node.Parent.Left = null;
+            }
+            else
+            {
+                node.Parent.Right = null;
+            }
+        }
+
+        void _promote(Node<T> child, Node<T> removed)
+        {
+            if (removed.Parent == null)
+            {
+                _root = child;
+            }
+            else if (removed.Parent.Left == removed)
+            {
+                removed.Parent.Left = child;
+            }
+            else
+            {
+                removed.Parent.Right = child;
+            }
+            child.Parent = removed.Parent;
+        }
 
         Node<T> _add(Node<T>? node, Node<T>? parentNode, T item, double weight)
         {

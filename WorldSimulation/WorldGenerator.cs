@@ -43,7 +43,7 @@ namespace WorldSimulation
                 WorldGrid grid = ChildGridGenerator.CreateChildGrid<WorldGrid, WorldCell, WorldEdge>(_grids[i], this, rng_e);
                 GenerateFromParent(grid);
                 if (Parameters.SeaToLand) 
-                    _seaToLand(grid, rng_e);
+                    _swapElevations(grid, rng_e);
                 _grids.Add(grid);
             }
 
@@ -95,28 +95,122 @@ namespace WorldSimulation
             }
         }
 
-        void _seaToLand(IGrid<WorldCell> grid, RandomExt rng)
+        /// <summary>
+        /// Alternately swaps cells between sea and land, starting with sea to land.
+        /// The swap budget is a fraction of the level's tiles, ruled by
+        /// <see cref="WorldGenerationParameters.SwapPct"/>. A swap is only made from a
+        /// pool that still has candidates; if the pool of the current turn is empty
+        /// the other direction takes the turn instead, so strict alternation holds as
+        /// long as both pools have candidates. Cut vertices are re-checked on every
+        /// extraction in both directions, so a swap can never split the sea region nor
+        /// the land region it takes from. Cells without same-type neighbors (1-tile
+        /// islands and lakes) are never swapped, so no region chunk can be eroded away
+        /// entirely: any chunk may shrink, but its last tile is always isolated and
+        /// thus unswappable.
+        /// </summary>
+        void _swapElevations(IGrid<WorldCell> grid, RandomExt rng)
         {
-            double pct = 0.025;
+            int budget = (int)(Parameters.SwapPct * grid.CellCount);
 
-            WeightedTree<WorldCell> tree = new();
-            foreach(WorldCell cell in grid.Cells)
+            // Two candidate pools: cells that may become land (weighted by adjacent
+            // land) and cells that may become sea (weighted by adjacent sea).
+            WeightedTree<WorldCell> toLand = new();
+            WeightedTree<WorldCell> toSea = new();
+            foreach (WorldCell cell in grid.Cells)
             {
-                if (IsSea(cell) && cell.Neighbors.Any(IsLand) && !Node.IsConnection(cell, IsSea))
+                if (IsSea(cell))
                 {
-                    tree.Add(cell, Math.Pow(2, cell.Neighbors.Count(IsLand)));
+                    if (CanSwapToLand(cell))
+                    {
+                        toLand.Add(cell, Math.Pow(2, cell.Neighbors.Count(IsLand)));
+                    }
+                }
+                else
+                {
+                    if (CanSwapToSea(cell))
+                    {
+                        toSea.Add(cell, Math.Pow(2, cell.Neighbors.Count(IsSea)));
+                    }
                 }
             }
 
-            int count = (int)(pct * grid.CellCount);
+            // Cells swapped during this pass. They are never re-added to the
+            // opposite pool, so a cell cannot flip back and forth within one pass.
+            HashSet<WorldCell> converted = new();
 
-            while (count > 0 && tree.Count > 0)
+            int done = 0;
+            bool seaToLandTurn = true;
+            while (done < budget)
             {
+                WeightedTree<WorldCell> tree = seaToLandTurn ? toLand : toSea;
+                if (tree.Count == 0)
+                {
+                    // No candidates in this direction: let the other direction take
+                    // the turn, and stop only when both pools are dry.
+                    if (toLand.Count == 0 && toSea.Count == 0)
+                    {
+                        break;
+                    }
+                    seaToLandTurn = !seaToLandTurn;
+                    tree = seaToLandTurn ? toLand : toSea;
+                }
+
                 WorldCell cell = tree.Extract(rng);
-                cell.Elevation = Elevation.Lowland;
-                count -= 1;
+                cell.Elevation = seaToLandTurn ? Elevation.Lowland : Elevation.DeepOcean;
+                converted.Add(cell);
+                done += 1;
+                seaToLandTurn = !seaToLandTurn;
+
+                // Re-evaluate the flipped cell's neighbors in the pool matching their
+                // current type: only they can change eligibility (non-adjacent cells
+                // keep both their same-type neighborhood and their opposite-type
+                // neighbor count). A full recompute plus upsert/remove covers raised
+                // or lowered weights, new candidates, cells that became cut vertices
+                // of the shrunken region, and cut vertices the flipped cell just
+                // bridged (adding a node can un-make an articulation point).
+                foreach (WorldCell neighbor in cell.Neighbors)
+                {
+                    if (converted.Contains(neighbor))
+                    {
+                        continue;
+                    }
+
+                    if (IsSea(neighbor))
+                    {
+                        if (CanSwapToLand(neighbor))
+                        {
+                            toLand.Add(neighbor, Math.Pow(2, neighbor.Neighbors.Count(IsLand)));
+                        }
+                        else
+                        {
+                            toLand.Remove(neighbor);
+                        }
+                    }
+                    else
+                    {
+                        if (CanSwapToSea(neighbor))
+                        {
+                            toSea.Add(neighbor, Math.Pow(2, neighbor.Neighbors.Count(IsSea)));
+                        }
+                        else
+                        {
+                            toSea.Remove(neighbor);
+                        }
+                    }
+                }
             }
         }
+
+        // A cell may be swapped only if it touches both types of terrain and is not
+        // a cut vertex of its own region. Touching no same-type neighbor means the
+        // cell is a 1-tile island or lake: such tiles survive the pass, which also
+        // guarantees that no region chunk can disappear (the last tile of any chunk
+        // is isolated and therefore unswappable).
+        bool CanSwapToLand(WorldCell cell)
+            => cell.Neighbors.Any(IsLand) && cell.Neighbors.Any(IsSea) && !Node.IsConnection(cell, IsSea);
+
+        bool CanSwapToSea(WorldCell cell)
+            => cell.Neighbors.Any(IsSea) && cell.Neighbors.Any(IsLand) && !Node.IsConnection(cell, IsLand);
 
         public WorldGrid CreateGrid(int columns, int rows) => new WorldGrid(columns, rows);
     }
