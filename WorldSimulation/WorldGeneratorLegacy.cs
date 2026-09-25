@@ -163,7 +163,7 @@ namespace WorldSimulation
         public event EventHandler OnGenerationComplete;
         public event EventHandler<string> LogUpdated;
 
-        public WorldGrid GetGrid(int level) => _grids[level];
+        public WorldGrid? GetGrid(int level) => _grids[level];
         public int GridLevels { get; } = 3;
         public SubregionGraph SubregionGraph { get; private set; }
         public RegionMap RegionMap { get; private set; }

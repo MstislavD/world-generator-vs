@@ -54,7 +54,8 @@ namespace WorldSimulationForm
 
             int gridLevel = (int)_gridLevel.Current;
 
-            WorldGrid grid = _generator.GetGrid(gridLevel);
+            WorldGrid? grid = _generator.GetGrid(gridLevel);
+            if (grid == null) return;
 
             RenderObjects? objects = null;
             if (_image == null)

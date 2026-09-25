@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
@@ -25,7 +25,10 @@ namespace WorldSimulationForm.Tests
             if (graph == null)
                 return null;
 
-            HexGrid grid = generator.GetGrid(3);
+            HexGrid? grid = generator.GetGrid(3);
+
+            if (grid == null)
+                return null;
 
             var objects = new RenderObjects();
 

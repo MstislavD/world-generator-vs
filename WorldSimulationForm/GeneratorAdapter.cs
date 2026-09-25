@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Utilities;
 using WorldSimulation;
 using WorldSimulation.HistorySimulation;
 
@@ -14,7 +15,7 @@ namespace WorldSimulationForm
     {
         event EventHandler OnGenerationComplete;
         int GridLevels { get; }
-        GenerationParameters Parameters { get; }
+        ParameterList Parameters { get; }
         RegionMap RegionMap { get; }
         HistorySimulator History { get; }
         SubregionGraph SubregionGraph { get; }
@@ -24,7 +25,7 @@ namespace WorldSimulationForm
         void Generate();
         void Regenerate();
         void Regenerate(int seed);
-        WorldGrid GetGrid(int gridLevel);
+        WorldGrid? GetGrid(int gridLevel);
         bool RegionBorder(WorldEdge edge);
         bool IsShore(WorldEdge edge);
         bool HasRidge(WorldEdge edge);
@@ -58,7 +59,7 @@ namespace WorldSimulationForm
 
         public int GridLevels => _gen.GridLevels;
 
-        public GenerationParameters Parameters => _gen.Parameters;
+        public ParameterList Parameters => _gen.Parameters;
 
         public RegionMap RegionMap =>_gen.RegionMap;
 
@@ -78,7 +79,7 @@ namespace WorldSimulationForm
         public WorldCell GetDrainage(WorldCell c) => _gen.GetDrainage(c);
         public WorldCell GetDrainage(WorldEdge e) => _gen.GetDrainage(e);
         public Elevation GetElevation(WorldCell cell) => _gen.GetElevation(cell);
-        public WorldGrid GetGrid(int gridLevel) => _gen.GetGrid(gridLevel);
+        public WorldGrid? GetGrid(int gridLevel) => _gen.GetGrid(gridLevel);
         public int GetHeight(WorldCell cell) => _gen.GetHeight(cell);
         public bool HasRidge(WorldEdge edge) => _gen.HasRidge(edge);
         public bool HasRidge(Subregion subregion) => _gen.HasRidge(subregion);
@@ -109,7 +110,7 @@ namespace WorldSimulationForm
 
         public int GridLevels => _gen.GridLevels;
 
-        public GenerationParameters Parameters => throw new NotImplementedException();
+        public ParameterList Parameters => _gen.Parameters;
 
         public RegionMap RegionMap => throw new NotImplementedException();
 
@@ -142,7 +143,7 @@ namespace WorldSimulationForm
 
         public Elevation GetElevation(WorldCell cell) => _gen.GetElevation(cell);
 
-        public WorldGrid GetGrid(int gridLevel) => _gen.Grid(gridLevel);
+        public WorldGrid? GetGrid(int gridLevel) => _gen.Grid(gridLevel);
 
         public int GetHeight(WorldCell cell)
         {
@@ -197,7 +198,7 @@ namespace WorldSimulationForm
 
         public void Regenerate() => _gen.Regenerate();
 
-        public void Regenerate(int seed) => _gen.Regenerate();
+        public void Regenerate(int seed) => _gen.Regenerate(seed);
 
         public bool RegionBorder(WorldEdge edge)
         {

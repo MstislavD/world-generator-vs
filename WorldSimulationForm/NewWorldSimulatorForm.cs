@@ -27,7 +27,7 @@ namespace WorldSimulationForm
             _generationSettings.Add(_regenerate);
             _generationSettings.RegisterProvider(panel);
 
-            panel.RegisterParameter(generator.SeaToLand);
+            _generator.Parameters.RegisterProvider(panel);
         }
 
         protected override void SwitchToSibling()

@@ -17,8 +17,8 @@ namespace WorldSimulationForm
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-            Application.Run(new LegacyWorldSimulatorForm());
-            //Application.Run(new NewWorldSimulatorForm());
+            Application.Run(new NewWorldSimulatorForm());
+            //Application.Run(new LegacyWorldSimulatorForm());
         }
     }
 }

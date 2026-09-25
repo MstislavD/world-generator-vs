@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,34 +20,31 @@ namespace WorldSimulation
 
     public class WorldGenerator : IFactoryGrid<WorldGrid>
     {
-        int seed = 0;
-        double seaPct = 0.7;
-        List<WorldGrid> grids = [];
-        Random rng = new Random();
+        public WorldGenerationParameters Parameters { get; } = new();
+
+        List<WorldGrid> _grids = [];
         public int GridLevels { get; } = 5;
-        public WorldGrid? Grid(int level) => grids.Count > level ? grids[level] : null;
+        public WorldGrid? Grid(int level) => level >= 0 && _grids.Count > level ? _grids[level] : null;
         public bool GenerationIsComplete { get; private set; } = false;
 
         public event EventHandler OnGenerationComplete = delegate { };
 
-        public Parameter<bool> SeaToLand { get; } = new Parameter<bool>("Sea to land", true);
-
         public void Generate()
         {
-            rng = new Random(seed);
-            RandomExt rng_e = new RandomExt(seed);
+            GenerationIsComplete = false;
+            RandomExt rng_e = new RandomExt(Parameters.Seed);
 
-            grids.Clear();
-            grids.Add(new WorldGrid(10, 7));
-            GenerateRandom(grids[0], rng, seaPct);
+            _grids.Clear();
+            _grids.Add(new WorldGrid(10, 7));
+            GenerateRandom(_grids[0], rng_e, Parameters.SeaPct);
 
             for (int i = 0; i < GridLevels - 1; i++)
             {
-                WorldGrid grid = ChildGridGenerator.CreateChildGrid<WorldGrid, WorldCell, WorldEdge>(grids[i], this, rng_e);
+                WorldGrid grid = ChildGridGenerator.CreateChildGrid<WorldGrid, WorldCell, WorldEdge>(_grids[i], this, rng_e);
                 GenerateFromParent(grid);
-                if (SeaToLand)
-                    _seaToLand(grid);
-                grids.Add(grid);
+                if (Parameters.SeaToLand) 
+                    _seaToLand(grid, rng_e);
+                _grids.Add(grid);
             }
 
             GenerationIsComplete = true;
@@ -56,13 +53,13 @@ namespace WorldSimulation
 
         public void Regenerate()
         {
-            seed = new Random().Next();
+            Parameters.RegenerateSeeds();
             Generate();
         }
 
         public void Regenerate(int newSeed)
         {
-            seed = newSeed;
+            Parameters.RegenerateSeeds(newSeed);
             Generate();
         }
 
@@ -74,8 +71,9 @@ namespace WorldSimulation
 
         public bool IsSea(WorldCell cell) => cell.Elevation < Elevation.Lowland;
 
-        public static void GenerateRandom(WorldGrid grid, Random random, double seaPct)
+        public static void GenerateRandom(WorldGrid grid, RandomExt random, double seaPct)
         {
+            if (seaPct < 0 || seaPct > 1) throw new Exception("seaPct parameter should lie in the [0;1] range.");
             int landCount = (int)(grid.CellCount * (1 - seaPct));
             WorldCell[] landCells = random.GetItems(grid.Cells.ToArray(), landCount);
             foreach (WorldCell cell in landCells)
@@ -97,7 +95,7 @@ namespace WorldSimulation
             }
         }
 
-        void _seaToLand(IGrid<WorldCell> grid)
+        void _seaToLand(IGrid<WorldCell> grid, RandomExt rng)
         {
             double pct = 0.025;
 

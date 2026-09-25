@@ -1,7 +1,7 @@
 # WorldSimulationForm
 
 WinForms app (net9.0-windows) that visualizes and simulates worlds from two world generators.
-The app starts with the **legacy generator** form; press **F12** to switch to the **new generator** form (and back).
+The app starts with the **new generator** form; press **F12** to switch to the **legacy generator** form (and back).
 
 ## Running
 
@@ -11,7 +11,7 @@ dotnet run --project WorldSimulationForm
 
 (or open `WorldSimulator.sln` and run the `WorldSimulationForm` project)
 
-Entry point: [Program.cs](Program.cs) → `LegacyWorldSimulatorForm`.
+Entry point: [Program.cs](Program.cs) → `NewWorldSimulatorForm`.
 
 ## Main window layout
 
@@ -21,16 +21,16 @@ Entry point: [Program.cs](Program.cs) → `LegacyWorldSimulatorForm`.
 
 ## Forms
 
-### LegacyWorldSimulatorForm (default)
-
-Full-featured form for `WorldGeneratorLegacy`: multi-level hex grids → subregions/regions,
-history simulation (races, pops, events), plus the Log and Paedia side windows.
-
-### NewWorldSimulatorForm
+### NewWorldSimulatorForm (default)
 
 Minimal form for the new `WorldGenerator`: layered hex grids only. Map mode is fixed to
 Elevation; there are no subregions, regions or history — those members throw in
 [GeneratorAdapter.cs](GeneratorAdapter.cs) and are not exposed by this form's UI.
+
+### LegacyWorldSimulatorForm
+
+Full-featured form for `WorldGeneratorLegacy`: multi-level hex grids → subregions/regions,
+history simulation (races, pops, events), plus the Log and Paedia side windows.
 
 ## Parameters panel
 

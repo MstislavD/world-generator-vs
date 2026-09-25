@@ -323,6 +323,16 @@ namespace WorldSimulationForm
             }
         }
 
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            base.OnFormClosed(e);
+
+            // closing either simulator window ends the app: the other form, if open, is hidden
+            // (F12 always hides the current one), so keeping the message loop alive would leave
+            // the process running with no visible window — a non-interactive hang.
+            Application.Exit();
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
