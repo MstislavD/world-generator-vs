@@ -48,6 +48,8 @@ namespace WorldSimulationForm
         protected ParameterArray _texture = new("Texture", "Texture", ["Color", "Texture", "Texture Imp"]);
         protected Parameter<bool> _regenerate = new("New seed", true);
 
+        protected ParametersPanel _panel = new();
+
         protected ParameterList _mapSettings = new ParameterList();
         protected ParameterList _generationSettings = new ParameterList();
 
@@ -64,20 +66,19 @@ namespace WorldSimulationForm
             _imageRect.Height = ClientSize.Height - _margin * 2;
             _imageRect.Location = new Point((int)(ClientSize.Width * _panelWidth + _margin * 2), _margin);
 
-            ParametersPanel panel = new ParametersPanel();
-            panel.Location = new Point(_margin);
-            panel.Width = (int)(_panelWidth * ClientSize.Width);
-            panel.AutoSize = true;
-            panel.FlowDirection = FlowDirection.TopDown;
-            panel.OnParameterUpdate += Panel_OnParameterUpdate;
-            Controls.Add(panel);
+            _panel.Location = new Point(_margin);
+            _panel.Width = (int)(_panelWidth * ClientSize.Width);
+            _panel.AutoSize = true;
+            _panel.FlowDirection = FlowDirection.TopDown;
+            _panel.OnParameterUpdate += Panel_OnParameterUpdate;
+            Controls.Add(_panel);
 
-            Button btnStart = panel.AddButton("Start");
+            Button btnStart = _panel.AddButton("Start");
             btnStart.Click += BtnStart_Click;
 
-            Initialize(panel);
+            Initialize(_panel);
 
-            Button btnTest = panel.AddButton("Test");
+            Button btnTest = _panel.AddButton("Test");
             //btnTest.Click += (s, e) => new PointLocationForm.PointLocationForm(_generator.SubregionGraph).Visible = true;
             //btnTest.Click += (s, e) => { _testImage = RaycastTest.GetImage((int)(ClientSize.Height * 0.5f)); Invalidate(); };
             //btnTest.Click += (s, e) => { _testImage = SpatialIndexTest.GetImage(_generator, _imageRect.Size); Invalidate(); };
@@ -87,9 +88,9 @@ namespace WorldSimulationForm
             MouseClick += WorldSimulatorBaseForm_MouseClick;
             KeyDown += WorldSimulatorBaseForm_KeyDown;
 
-            _lblInfo = panel.AddLabel("Info");
+            _lblInfo = _panel.AddLabel("Info");
             _lblInfo.AutoSize = true;
-            _lblInfo.MaximumSize = new Size(panel.Width - _lblInfo.Margin.Left * 2, 1000);
+            _lblInfo.MaximumSize = new Size(_panel.Width - _lblInfo.Margin.Left * 2, 1000);
         }
 
         /// <summary>Plugs in the generator: creates it, registers its parameters and buttons, subscribes to OnGenerationComplete.</summary>

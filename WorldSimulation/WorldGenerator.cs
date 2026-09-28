@@ -75,9 +75,12 @@ namespace WorldSimulation
         {
             if (seaPct < 0 || seaPct > 1) throw new Exception("seaPct parameter should lie in the [0;1] range.");
             int landCount = (int)(grid.CellCount * (1 - seaPct));
-            WorldCell[] landCells = random.GetItems(grid.Cells.ToArray(), landCount);
-            foreach (WorldCell cell in landCells)
+            // Pick distinct cells without replacement: each extracted cell leaves the
+            // pool, so exactly landCount tiles end up as land.
+            List<WorldCell> pool = grid.Cells.ToList();
+            for (int i = 0; i < landCount; i++)
             {
+                WorldCell cell = random.NextItemExtract(pool);
                 cell.Elevation = Elevation.Lowland;
             }
         }
@@ -96,21 +99,31 @@ namespace WorldSimulation
         }
 
         /// <summary>
-        /// Alternately swaps cells between sea and land, starting with sea to land.
-        /// The swap budget is a fraction of the level's tiles, ruled by
-        /// <see cref="WorldGenerationParameters.SwapPct"/>. A swap is only made from a
-        /// pool that still has candidates; if the pool of the current turn is empty
-        /// the other direction takes the turn instead, so strict alternation holds as
-        /// long as both pools have candidates. Cut vertices are re-checked on every
-        /// extraction in both directions, so a swap can never split the sea region nor
-        /// the land region it takes from. Cells without same-type neighbors (1-tile
-        /// islands and lakes) are never swapped, so no region chunk can be eroded away
-        /// entirely: any chunk may shrink, but its last tile is always isolated and
-        /// thus unswappable.
+        /// Brings the level's land/sea ratio to <see cref="WorldGenerationParameters.SeaPct"/> —
+        /// matching the target count is the priority, so this correction is not limited by
+        /// the swap budget — then spends what remains of the budget on random two-way swaps
+        /// that preserve it. The swap budget is a fraction of the level's tiles, ruled by
+        /// <see cref="WorldGenerationParameters.SwapPct"/>; it caps the total number of swaps
+        /// across both phases, so the second phase only gets what the correction did not
+        /// already consume. First, every swap goes in the single direction that moves the
+        /// land count toward its target; this stops when the target is reached or no
+        /// candidates remain in that direction (the rest are cut vertices or isolated tiles
+        /// and cannot be swapped). Then the rest of the budget is spent in pairs — one sea-to-land and one
+        /// land-to-sea swap per pair — so the net effect on the counts is zero and the
+        /// ratio established by the first phase is preserved; a lone leftover swap is
+        /// left unspent rather than unbalance the counts. A swap is only made from a pool
+        /// that still has candidates, and a pair can only be started while both pools do;
+        /// if one pool dries up the pass stops instead of taking over in one direction.
+        /// Cut vertices are re-checked on every extraction in both directions, so a swap
+        /// can never split the sea region nor the land region it takes from. Cells without
+        /// same-type neighbors (1-tile islands and lakes) are never swapped, so no region
+        /// chunk can be eroded away entirely: any chunk may shrink, but its last tile is
+        /// always isolated and thus unswappable.
         /// </summary>
         void _swapElevations(IGrid<WorldCell> grid, RandomExt rng)
         {
             int budget = (int)(Parameters.SwapPct * grid.CellCount);
+            int targetLand = (int)(grid.CellCount * (1 - Parameters.SeaPct));
 
             // Two candidate pools: cells that may become land (weighted by adjacent
             // land) and cells that may become sea (weighted by adjacent sea).
@@ -135,40 +148,20 @@ namespace WorldSimulation
             }
 
             // Cells swapped during this pass. They are never re-added to the
-            // opposite pool, so a cell cannot flip back and forth within one pass.
+            // opposite pool, so a cell cannot flip back and forth within one pass —
+            // in particular, phase 2 can never undo a correction made by phase 1.
             HashSet<WorldCell> converted = new();
 
-            int done = 0;
-            bool seaToLandTurn = true;
-            while (done < budget)
+            // Re-evaluate the flipped cell's neighbors in the pool matching their
+            // current type: only they can change eligibility (non-adjacent cells
+            // keep both their same-type neighborhood and their opposite-type
+            // neighbor count). A full recompute plus upsert/remove covers raised
+            // or lowered weights, new candidates, cells that became cut vertices
+            // of the shrunken region, and cut vertices the flipped cell just
+            // bridged (adding a node can un-make an articulation point).
+            void RefreshPools(WorldCell flipped)
             {
-                WeightedTree<WorldCell> tree = seaToLandTurn ? toLand : toSea;
-                if (tree.Count == 0)
-                {
-                    // No candidates in this direction: let the other direction take
-                    // the turn, and stop only when both pools are dry.
-                    if (toLand.Count == 0 && toSea.Count == 0)
-                    {
-                        break;
-                    }
-                    seaToLandTurn = !seaToLandTurn;
-                    tree = seaToLandTurn ? toLand : toSea;
-                }
-
-                WorldCell cell = tree.Extract(rng);
-                cell.Elevation = seaToLandTurn ? Elevation.Lowland : Elevation.DeepOcean;
-                converted.Add(cell);
-                done += 1;
-                seaToLandTurn = !seaToLandTurn;
-
-                // Re-evaluate the flipped cell's neighbors in the pool matching their
-                // current type: only they can change eligibility (non-adjacent cells
-                // keep both their same-type neighborhood and their opposite-type
-                // neighbor count). A full recompute plus upsert/remove covers raised
-                // or lowered weights, new candidates, cells that became cut vertices
-                // of the shrunken region, and cut vertices the flipped cell just
-                // bridged (adding a node can un-make an articulation point).
-                foreach (WorldCell neighbor in cell.Neighbors)
+                foreach (WorldCell neighbor in flipped.Neighbors)
                 {
                     if (converted.Contains(neighbor))
                     {
@@ -198,6 +191,56 @@ namespace WorldSimulation
                         }
                     }
                 }
+            }
+
+            // Phase 1: reach the target ratio. Matching the target is the priority, so
+            // this phase runs until the target is hit or no candidates remain in that
+            // direction (the rest are cut vertices or isolated tiles and cannot be
+            // swapped); it still draws on the budget, leaving less for phase 2.
+            int needed = targetLand - grid.Cells.Count(IsLand);
+            bool growLand = needed > 0;
+            while (needed != 0)
+            {
+                WeightedTree<WorldCell> tree = growLand ? toLand : toSea;
+                if (tree.Count == 0)
+                {
+                    break;
+                }
+
+                WorldCell cell = tree.Extract(rng);
+                cell.Elevation = growLand ? Elevation.Lowland : Elevation.DeepOcean;
+                converted.Add(cell);
+                RefreshPools(cell);
+                budget -= 1;
+                needed += growLand ? -1 : 1;
+            }
+
+            // Phase 2: spend the rest of the budget on random two-way swaps. Swaps come
+            // in pairs — sea to land, then land to sea — so the net effect on the counts
+            // is zero and the ratio established by phase 1 is preserved. A pair can only
+            // be started while both pools have candidates; if one pool dries up or only a
+            // single swap remains in the budget, the pass stops rather than unbalance
+            // the counts (a lone leftover swap is left unspent).
+            while (budget >= 2 && toLand.Count > 0 && toSea.Count > 0)
+            {
+                WorldCell cell = toLand.Extract(rng);
+                cell.Elevation = Elevation.Lowland;
+                converted.Add(cell);
+                RefreshPools(cell);
+                budget -= 1;
+
+                // The pair was started with at least two swaps in the budget, so the
+                // return swap is always affordable; only a dry pool can stop it.
+                if (toSea.Count == 0)
+                {
+                    break;
+                }
+
+                WorldCell cell2 = toSea.Extract(rng);
+                cell2.Elevation = Elevation.DeepOcean;
+                converted.Add(cell2);
+                RefreshPools(cell2);
+                budget -= 1;
             }
         }
 
