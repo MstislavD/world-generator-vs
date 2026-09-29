@@ -8,7 +8,7 @@ using WorldSimulationForm.Tests;
 
 namespace WorldSimulationForm
 {
-    public enum MapMode { Elevation, Height, Temperature, Precipitation, Biomes, Pops, Cells, Landmasses }
+    public enum MapMode { Elevation, Height, Temperature, Precipitation, Biomes, Pops, Cells, Landmasses, Continents }
 
     /// <summary>
     /// The common part of the simulator forms: window layout, parameters panel, map rendering, zoom and pan.

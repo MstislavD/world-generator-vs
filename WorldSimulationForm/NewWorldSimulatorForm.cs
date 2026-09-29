@@ -45,7 +45,12 @@ namespace WorldSimulationForm
             _generator.OnGenerationComplete += _renderMap;
             _gridLevel = new ParameterArray("Grid level", _generator.GridLevels - 1, Enumerable.Range(0, _generator.GridLevels).Cast<object>());
 
+            // The new generator only produces elevation and continent data; the other modes rely
+            // on heights, subregions and history it does not have, so they are not offered.
+            _mapMode = new ParameterEnum<MapMode>("Map mode", MapMode.Elevation, [MapMode.Elevation, MapMode.Continents]);
+
             _mapSettings.Add(_gridLevel);
+            _mapSettings.Add(_mapMode);
             _mapSettings.RegisterProvider(panel);
 
             _generationSettings.Add(_regenerate);

@@ -168,20 +168,14 @@ namespace WorldSimulationForm
             throw new NotImplementedException();
         }
 
-        public bool IsLand(WorldCell cell)
-        {
-            throw new NotImplementedException();
-        }
+        public bool IsLand(WorldCell cell) => _gen.IsLand(cell);
 
         public bool IsLand(Subregion subregion)
         {
             throw new NotImplementedException();
         }
 
-        public bool IsSea(WorldCell cell)
-        {
-            throw new NotImplementedException();
-        }
+        public bool IsSea(WorldCell cell) => _gen.IsSea(cell);
 
         public bool IsSea(Subregion subregion)
         {

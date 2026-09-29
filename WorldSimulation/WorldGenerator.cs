@@ -8,9 +8,21 @@ using Utilities;
 
 namespace WorldSimulation
 {
+    /// <summary>
+    /// A continent: the set of tiles descended from one tile of the base (layer 0) grid.
+    /// One is created for every base-layer tile — land and sea alike — and inherited by all
+    /// its descendants, so at any layer a cell's Continent identifies the base tile it comes from.
+    /// </summary>
+    public class Continent
+    {
+        public int Id { get; }
+        public Continent(int id) => Id = id;
+    }
+
     public class WorldCell : LayerHexCell<WorldCell, WorldEdge>
     {
         public Elevation Elevation { get; internal set; } = Elevation.DeepOcean;
+        public Continent? Continent { get; internal set; }
     }
     public class WorldEdge : LayerEdge<WorldCell, WorldEdge> { }
     public class WorldGrid : HexGrid<WorldCell, WorldEdge>
@@ -36,6 +48,14 @@ namespace WorldSimulation
 
             _grids.Clear();
             _grids.Add(new WorldGrid(10, 7));
+
+            // Every base-layer tile — land or sea — gets its own continent. The shuffled order
+            // decorrelates the id (and thus the map color) from the tile's position, so adjacent
+            // tiles almost always end up with different colors.
+            int continentId = 0;
+            foreach (WorldCell cell in rng_e.Permutation(_grids[0].Cells.ToList()))
+                cell.Continent = new Continent(continentId++);
+
             GenerateRandom(_grids[0], rng_e, Parameters.SeaPct);
 
             for (int i = 0; i < GridLevels - 1; i++)
@@ -91,6 +111,7 @@ namespace WorldSimulation
             {
                 WorldCell parent = cell.Parent ?? throw new Exception();
                 cell.Elevation = parent.Elevation;
+                cell.Continent = parent.Continent;
             }
             foreach (WorldEdge edge in childGrid.Edges.Where(e => e.Parent != null))
             {

@@ -28,7 +28,8 @@ namespace WorldSimulationForm
 
             _gridLevel = new ParameterArray("Grid level", _generator.GridLevels, Enumerable.Range(0, _generator.GridLevels + 1).Cast<object>());
 
-            _mapMode.Update(this, MapMode.Biomes);
+            // The legacy generator has no continent data, so the Continents mode is not offered.
+            _mapMode = new ParameterEnum<MapMode>("Map mode", MapMode.Biomes, [MapMode.Elevation, MapMode.Height, MapMode.Temperature, MapMode.Precipitation, MapMode.Biomes, MapMode.Pops, MapMode.Cells, MapMode.Landmasses]);
 
             _mapSettings.Add(_gridLevel);
             _mapSettings.Add(_mapMode);

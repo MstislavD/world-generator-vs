@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -142,5 +142,8 @@ namespace Utilities
         where T: Enum
     {
         public ParameterEnum(string name, T defaultValue) : base(name, defaultValue, Enum.GetValues(typeof(T)).Cast<object>().ToList()) { }
+
+        /// <summary>Creates a parameter offering only the given subset of the enum's values.</summary>
+        public ParameterEnum(string name, T defaultValue, IEnumerable<T> possibleValues) : base(name, defaultValue, possibleValues.Cast<object>().ToList()) { }
     }
 }

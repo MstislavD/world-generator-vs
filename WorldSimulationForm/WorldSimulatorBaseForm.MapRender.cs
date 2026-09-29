@@ -70,6 +70,7 @@ namespace WorldSimulationForm
                     MapMode.Pops => _popImage(),
                     MapMode.Cells => _cellsImage(),
                     MapMode.Landmasses => _landmassImage(),
+                    MapMode.Continents => _continentsImage(grid),
                     _ => throw new Exception()
                 };
 
@@ -105,6 +106,64 @@ namespace WorldSimulationForm
             outline?.Dispose();
 
             _newHighlight = false;
+        }
+
+        private RenderObjects _continentsImage(WorldGrid grid)
+        {
+            RenderObjects objects = new RenderObjects();
+
+            // Every cell descends from a base-layer tile, so the set of distinct continents is
+            // the same at every level; ordering them by id keeps each continent's color stable
+            // when switching grid levels. Evenly spaced hues make all continents distinguishable.
+            List<Continent> continents = grid.Cells.Select(c => c.Continent).Where(c => c != null).Distinct().OrderBy(c => c.Id).ToList();
+            int count = continents.Count;
+            if (count == 0) return objects;
+
+            // Land tiles keep the full continent color; sea tiles use a desaturated, darkened
+            // version of the same hue so they read as ocean while staying tied to their continent.
+            Dictionary<Continent, Brush> landBrushByContinent = new Dictionary<Continent, Brush>();
+            Dictionary<Continent, Brush> seaBrushByContinent = new Dictionary<Continent, Brush>();
+            for (int i = 0; i < count; i++)
+            {
+                double hue = 360.0 * i / count;
+                landBrushByContinent[continents[i]] = new SolidBrush(_hsvToColor(hue, 0.75, 1.0));
+                seaBrushByContinent[continents[i]] = new SolidBrush(_hsvToColor(hue, 0.25, 0.45));
+            }
+
+            foreach (WorldCell cell in grid.Cells)
+            {
+                Brush brush = _generator.IsSea(cell) ? seaBrushByContinent[cell.Continent!] : landBrushByContinent[cell.Continent!];
+                objects.Polygons.Add(new PolygonData(cell, brush));
+            }
+
+            // Outline the borders between different continents so boundaries stay visible
+            // even when two neighboring colors happen to be close.
+            Pen borderPen = new Pen(Color.Black);
+            objects.Segments.AddRange(grid.Edges
+                .Where(e => e.Cell1?.Continent != null && e.Cell2?.Continent != null && !ReferenceEquals(e.Cell1.Continent, e.Cell2.Continent))
+                .Select(e => new SegmentData(e, borderPen)));
+
+            return objects;
+        }
+
+        static Color _hsvToColor(double hue, double saturation, double value)
+        {
+            hue = (hue % 360 + 360) % 360;
+            double c = value * saturation;
+            double x = c * (1 - Math.Abs((hue / 60.0) % 2 - 1));
+            double m = value - c;
+
+            (double r, double g, double b) = hue switch
+            {
+                < 60 => (c, x, 0.0),
+                < 120 => (x, c, 0.0),
+                < 180 => (0.0, c, x),
+                < 240 => (0.0, x, c),
+                < 300 => (x, 0.0, c),
+                _ => (c, 0.0, x)
+            };
+
+            return Color.FromArgb((int)((r + m) * 255), (int)((g + m) * 255), (int)((b + m) * 255));
         }
 
         private RenderObjects _elevationImage(WorldGrid grid)
