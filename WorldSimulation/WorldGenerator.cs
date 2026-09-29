@@ -24,7 +24,14 @@ namespace WorldSimulation
         public Elevation Elevation { get; internal set; } = Elevation.DeepOcean;
         public Continent? Continent { get; internal set; }
     }
-    public class WorldEdge : LayerEdge<WorldCell, WorldEdge> { }
+    public class WorldEdge : LayerEdge<WorldCell, WorldEdge>
+    {
+        /// <summary>
+        /// True if this edge is a ridge. Assigned randomly to some base-layer edges and
+        /// inherited from the parent edge on every subsequent layer.
+        /// </summary>
+        public bool Ridge { get; set; }
+    }
     public class WorldGrid : HexGrid<WorldCell, WorldEdge>
     {
         public WorldGrid(int columns, int rows) : base(columns, rows) { }
@@ -33,6 +40,9 @@ namespace WorldSimulation
     public class WorldGenerator : IFactoryGrid<WorldGrid>
     {
         public WorldGenerationParameters Parameters { get; } = new();
+
+        /// <summary>Fraction of base-layer edges that become ridges.</summary>
+        const double RidgePct = 0.1;
 
         List<WorldGrid> _grids = [];
         public int GridLevels { get; } = 5;
@@ -58,6 +68,11 @@ namespace WorldSimulation
 
             GenerateRandom(_grids[0], rng_e, Parameters.SeaPct);
 
+            // A few base-layer edges become ridges; every subsequent layer inherits the flag
+            // from its parent edge (see GenerateFromParent).
+            foreach (WorldEdge edge in _grids[0].Edges)
+                edge.Ridge = rng_e.NextDouble() < RidgePct;
+
             for (int i = 0; i < GridLevels - 1; i++)
             {
                 WorldGrid grid = ChildGridGenerator.CreateChildGrid<WorldGrid, WorldCell, WorldEdge>(_grids[i], this, rng_e);
@@ -66,6 +81,11 @@ namespace WorldSimulation
                     _swapElevations(grid, rng_e);
                 _grids.Add(grid);
             }
+
+            // On the last layer, land cells whose parent was chosen from exactly two candidates
+            // joined by a ridge become mountains: every previous-layer ridge turns into a
+            // one-tile-wide chain of mountain tiles.
+            _makeMountains(_grids[^1]);
 
             GenerationIsComplete = true;
             OnGenerationComplete.Invoke(this, EventArgs.Empty);
@@ -113,9 +133,33 @@ namespace WorldSimulation
                 cell.Elevation = parent.Elevation;
                 cell.Continent = parent.Continent;
             }
+            // Boundary edges inherit the ridge flag from their parent; edges that lie entirely
+            // inside one parent tile have no parent edge and stay non-ridge.
             foreach (WorldEdge edge in childGrid.Edges.Where(e => e.Parent != null))
+                edge.Ridge = edge.Parent.Ridge;
+        }
+
+        /// <summary>
+        /// On the last layer, a land cell becomes a mountain when its parent was chosen from exactly two
+        /// candidates (see ChildGridGenerator.CreateChildGrid) and those two candidates are joined by a ridge
+        /// in the previous layer. Every previous-layer ridge thus turns into a one-tile-wide chain of mountains.
+        /// </summary>
+        void _makeMountains(WorldGrid grid)
+        {
+            foreach (WorldCell cell in grid.Cells)
             {
-                
+                if (!IsLand(cell)) continue;
+
+                // The cell's parent must have been chosen from exactly two candidates joined by a ridge.
+                List<WorldCell>? candidates = cell.ParentCandidates;
+                if (candidates == null || candidates.Count != 2) continue;
+
+                WorldCell a = candidates[0];
+                WorldCell b = candidates[1];
+                if (!a.Neighbors.Contains(b)) continue;
+
+                if (a.GetEdgeByNeighbor(b).Ridge)
+                    cell.Elevation = Elevation.Mountain;
             }
         }
 

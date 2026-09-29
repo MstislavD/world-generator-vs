@@ -150,8 +150,7 @@ namespace WorldSimulationForm
             throw new NotImplementedException();
         }
 
-        // temp
-        public bool HasRidge(WorldEdge edge) => false;
+        public bool HasRidge(WorldEdge edge) => edge.Ridge;
 
         public bool HasRidge(Subregion subregion)
         {

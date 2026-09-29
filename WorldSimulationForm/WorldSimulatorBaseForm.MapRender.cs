@@ -174,9 +174,10 @@ namespace WorldSimulationForm
             brushByElevation[Elevation.Lowland] = new SolidBrush(Color.Green);
             brushByElevation[Elevation.Upland] = new SolidBrush(Color.Yellow);
             brushByElevation[Elevation.Highland] = new SolidBrush(Color.Orange);
-            brushByElevation[Elevation.Mountain] = new SolidBrush(Color.Brown);
+            brushByElevation[Elevation.Mountain] = new SolidBrush(Color.DarkRed);
 
-            Pen ridgePen = new Pen(Color.DarkRed, 0);
+            // Width 0 makes the renderer pick a thickness proportional to the tile size (hex side x scale).
+            Pen ridgePen = new Pen(Color.Black, 0);
             ridgePen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
             ridgePen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
 

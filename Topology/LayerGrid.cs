@@ -28,12 +28,29 @@ namespace Topology
         }
     }
 
-    public class LayerHexCell<TCell, TEdge> : HexCell<TCell, TEdge>, ITreeNode<TCell>
+    /// <summary>
+    /// A tree node whose parent is chosen from a set of candidates (see ChildGridGenerator.CreateChildGrid).
+    /// </summary>
+    public interface IHasParentCandidates<T>
+    {
+        /// <summary>
+        /// The candidates considered when the parent was chosen; null if the parent was assigned directly.
+        /// </summary>
+        List<T>? ParentCandidates { get; set; }
+    }
+
+    public class LayerHexCell<TCell, TEdge> : HexCell<TCell, TEdge>, ITreeNode<TCell>, IHasParentCandidates<TCell>
     {
         List<TCell>? _children;
         public TCell? Parent { get; set; }
         public IEnumerable<TCell>? Children => _children;
         public int ChildrenCount => _children == null ? 0 : _children.Count;
+
+        /// <summary>
+        /// The candidates considered when this cell's parent was chosen (see ChildGridGenerator.CreateChildGrid);
+        /// null if the parent was assigned directly.
+        /// </summary>
+        public List<TCell>? ParentCandidates { get; set; }
         public void AddChild(TCell cell)
         {
             _children = _children ?? new List<TCell>();
@@ -72,7 +89,7 @@ namespace Topology
         static public TGrid CreateChildGrid<TGrid, TCell, TEdge>(TGrid parentGrid, IFactoryGrid<TGrid> factory,
             RandomExt random, bool wideBorders = false, int? sizeVariance = null)
             where TGrid : IHexGrid, IGrid<TCell>, IEdges<TEdge>
-            where TCell : INode<TCell>, INode<TCell, TEdge>, ITreeNode<TCell>
+            where TCell : INode<TCell>, INode<TCell, TEdge>, ITreeNode<TCell>, IHasParentCandidates<TCell>
             where TEdge : IEdge<TCell>, ITreeNode<TEdge>
         {
             int dh = wideBorders ? 1 : -1;
@@ -132,6 +149,7 @@ namespace Topology
                     parent = candidates[0];
                 }
 
+                cell.ParentCandidates = candidates;
                 sizeByParent[parent] += 1;
                 cell.Parent = parent ?? throw new Exception();
                 parent.AddChild(cell);
