@@ -176,17 +176,20 @@ namespace WorldSimulationForm
             brushByElevation[Elevation.Highland] = new SolidBrush(Color.Orange);
             brushByElevation[Elevation.Mountain] = new SolidBrush(Color.DarkRed);
 
-            // Width 0 makes the renderer pick a thickness proportional to the tile size (hex side x scale).
-            Pen ridgePen = new Pen(Color.Black, 0);
-            ridgePen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
-            ridgePen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
-
             RenderObjects objects = new RenderObjects();
             objects.Polygons.AddRange(grid.Cells.Select(c => new PolygonData(c, brushByElevation[_generator.GetElevation(c)])));
             IEnumerable<WorldEdge> edges = _regionBorder.Current ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
             Pen blackPen = new Pen(Color.Black);
             objects.Segments.AddRange(edges.Select(e => new SegmentData(e, blackPen)));
-            objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
+
+            if (_showRidges.Current)
+            {
+                // Width 0 makes the renderer pick a thickness proportional to the tile size (hex side x scale).
+                Pen ridgePen = new Pen(Color.Black, 0);
+                ridgePen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+                ridgePen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
+            }
 
             return objects;
         }
@@ -196,7 +199,7 @@ namespace WorldSimulationForm
             Color lowlandColor = Color.Green;
             Color uplandColor = Color.Yellow;
             Color highlandColor = Color.Orange;
-            Color mountainColor = Color.Brown;
+            Color mountainColor = Color.DarkRed;
             Color ridgeColor = Color.DarkRed;
             Color shallowColor = Color.Blue;
             Color deepColor = Color.MediumBlue;
@@ -252,7 +255,9 @@ namespace WorldSimulationForm
                 IEnumerable<WorldEdge> edges = _regionBorder.Current ? grid.Edges.Where(_generator.RegionBorder) : grid.Edges.Where(_generator.IsShore);
                 Pen blackPen = new Pen(Color.Black);
                     objects.Segments.AddRange(edges.Select(e => new SegmentData(e, blackPen)));
-                objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
+
+                if (_showRidges.Current)
+                    objects.Segments.AddRange(grid.Edges.Where(_generator.HasRidge).Select(e => new SegmentData(e, ridgePen)));
 
                 IEnumerable<Vector2[]> cellRivers = grid.Cells.Where(_generator.IsLand).Where(_generator.HasRiver).Select(c => new Vector2[] { c.Center, _generator.GetDrainage(c).Center });
                 objects.Segments.AddRange(cellRivers.Select(s => new SegmentData(s, Color.Blue)));
@@ -279,7 +284,7 @@ namespace WorldSimulationForm
 
                 if (_generator.IsSea(s))
                     color = Color.Blue;// Color.FromArgb(75, ...)
-                if (_generator.HasRidge(s))
+                if (_showRidges.Current && _generator.HasRidge(s))
                     color = Color.DarkRed;
 
                 return new SolidBrush(color);
@@ -321,7 +326,7 @@ namespace WorldSimulationForm
 
                 if (s.Region.IsSea)
                     color = Color.Blue; // Color.FromArgb(75, color);
-                if (s.Region.IsRidge)
+                if (_showRidges.Current && s.Region.IsRidge)
                     color = Color.DarkRed;
 
                 return new SolidBrush(color);

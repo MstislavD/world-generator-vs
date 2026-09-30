@@ -45,6 +45,9 @@ namespace WorldSimulationForm
         protected ParameterEnum<MapMode> _mapMode = new("Map mode", MapMode.Elevation);
         Parameter<bool> _regionBorder = new("Region borders", false);
         protected Parameter<bool> _subregionBorder = new("SRegion borders", false);
+
+        // Whether ridge markers (ridge lines / red ridge regions) are drawn on the map.
+        protected Parameter<bool> _showRidges = new("Ridges", true);
         protected ParameterArray _texture = new("Texture", "Texture", ["Color", "Texture", "Texture Imp"]);
         protected Parameter<bool> _regenerate = new("New seed", true);
 

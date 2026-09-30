@@ -36,6 +36,7 @@ namespace WorldSimulationForm
             //_mapSettings.Add(_regionBorder);
             _mapSettings.Add(_subregionBorder);
             _mapSettings.Add(_texture);
+            _mapSettings.Add(_showRidges);
             _mapSettings.RegisterProvider(panel);
 
             _generationSettings.Add(_regenerate);

@@ -41,7 +41,7 @@ namespace WorldSimulation
     {
         public WorldGenerationParameters Parameters { get; } = new();
 
-        /// <summary>Fraction of base-layer edges that become ridges.</summary>
+        /// <summary>Target fraction of base-layer edges that become ridges; the exact count is fixed per generation (see Generate).</summary>
         const double RidgePct = 0.1;
 
         List<WorldGrid> _grids = [];
@@ -68,24 +68,32 @@ namespace WorldSimulation
 
             GenerateRandom(_grids[0], rng_e, Parameters.SeaPct);
 
-            // A few base-layer edges become ridges; every subsequent layer inherits the flag
+            // A fixed number of base-layer edges become ridges — exactly (int)(edge count * RidgePct),
+            // so the count is constant between generations and only the choice of edges varies.
+            // Only edges that touch land are eligible. Every subsequent layer inherits the flag
             // from its parent edge (see GenerateFromParent).
-            foreach (WorldEdge edge in _grids[0].Edges)
-                edge.Ridge = rng_e.NextDouble() < RidgePct;
+            List<WorldEdge> edges = _grids[0].Edges.ToList();
+            List<WorldEdge> eligible = edges.Where(e => IsLand(e.Cell1) || (e.Cell2 != null && IsLand(e.Cell2))).ToList();
+            int ridgeCount = Math.Min((int)(edges.Count * RidgePct), eligible.Count);
+            foreach (WorldEdge edge in rng_e.Permutation(eligible).Take(ridgeCount))
+                edge.Ridge = true;
 
             for (int i = 0; i < GridLevels - 1; i++)
             {
                 WorldGrid grid = ChildGridGenerator.CreateChildGrid<WorldGrid, WorldCell, WorldEdge>(_grids[i], this, rng_e);
                 GenerateFromParent(grid);
-                if (Parameters.SeaToLand) 
+
+                // The last layer only undergoes the inherit pass — no land/sea swaps.
+                if (Parameters.SeaToLand && i + 1 < GridLevels - 1)
                     _swapElevations(grid, rng_e);
+
+                // Mountains are placed on the second-to-last layer — after its swaps, so they survive them —
+                // and the last layer inherits the mountain elevation from these cells.
+                if (i + 1 == GridLevels - 2)
+                    _makeMountains(grid);
+
                 _grids.Add(grid);
             }
-
-            // On the last layer, land cells whose parent was chosen from exactly two candidates
-            // joined by a ridge become mountains: every previous-layer ridge turns into a
-            // one-tile-wide chain of mountain tiles.
-            _makeMountains(_grids[^1]);
 
             GenerationIsComplete = true;
             OnGenerationComplete.Invoke(this, EventArgs.Empty);
@@ -140,9 +148,10 @@ namespace WorldSimulation
         }
 
         /// <summary>
-        /// On the last layer, a land cell becomes a mountain when its parent was chosen from exactly two
-        /// candidates (see ChildGridGenerator.CreateChildGrid) and those two candidates are joined by a ridge
-        /// in the previous layer. Every previous-layer ridge thus turns into a one-tile-wide chain of mountains.
+        /// On the second-to-last layer, a land cell becomes a mountain when its parent was chosen from exactly two
+        /// candidates (see ChildGridGenerator.CreateChildGrid) and those two candidates are joined by a ridge in the
+        /// previous layer. Every ridge thus turns into a one-tile-wide chain of mountains on that layer; the last
+        /// layer inherits the mountain elevation from these cells.
         /// </summary>
         void _makeMountains(WorldGrid grid)
         {

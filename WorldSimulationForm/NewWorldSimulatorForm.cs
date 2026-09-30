@@ -51,6 +51,7 @@ namespace WorldSimulationForm
 
             _mapSettings.Add(_gridLevel);
             _mapSettings.Add(_mapMode);
+            _mapSettings.Add(_showRidges);
             _mapSettings.RegisterProvider(panel);
 
             _generationSettings.Add(_regenerate);
