@@ -22,22 +22,23 @@ namespace WorldSimulation
         {
             Seed = new ParameterSeed("Seed", random.Next());
 
-            // SeaPct is kept for programmatic use but not shown in the UI for now
+            Add(Seed, false);
+            Add(SeaPct, false);
             Add(SeaToLand);
             Add(SwapPct);
         }
 
-        /// <summary>Rolls a fresh random seed.</summary>
-        public void RegenerateSeeds()
-        {
-            Seed.Update(this, random.Next());
-        }
+        ///// <summary>Rolls a fresh random seed.</summary>
+        //public void RegenerateSeeds()
+        //{
+        //    Seed.Update(this, random.Next());
+        //}
 
-        /// <summary>Sets the main seed; per-stage sub-seeds (if any) will be derived from it.</summary>
-        public void RegenerateSeeds(int seed)
-        {
-            random = new RandomExt(seed);
-            Seed.Update(this, seed);
-        }
+        ///// <summary>Sets the main seed; per-stage sub-seeds (if any) will be derived from it.</summary>
+        //public void RegenerateSeeds(int seed)
+        //{
+        //    random = new RandomExt(seed);
+        //    Seed.Update(this, seed);
+        //}
     }
 }

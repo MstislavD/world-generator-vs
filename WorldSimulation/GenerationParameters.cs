@@ -58,7 +58,13 @@ namespace WorldSimulation
             HeightSeed = new("Height Seed", random.Next());
             PrecipitationSeed = new("Precipitation Seed", random.Next());
 
-            seedParameters.AddRange([MainSeed, SubregionSeed, DeformationSeed, HeightSeed, PrecipitationSeed]);
+            //seedParameters.AddRange([MainSeed, SubregionSeed, DeformationSeed, HeightSeed, PrecipitationSeed]);
+
+            Add(MainSeed, false);
+            Add(SubregionSeed, false);
+            Add(DeformationSeed, false);
+            Add(HeightSeed, false);
+            Add(PrecipitationSeed, false);
 
             Add(MapScript);
             Add(LandSize);
@@ -66,16 +72,16 @@ namespace WorldSimulation
             Add(Climate);
         }
 
-        public void RegenerateSeeds()
-        {
-            foreach (Parameter parameter in seedParameters)
-                parameter.Update(this, random.Next());
-        }
+        //public void RegenerateSeeds()
+        //{
+        //    foreach (Parameter parameter in seedParameters)
+        //        parameter.Update(this, random.Next());
+        //}
 
-        public void RegenerateSeeds(int seed)
-        {
-            random = new RandomExt(seed);
-            RegenerateSeeds();
-        }
+        //public void RegenerateSeeds(int seed)
+        //{
+        //    random = new RandomExt(seed);
+        //    RegenerateSeeds();
+        //}
     }
 }
