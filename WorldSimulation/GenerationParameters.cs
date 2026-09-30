@@ -16,8 +16,6 @@ namespace WorldSimulation
     {
         RandomExt random = new RandomExt();
 
-        List<ParameterSeed> seedParameters = new List<ParameterSeed>();
-
         public ParameterRange<int> DeformationFrequencyMin { get; } = new("Frequency Min", 2, 1, 500);
         public ParameterRange<double> DeformationStrengthMax { get; } = new("Strength Max", 10.0, 0.1, 50);
         public ParameterRange<int> DeformationFrequencyMax { get; } = new("Frequency Max", 100, 1, 500);
@@ -58,8 +56,6 @@ namespace WorldSimulation
             HeightSeed = new("Height Seed", random.Next());
             PrecipitationSeed = new("Precipitation Seed", random.Next());
 
-            //seedParameters.AddRange([MainSeed, SubregionSeed, DeformationSeed, HeightSeed, PrecipitationSeed]);
-
             Add(MainSeed, false);
             Add(SubregionSeed, false);
             Add(DeformationSeed, false);
@@ -71,17 +67,5 @@ namespace WorldSimulation
             Add(Hemispheres);
             Add(Climate);
         }
-
-        //public void RegenerateSeeds()
-        //{
-        //    foreach (Parameter parameter in seedParameters)
-        //        parameter.Update(this, random.Next());
-        //}
-
-        //public void RegenerateSeeds(int seed)
-        //{
-        //    random = new RandomExt(seed);
-        //    RegenerateSeeds();
-        //}
     }
 }

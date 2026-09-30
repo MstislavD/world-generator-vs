@@ -41,9 +41,6 @@ namespace WorldSimulation
     {
         public WorldGenerationParameters Parameters { get; } = new();
 
-        /// <summary>Target fraction of base-layer edges that become ridges; the exact count is fixed per generation (see Generate).</summary>
-        const double RidgePct = 0.1;
-
         List<WorldGrid> _grids = [];
         public int GridLevels { get; } = 5;
         public WorldGrid? Grid(int level) => level >= 0 && _grids.Count > level ? _grids[level] : null;
@@ -68,13 +65,13 @@ namespace WorldSimulation
 
             GenerateRandom(_grids[0], rng_e, Parameters.SeaPct);
 
-            // A fixed number of base-layer edges become ridges — exactly (int)(edge count * RidgePct),
+            // A fixed number of base-layer edges become ridges — exactly (int)(edge count * Parameters.RidgePct),
             // so the count is constant between generations and only the choice of edges varies.
             // Only edges that touch land are eligible. Every subsequent layer inherits the flag
             // from its parent edge (see GenerateFromParent).
             List<WorldEdge> edges = _grids[0].Edges.ToList();
             List<WorldEdge> eligible = edges.Where(e => IsLand(e.Cell1) || (e.Cell2 != null && IsLand(e.Cell2))).ToList();
-            int ridgeCount = Math.Min((int)(edges.Count * RidgePct), eligible.Count);
+            int ridgeCount = Math.Min((int)(edges.Count * Parameters.RidgePct.Current), eligible.Count);
             foreach (WorldEdge edge in rng_e.Permutation(eligible).Take(ridgeCount))
                 edge.Ridge = true;
 

@@ -18,6 +18,9 @@ namespace WorldSimulation
         /// <summary>Fraction of the level's tiles swapped between sea and land (both directions combined).</summary>
         public ParameterRange<double> SwapPct { get; } = new("Swaps %", 0.025, 0, 1);
 
+        /// <summary>Target fraction of base-layer edges that become ridges.</summary>
+        public ParameterRange<double> RidgePct { get; } = new("Ridges %", 0.2, 0, 1);
+
         public WorldGenerationParameters()
         {
             Seed = new ParameterSeed("Seed", random.Next());
@@ -26,19 +29,7 @@ namespace WorldSimulation
             Add(SeaPct, false);
             Add(SeaToLand);
             Add(SwapPct);
+            Add(RidgePct, false);
         }
-
-        ///// <summary>Rolls a fresh random seed.</summary>
-        //public void RegenerateSeeds()
-        //{
-        //    Seed.Update(this, random.Next());
-        //}
-
-        ///// <summary>Sets the main seed; per-stage sub-seeds (if any) will be derived from it.</summary>
-        //public void RegenerateSeeds(int seed)
-        //{
-        //    random = new RandomExt(seed);
-        //    Seed.Update(this, seed);
-        //}
     }
 }
